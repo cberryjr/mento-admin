@@ -1,6 +1,6 @@
 # Story 1.1: Set Up Initial Project from Starter Template
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -22,68 +22,68 @@ So that I can reliably access and evolve the workspace on a safe baseline.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Initialize the Next.js project from the official starter (AC: #1)
-  - [ ] 1.1 Run `npx create-next-app@latest mento-admin --ts --eslint --tailwind --app --src-dir --import-alias "@/*" --use-npm` from the parent directory of the workspace
-  - [ ] 1.2 Verify the generated project compiles, starts locally, and the default page renders
-  - [ ] 1.3 Confirm `package.json` has correct `name`, `scripts` include `dev`, `build`, `start`, `lint`
-  - [ ] 1.4 Confirm the `src/` directory exists with `app/` subdirectory, `layout.tsx`, `page.tsx`, and `globals.css`
-  - [ ] 1.5 Confirm `tsconfig.json` includes `"@/*"` path alias mapping to `"./src/*"`
+- [x] Task 1: Initialize the Next.js project from the official starter (AC: #1)
+  - [x] 1.1 Run `npx create-next-app@latest mento-admin --ts --eslint --tailwind --app --src-dir --import-alias "@/*" --use-npm` from the parent directory of the workspace
+  - [x] 1.2 Verify the generated project compiles, starts locally, and the default page renders
+  - [x] 1.3 Confirm `package.json` has correct `name`, `scripts` include `dev`, `build`, `start`, `lint`
+  - [x] 1.4 Confirm the `src/` directory exists with `app/` subdirectory, `layout.tsx`, `page.tsx`, and `globals.css`
+  - [x] 1.5 Confirm `tsconfig.json` includes `"@/*"` path alias mapping to `"./src/*"`
 
-- [ ] Task 2: Establish environment configuration with centralized validation (AC: #3)
-  - [ ] 2.1 Create `src/lib/env.ts` with Zod-based environment variable validation
-  - [ ] 2.2 Define environment variable schema covering: `DATABASE_URL` (required in production), `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `SENTRY_DSN` (optional), `RESEND_API_KEY` (optional), `NODE_ENV`
-  - [ ] 2.3 Create `.env.example` documenting all expected variables with placeholder values
-  - [ ] 2.4 Create `.env.local` (gitignored) with safe local development defaults
-  - [ ] 2.5 Ensure `src/lib/env.ts` is importable and validates at startup; invalid config surfaces a clear error
+- [x] Task 2: Establish environment configuration with centralized validation (AC: #3)
+  - [x] 2.1 Create `src/lib/env.ts` with Zod-based environment variable validation
+  - [x] 2.2 Define environment variable schema covering: `DATABASE_URL` (required in production), `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `SENTRY_DSN` (optional), `RESEND_API_KEY` (optional), `NODE_ENV`
+  - [x] 2.3 Create `.env.example` documenting all expected variables with placeholder values
+  - [x] 2.4 Create `.env.local` (gitignored) with safe local development defaults
+  - [x] 2.5 Ensure `src/lib/env.ts` is importable and validates at startup; invalid config surfaces a clear error
 
-- [ ] Task 3: Set up the CI pipeline with GitHub Actions (AC: #2)
-  - [ ] 3.1 Create `.github/workflows/ci.yml` that triggers on push to `main` and on pull requests
-  - [ ] 3.2 CI steps: checkout, setup Node.js 20.x, `npm ci`, `npm run lint`, `npx tsc --noEmit`, `npm test -- --passWithNoTests` (or equivalent), `npm run build`
-  - [ ] 3.3 Ensure any step failure blocks the pipeline (exit code propagation)
-  - [ ] 3.4 Verify the workflow YAML is valid and complete
+- [x] Task 3: Set up the CI pipeline with GitHub Actions (AC: #2)
+  - [x] 3.1 Create `.github/workflows/ci.yml` that triggers on push to `main` and on pull requests
+  - [x] 3.2 CI steps: checkout, setup Node.js 20.x, `npm ci`, `npm run lint`, `npx tsc --noEmit`, `npm test -- --passWithNoTests` (or equivalent), `npm run build`
+  - [x] 3.3 Ensure any step failure blocks the pipeline (exit code propagation)
+  - [x] 3.4 Verify the workflow YAML is valid and complete
 
-- [ ] Task 4: Create the health-check endpoint (AC: #3)
-  - [ ] 4.1 Create `src/app/api/health/route.ts` as a GET Route Handler
-  - [ ] 4.2 Return `{ ok: true, timestamp: <ISO 8601> }` with status 200
-  - [ ] 4.3 Follow the standard response envelope pattern: `{ ok: true, data: { status: "healthy", timestamp } }`
+- [x] Task 4: Create the health-check endpoint (AC: #3)
+  - [x] 4.1 Create `src/app/api/health/route.ts` as a GET Route Handler
+  - [x] 4.2 Return `{ ok: true, timestamp: <ISO 8601> }` with status 200
+  - [x] 4.3 Follow the standard response envelope pattern: `{ ok: true, data: { status: "healthy", timestamp } }`
 
-- [ ] Task 5: Install and configure baseline dependencies (AC: #4)
-  - [ ] 5.1 Install Drizzle ORM (`drizzle-orm`) and Drizzle Kit (`drizzle-kit`) as dependencies
-  - [ ] 5.2 Create `drizzle.config.ts` at project root with PostgreSQL driver config reading `DATABASE_URL` from env
-  - [ ] 5.3 Create `src/server/db/index.ts` exporting a placeholder database client using `drizzle-orm/postgres-js` with `postgres` driver
-  - [ ] 5.4 Create `src/server/db/schema/` directory with an empty barrel `index.ts`
-  - [ ] 5.5 Create `drizzle/migrations/` directory (empty, ready for future migrations)
-  - [ ] 5.6 Install `@sentry/nextjs` and create baseline Sentry config files: `sentry.client.config.ts`, `sentry.server.config.ts`, and `instrumentation.ts` (all reading from env, no-op if DSN is absent)
-  - [ ] 5.7 Install Zod (`zod`) for validation
-  - [ ] 5.8 Install `postgres` (the PostgreSQL driver for drizzle-orm/postgres-js)
+- [x] Task 5: Install and configure baseline dependencies (AC: #4)
+  - [x] 5.1 Install Drizzle ORM (`drizzle-orm`) and Drizzle Kit (`drizzle-kit`) as dependencies
+  - [x] 5.2 Create `drizzle.config.ts` at project root with PostgreSQL driver config reading `DATABASE_URL` from env
+  - [x] 5.3 Create `src/server/db/index.ts` exporting a placeholder database client using `drizzle-orm/postgres-js` with `postgres` driver
+  - [x] 5.4 Create `src/server/db/schema/` directory with an empty barrel `index.ts`
+  - [x] 5.5 Create `drizzle/migrations/` directory (empty, ready for future migrations)
+  - [x] 5.6 Install `@sentry/nextjs` and create baseline Sentry config files: `sentry.client.config.ts`, `sentry.server.config.ts`, and `instrumentation.ts` (all reading from env, no-op if DSN is absent)
+  - [x] 5.7 Install Zod (`zod`) for validation
+  - [x] 5.8 Install `postgres` (the PostgreSQL driver for drizzle-orm/postgres-js)
 
-- [ ] Task 6: Install and configure the test framework (AC: #2, #4)
-  - [ ] 6.1 Install Vitest, `@testing-library/react`, `@testing-library/jest-dom`, and `jsdom` as dev dependencies
-  - [ ] 6.2 Create `vitest.config.ts` at project root configured for `jsdom` environment, path aliases matching `tsconfig.json`, and `src/` as the test root
-  - [ ] 6.3 Add `"test"` script to `package.json` pointing to `vitest run`
-  - [ ] 6.4 Install Playwright (`@playwright/test`) as a dev dependency
-  - [ ] 6.5 Create `playwright.config.ts` at project root with `baseURL` for local dev server, `webServer` config for automatic start, and `tests/e2e/` as the test directory
-  - [ ] 6.6 Create `tests/e2e/` directory with a placeholder smoke test (e.g., verify the home page loads)
-  - [ ] 6.7 Create `tests/integration/` and `tests/fixtures/` and `tests/helpers/` directories (empty, ready for later stories)
-  - [ ] 6.8 Create a sample unit test co-located with source (e.g., `src/lib/env.test.ts`) that validates env parsing
+- [x] Task 6: Install and configure the test framework (AC: #2, #4)
+  - [x] 6.1 Install Vitest, `@testing-library/react`, `@testing-library/jest-dom`, and `jsdom` as dev dependencies
+  - [x] 6.2 Create `vitest.config.ts` at project root configured for `jsdom` environment, path aliases matching `tsconfig.json`, and `src/` as the test root
+  - [x] 6.3 Add `"test"` script to `package.json` pointing to `vitest run`
+  - [x] 6.4 Install Playwright (`@playwright/test`) as a dev dependency
+  - [x] 6.5 Create `playwright.config.ts` at project root with `baseURL` for local dev server, `webServer` config for automatic start, and `tests/e2e/` as the test directory
+  - [x] 6.6 Create `tests/e2e/` directory with a placeholder smoke test (e.g., verify the home page loads)
+  - [x] 6.7 Create `tests/integration/` and `tests/fixtures/` and `tests/helpers/` directories (empty, ready for later stories)
+  - [x] 6.8 Create a sample unit test co-located with source (e.g., `src/lib/env.test.ts`) that validates env parsing
 
-- [ ] Task 7: Scaffold the baseline project structure (AC: #4)
-  - [ ] 7.1 Create `src/lib/errors/` with `app-error.ts` and `error-codes.ts` stubs
-  - [ ] 7.2 Create `src/lib/validation/action-result.ts` defining the `ActionResult<T>` type: `{ ok: true, data: T } | { ok: false, error: { code: string, message: string, fieldErrors?: Record<string, string[]> } }`
-  - [ ] 7.3 Create `src/lib/utils/cn.ts` with a `cn()` helper using `clsx` + `tailwind-merge` (install both)
-  - [ ] 7.4 Create `src/server/` subdirectories: `auth/`, `analytics/`, `email/`, `monitoring/`, `pdf/` (empty `index.ts` or placeholder files)
-  - [ ] 7.5 Create `src/features/` directory (empty, ready for feature modules)
-  - [ ] 7.6 Create `src/components/ui/` and `src/components/app-shell/` and `src/components/feedback/` directories (empty, ready for component implementation)
-  - [ ] 7.7 Create `src/middleware.ts` as a placeholder exporting the Next.js middleware config with a `matcher` for `/(workspace)/(.*)` pattern (no auth logic yet -- that is Story 1.2)
-  - [ ] 7.8 Create `src/app/not-found.tsx` with a simple 404 page
-  - [ ] 7.9 Create `src/styles/tokens.css` as a placeholder for design tokens
-  - [ ] 7.10 Install `clsx` and `tailwind-merge` as dependencies
+- [x] Task 7: Scaffold the baseline project structure (AC: #4)
+  - [x] 7.1 Create `src/lib/errors/` with `app-error.ts` and `error-codes.ts` stubs
+  - [x] 7.2 Create `src/lib/validation/action-result.ts` defining the `ActionResult<T>` type: `{ ok: true, data: T } | { ok: false, error: { code: string, message: string, fieldErrors?: Record<string, string[]> } }`
+  - [x] 7.3 Create `src/lib/utils/cn.ts` with a `cn()` helper using `clsx` + `tailwind-merge` (install both)
+  - [x] 7.4 Create `src/server/` subdirectories: `auth/`, `analytics/`, `email/`, `monitoring/`, `pdf/` (empty `index.ts` or placeholder files)
+  - [x] 7.5 Create `src/features/` directory (empty, ready for feature modules)
+  - [x] 7.6 Create `src/components/ui/` and `src/components/app-shell/` and `src/components/feedback/` directories (empty, ready for component implementation)
+  - [x] 7.7 Create `src/middleware.ts` as a placeholder exporting the Next.js middleware config with a `matcher` for `/(workspace)/(.*)` pattern (no auth logic yet -- that is Story 1.2)
+  - [x] 7.8 Create `src/app/not-found.tsx` with a simple 404 page
+  - [x] 7.9 Create `src/styles/tokens.css` as a placeholder for design tokens
+  - [x] 7.10 Install `clsx` and `tailwind-merge` as dependencies
 
-- [ ] Task 8: Configure Vercel deployment baseline (AC: #3, #4)
-  - [ ] 8.1 Ensure `next.config.ts` is present and exports valid config (starter provides this)
-  - [ ] 8.2 Verify `.gitignore` covers `.env.local`, `.env*.local`, `node_modules/`, `.next/`, `out/`
-  - [ ] 8.3 Confirm the project builds cleanly with `npm run build`
-  - [ ] 8.4 Confirm the health endpoint works when running `npm run dev` locally
+- [x] Task 8: Configure Vercel deployment baseline (AC: #3, #4)
+  - [x] 8.1 Ensure `next.config.ts` is present and exports valid config (starter provides this)
+  - [x] 8.2 Verify `.gitignore` covers `.env.local`, `.env*.local`, `node_modules/`, `.next/`, `out/`
+  - [x] 8.3 Confirm the project builds cleanly with `npm run build`
+  - [x] 8.4 Confirm the health endpoint works when running `npm run dev` locally
 
 ## Dev Notes
 
@@ -267,10 +267,114 @@ Sentry files should be safe no-ops when `SENTRY_DSN` is not set:
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+openai/gpt-5.3-codex
 
 ### Debug Log References
 
+- `npx create-next-app@latest . --ts --eslint --tailwind --app --src-dir --import-alias "@/*" --use-npm --yes` failed due pre-existing workspace files.
+- `npx create-next-app@latest mento-admin-bootstrap --ts --eslint --tailwind --app --src-dir --import-alias "@/*" --use-npm --yes` succeeded; scaffold synced into repo root.
+- Validation runs passed: `npm run lint`, `npx tsc --noEmit`, `npm test`, `npm run build`, `npx playwright test tests/e2e/smoke.spec.ts --project=chromium`.
+- Runtime verification passed: `curl http://127.0.0.1:3000/api/health` while `npm run dev` served the app.
+
 ### Completion Notes List
 
+- Completed starter initialization with Next.js 16.1.6 + TypeScript/App Router/Tailwind/ESLint/src alias baseline in repository root.
+- Added centralized environment validation (`src/lib/env.ts`) with production `DATABASE_URL` requirement and startup import in `src/app/layout.tsx`.
+- Implemented CI workflow (`.github/workflows/ci.yml`) for lint, type-check, tests, and production build on push/PR.
+- Added health endpoint (`src/app/api/health/route.ts`) using standard success envelope.
+- Added infrastructure baseline: Drizzle config, placeholder DB client/schema scaffolding, Sentry setup hooks, middleware stub, core utility/error/validation stubs, and foundational directory structure.
+- Wired testing baseline with Vitest + Playwright and added unit/integration/e2e smoke coverage.
+- Code review fixes applied: added top-level health timestamp, hardened middleware matcher, removed DB URL fallbacks, tightened E2E title assertion, and corrected README `src/` path.
+
 ### File List
+
+- .env.example
+- .github/workflows/ci.yml
+- drizzle.config.ts
+- drizzle/migrations/.gitkeep
+- instrumentation.ts
+- package-lock.json
+- package.json
+- playwright.config.ts
+- sentry.client.config.ts
+- sentry.server.config.ts
+- src/app/api/health/route.ts
+- src/app/globals.css
+- src/app/layout.tsx
+- src/app/not-found.tsx
+- src/components/app-shell/.gitkeep
+- src/components/feedback/.gitkeep
+- src/components/ui/.gitkeep
+- src/features/.gitkeep
+- src/lib/env.test.ts
+- src/lib/env.ts
+- src/lib/errors/app-error.ts
+- src/lib/errors/error-codes.ts
+- src/lib/utils/cn.ts
+- src/lib/validation/action-result.ts
+- src/middleware.ts
+- src/server/analytics/index.ts
+- src/server/auth/index.ts
+- src/server/db/index.ts
+- src/server/db/schema/index.ts
+- src/server/email/index.ts
+- src/server/monitoring/index.ts
+- src/server/pdf/index.ts
+- src/styles/tokens.css
+- tests/e2e/smoke.spec.ts
+- tests/fixtures/.gitkeep
+- tests/helpers/.gitkeep
+- tests/integration/.gitkeep
+- tests/integration/api/.gitkeep
+- tests/integration/api/health-route.test.ts
+- tests/integration/db/.gitkeep
+- tests/integration/pdf/.gitkeep
+- vitest.config.ts
+- vitest.setup.ts
+- .gitignore
+- README.md
+- next.config.ts
+- postcss.config.mjs
+- eslint.config.mjs
+- tsconfig.json
+- public/file.svg
+- public/globe.svg
+- public/next.svg
+- public/vercel.svg
+- public/window.svg
+- src/app/favicon.ico
+- src/app/page.tsx
+
+### Change Log
+
+- 2026-03-15: Implemented Story 1.1 foundation baseline, validation/test infrastructure, CI pipeline, and deployment health scaffolding.
+- 2026-03-16: Addressed code review findings and revalidated lint, type-check, unit/integration/e2e tests, and production build.
+
+## Senior Developer Review (AI)
+
+### Review Date
+
+2026-03-16
+
+### Reviewer
+
+openai/gpt-5.3-codex
+
+### Outcome
+
+Approve
+
+### Summary
+
+- Verified Acceptance Criteria coverage and task completion against implementation files.
+- Identified and fixed all HIGH and MEDIUM findings during review session.
+- Re-ran quality gates after fixes: lint, type-check, unit/integration tests, build, and Playwright smoke test.
+
+### Action Items
+
+- [x] [High] Align health endpoint payload with story subtask expectations and keep standard envelope.
+- [x] [High] Correct middleware matcher placeholder to practical workspace path matching.
+- [x] [High] Remove hardcoded DB URL fallbacks from runtime/client and Drizzle config paths.
+- [x] [Medium] Tighten E2E smoke assertion to require project title.
+- [x] [Medium] Ensure Drizzle config uses centralized validated env source.
+- [x] [Low] Update README source path guidance for `src/` project layout.

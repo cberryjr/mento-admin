@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mento-admin UX Design Directions</title>
+  <style>
+    :root {
+      --bg: #f6f7f8;
+      --surface: #ffffff;
+      --surface-2: #fafafa;
+      --panel: #f3f4f6;
+      --ink: #111111;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #16a34a;
+      --accent-soft: rgba(22, 163, 74, 0.12);
+      --warning: #d97706;
+      --danger: #dc2626;
+      --shadow: 0 12px 30px rgba(17, 17, 17, 0.08);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-sm: 10px;
+      --space-1: 8px;
+      --space-2: 16px;
+      --space-3: 24px;
+      --space-4: 32px;
+      --space-5: 40px;
+      --space-6: 56px;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #fbfbfc 0%, #f1f4f5 100%);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.45;
+    }
+
+    a { color: inherit; }
+
+    .page {
+      max-width: 1540px;
+      margin: 0 auto;
+      padding: var(--space-5) var(--space-4) var(--space-6);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.35fr 0.95fr;
+      gap: var(--space-4);
+      align-items: start;
+      margin-bottom: var(--space-5);
+    }
+
+    .hero-card,
+    .panel-card {
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(229, 231, 235, 0.9);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius-xl);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero-card {
+      padding: var(--space-5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      inset: -30% auto auto 58%;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(22, 163, 74, 0.18) 0%, rgba(22, 163, 74, 0) 72%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: var(--space-2);
+    }
+
+    h1 {
+      font-size: clamp(36px, 4vw, 62px);
+      letter-spacing: -0.04em;
+      line-height: 0.98;
+      margin: 0 0 var(--space-2);
+      max-width: 9ch;
+    }
+
+    .hero p {
+      max-width: 70ch;
+      margin: 0 0 var(--space-3);
+      color: #374151;
+      font-size: 16px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-2);
+    }
+
+    .metric {
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 22px;
+      letter-spacing: -0.03em;
+      margin-bottom: 4px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .panel-card {
+      padding: var(--space-4);
+    }
+
+    .panel-card h2,
+    .directions h2,
+    .compare h2 {
+      font-size: 20px;
+      margin: 0 0 var(--space-2);
+      letter-spacing: -0.03em;
+    }
+
+    .panel-card ul,
+    .direction-notes ul,
+    .criteria ul {
+      margin: 0;
+      padding-left: 18px;
+      color: #374151;
+    }
+
+    .panel-card li,
+    .direction-notes li,
+    .criteria li { margin-bottom: 8px; }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: var(--space-4) 0 var(--space-3);
+    }
+
+    .chip {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--ink);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: 180ms ease;
+    }
+
+    .chip:hover,
+    .chip.active {
+      border-color: rgba(22, 163, 74, 0.35);
+      background: var(--accent-soft);
+      color: #14532d;
+    }
+
+    .directions {
+      display: grid;
+      gap: var(--space-4);
+    }
+
+    .direction {
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(229, 231, 235, 0.95);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .direction:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 36px rgba(17, 17, 17, 0.12);
+      border-color: rgba(22, 163, 74, 0.22);
+    }
+
+    .direction-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 26px 28px 18px;
+      border-bottom: 1px solid var(--border);
+      align-items: flex-start;
+    }
+
+    .direction-header h3 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      letter-spacing: -0.03em;
+    }
+
+    .direction-header p {
+      margin: 0;
+      color: #4b5563;
+      max-width: 72ch;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .tag {
+      font-size: 12px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: #374151;
+      white-space: nowrap;
+    }
+
+    .direction-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
+      gap: var(--space-3);
+      padding: var(--space-3) 28px 30px;
+      align-items: start;
+    }
+
+    .direction-notes {
+      border-left: 1px solid var(--border);
+      padding-left: var(--space-3);
+    }
+
+    .direction-notes h4,
+    .compare-grid h3 {
+      margin: 0 0 14px;
+      font-size: 15px;
+      letter-spacing: -0.02em;
+    }
+
+    .mockup {
+      min-height: 540px;
+      border-radius: 22px;
+      border: 1px solid var(--border);
+      background: #fff;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .chrome {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      background: #fafafa;
+    }
+
+    .chrome span {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #d1d5db;
+    }
+
+    .screen {
+      width: 100%;
+      min-height: calc(540px - 52px);
+      background: #fff;
+    }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: 240px minmax(0, 1fr) 320px;
+      min-height: calc(540px - 52px);
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+      border-right: 1px solid var(--border);
+      padding: 22px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-mark {
+      width: 12px;
+      height: 12px;
+      border-radius: 4px;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(22, 163, 74, 0.1);
+    }
+
+    .nav-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav-item {
+      padding: 11px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      color: #374151;
+      border: 1px solid transparent;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nav-item.active {
+      background: var(--accent-soft);
+      color: #14532d;
+      border-color: rgba(22, 163, 74, 0.2);
+      font-weight: 600;
+    }
+
+    .main {
+      padding: 24px;
+      background: #fcfcfc;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .main-header h4 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      letter-spacing: -0.04em;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .button-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .btn,
+    .ghost,
+    .quiet {
+      border-radius: 12px;
+      font-size: 13px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: default;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      background: #111111;
+      color: #fff;
+      border-color: #111111;
+    }
+
+    .btn.green {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .ghost { background: rgba(255, 255, 255, 0.8); }
+    .quiet { background: transparent; border-color: transparent; color: #4b5563; }
+
+    .grid-two,
+    .grid-three,
+    .grid-four {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card,
+    .table-card,
+    .summary,
+    .mini-card,
+    .timeline,
+    .metric-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+    }
+
+    .card,
+    .summary,
+    .metric-card,
+    .timeline { padding: 16px; }
+
+    .table-card { overflow: hidden; }
+
+    .card h5,
+    .summary h5,
+    .metric-card h5,
+    .timeline h5 {
+      margin: 0 0 12px;
+      font-size: 14px;
+      letter-spacing: -0.02em;
+    }
+
+    .field,
+    .line-item,
+    .row,
+    .metric-row,
+    .timeline-item,
+    .preview-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .field,
+    .line-item,
+    .metric-row,
+    .timeline-item,
+    .preview-row { padding: 10px 0; }
+
+    .field + .field,
+    .line-item + .line-item,
+    .metric-row + .metric-row,
+    .timeline-item + .timeline-item,
+    .preview-row + .preview-row { border-top: 1px solid var(--border); }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      white-space: nowrap;
+    }
+
+    .pill.green {
+      background: rgba(22, 163, 74, 0.1);
+      border-color: rgba(22, 163, 74, 0.18);
+      color: #166534;
+    }
+
+    .pill.gray {
+      background: #f3f4f6;
+      color: #4b5563;
+    }
+
+    .line-item strong,
+    .preview-row strong,
+    .field strong,
+    .metric-row strong,
+    .timeline-item strong { font-size: 13px; }
+
+    .sidebar-right {
+      border-left: 1px solid var(--border);
+      background: linear-gradient(180deg, #fdfdfd 0%, #f7f7f8 100%);
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .table-head,
+    .table-row {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr 0.7fr 0.6fr;
+      gap: 12px;
+      padding: 12px 16px;
+      font-size: 13px;
+      align-items: center;
+    }
+
+    .table-head {
+      background: #fafafa;
+      color: #6b7280;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .table-row + .table-row { border-top: 1px solid var(--border); }
+
+    .compare {
+      margin-top: var(--space-5);
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: var(--space-4);
+    }
+
+    .compare-grid,
+    .criteria {
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .compare-table {
+      display: grid;
+      grid-template-columns: 1.3fr repeat(6, minmax(0, 1fr));
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .compare-table div {
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid var(--border);
+    }
+
+    .compare-table .head {
+      background: #111111;
+      color: #fff;
+      border-color: #111111;
+      font-weight: 600;
+    }
+
+    .compare-table .label {
+      font-weight: 600;
+      background: #fafafa;
+    }
+
+    .muted-note {
+      color: #6b7280;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    .footer-note {
+      margin-top: var(--space-5);
+      padding: 18px 20px;
+      border-radius: 18px;
+      border: 1px dashed rgba(22, 163, 74, 0.28);
+      background: rgba(22, 163, 74, 0.06);
+      color: #14532d;
+    }
+
+    .direction[data-density="airy"] .main,
+    .direction[data-density="airy"] .sidebar,
+    .direction[data-density="airy"] .sidebar-right { gap: 22px; }
+
+    .direction[data-density="dense"] .main,
+    .direction[data-density="dense"] .sidebar,
+    .direction[data-density="dense"] .sidebar-right { gap: 10px; }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 1240px) {
+      .hero,
+      .compare,
+      .direction-body { grid-template-columns: 1fr; }
+      .direction-notes { border-left: 0; padding-left: 0; }
+      .compare-table { grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 980px) {
+      .page { padding: 24px 16px 48px; }
+      .hero-grid,
+      .grid-four,
+      .grid-three,
+      .grid-two { grid-template-columns: 1fr; }
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar,
+      .sidebar-right { border: 0; border-top: 1px solid var(--border); }
+      .direction-header { flex-direction: column; }
+      .tag-row { justify-content: flex-start; }
+      .compare-table { grid-template-columns: 1fr 1fr; }
+      .compare-table .head:nth-child(n+3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="eyebrow">mento-admin UX Directions · Geist-inspired · confidence-first</div>
+        <h1>Six directions for a sharper quote workflow.</h1>
+        <p>These mockups explore different ways to make quote preparation feel fast, direct, calm, and professional. Every direction uses the same product strategy: neutral Geist-like structure, restrained green accents, desktop-first workflow, and a focused workspace instead of a bloated dashboard.</p>
+        <div class="hero-grid">
+          <div class="metric"><strong>6</strong><span>visual directions</span></div>
+          <div class="metric"><strong>1</strong><span>core workflow to optimize</span></div>
+          <div class="metric"><strong>3 min</strong><span>target to preview quote</span></div>
+        </div>
+        <div class="controls" id="filters">
+          <button class="chip active" data-filter="all">Show all</button>
+          <button class="chip" data-filter="workspace">Workspace-led</button>
+          <button class="chip" data-filter="preview">Preview-led</button>
+          <button class="chip" data-filter="guided">Guided flow</button>
+          <button class="chip" data-filter="dense">Denser layouts</button>
+          <button class="chip" data-filter="airy">Airier layouts</button>
+        </div>
+      </div>
+      <aside class="panel-card">
+        <h2>How to review</h2>
+        <ul>
+          <li>Look for the direction that makes <strong>quote creation</strong> feel most obvious.</li>
+          <li>Notice where the <strong>client, template, line items, and preview</strong> sit in the hierarchy.</li>
+          <li>Compare whether a direction feels more like a <strong>workspace</strong>, a <strong>builder</strong>, or a <strong>workflow assistant</strong>.</li>
+          <li>Watch how the <strong>green accent</strong> is used: signal only, progress cue, or stronger call-to-action emphasis.</li>
+          <li>Choose a full direction or combine pieces, such as one layout with another navigation or preview treatment.</li>
+        </ul>
+      </aside>
+    </section>
+
+    <section class="directions">
+      <article class="direction" data-tags="workspace balanced all" data-density="balanced">
+        <div class="direction-header">
+          <div>
+            <h3>Direction 1 · Quiet Workspace</h3>
+            <p>A restrained three-panel workspace with steady hierarchy. This is the most balanced and Geist-faithful direction: calm navigation, a centered quote builder, and a right rail dedicated to preview confidence.</p>
+          </div>
+          <div class="tag-row">
+            <span class="tag">Balanced</span>
+            <span class="tag">Workspace-led</span>
+            <span class="tag">Low novelty</span>
+          </div>
+        </div>
+        <div class="direction-body">
+          <div class="mockup">
+            <div class="chrome"><span></span><span></span><span></span></div>
+            <div class="screen">
+              <div class="app-shell">
+                <aside class="sidebar">
+                  <div class="brand"><span class="brand-mark"></span>mento-admin</div>
+                  <div class="nav-group">
+                    <div class="nav-item active">Quotes <span>12</span></div>
+                    <div class="nav-item">Clients <span>48</span></div>
+                    <div class="nav-item">Templates <span>9</span></div>
+                    <div class="nav-item">Invoices <span>21</span></div>
+                    <div class="nav-item">Defaults</div>
+                  </div>
+                  <div class="card">
+                    <h5>Today</h5>
+                    <div class="metric-row"><span class="subtle">Draft quotes</span><strong>4</strong></div>
+                    <div class="metric-row"><span class="subtle">Awaiting review</span><strong>2</strong></div>
+                    <div class="metric-row"><span class="subtle">Ready to invoice</span><strong>1</strong></div>
+                  </div>
+                </aside>
+                <main class="main">
+                  <div class="main-header">
+                    <div>
+                      <h4>New Quote</h4>
+                      <div class="subtle">Attach the client, choose templates, review line items, then preview.</div>
+                    </div>
+                    <div class="button-row">
+                      <div class="ghost">Save draft</div>
+                      <div class="btn green">Open preview</div>
+                    </div>
+                  </div>
+                  <div class="grid-two">
+                    <section class="card">
+                      <h5>Client</h5>
+                      <div class="field"><span class="subtle">Selected</span><strong>North Coast Studio</strong></div>
+                      <div class="field"><span class="subtle">Contact</span><span>Olivia Han</span></div>
+                      <div class="field"><span class="subtle">Status</span><span class="pill green">Returning client</span></div>
+                    </section>
+                    <section class="card">
+                      <h5>Templates</h5>
+                      <div class="field"><span>Brand Identity Sprint</span><span class="pill gray">Core</span></div>
+                      <div class="field"><span>Landing Page System</span><span class="pill gray">Add-on</span></div>
+                      <div class="field"><span>Rush delivery</span><span class="pill green">Modifier</span></div>
+                    </section>
+                  </div>
+                  <section class="table-card">
+                    <div class="table-head"><div>Line item</div><div>Owner</div><div>Value</div><div>Status</div></div>
+                    <div class="table-row"><div>Discovery + strategy workshop</div><div>Template</div><div>$1,800</div><div><span class="pill green">Included</span></div></div>
+                    <div class="table-row"><div>Brand system + usage guidance</div><div>Template</div><div>$3,900</div><div><span class="pill green">Included</span></div></div>
+                    <div class="table-row"><div>Landing page UX/UI</div><div>Template</div><div>$2,100</div><div><span class="pill green">Included</span></div></div>
+                    <div class="table-row"><div>Rush modifier</div><div>Default</div><div>+12%</div><div><span class="pill gray">Applied</span></div></div>
+                  </section>
+                </main>
+                <aside class="sidebar-right">
+                  <section class="summary">
+                    <div class="panel-title"><h5>Preview confidence</h5><span class="pill green">Ready</span></div>
+                    <div class="preview-row"><span class="subtle">Client-facing title</span><strong>Brand and launch package</strong></div>
+                    <div class="preview-row"><span class="subtle">Version</span><strong>V1 draft</strong></div>
+                    <div class="preview-row"><span class="subtle">Subtotal</span><strong>$8,456</strong></div>
+                    <div class="preview-row"><span class="subtle">Timeline</span><strong>4 weeks</strong></div>
+                  </section>
+                  <section class="timeline">
+                    <h5>Workflow</h5>
+                    <div class="timeline-item"><span>Client attached</span><span class="pill green">Done</span></div>
+                    <div class="timeline-item"><span>Templates stacked</span><span class="pill green">Done</span></div>
+                    <div class="timeline-item"><span>Preview review</span><span class="pill gray">Current</span></div>
+                    <div class="timeline-item"><span>Invoice later</span><span class="pill gray">Next</span></div>
+                  </section>
+                </aside>
+              </div>
+            </div>
+          </div>
+          <aside class="direction-notes">
+            <h4>Why it works</h4>
+            <ul>
+              <li>Very clear mental model for spreadsheet-to-product transition.</li>
+              <li>Strong preview confidence without making preview the whole screen.</li>
+              <li>Metrics exist, but stay subordinate to the quote builder.</li>
+            </ul>
+          </aside>
+        </div>
+      </article>
+
+      <article class="direction" data-tags="guided all" data-density="balanced">
+        <div class="direction-header">
+          <div>
+            <h3>Direction 2 · Guided Sequence</h3>
+            <p>A more structured, stage-based builder that turns quote preparation into a guided flow. Best if you want users to feel hand-held and always know the next step.</p>
+          </div>
+          <div class="tag-row">
+            <span class="tag">Guided flow</span>
+            <span class="tag">Confidence-first</span>
+            <span class="tag">Moderate novelty</span>
+          </div>
+        </div>
+        <div class="direction-body">
+          <div class="mockup">
+            <div class="chrome"><span></span><span></span><span></span></div>
+            <div class="screen">
+              <div style="display:grid;grid-template-rows:auto auto 1fr;min-height:100%;">
+                <div style="padding:20px 24px;border-bottom:1px solid var(--border);background:#fff;display:flex;justify-content:space-between;align-items:center;gap:16px;">
+                  <div>
+                    <div class="subtle">Quote flow</div>
+                    <div style="font-size:28px;font-weight:700;letter-spacing:-0.04em;">Create quote in four calm steps</div>
+                  </div>
+                  <div class="button-row"><div class="ghost">Save</div><div class="btn green">Preview quote</div></div>
+                </div>
+                <div style="padding:18px 24px;border-bottom:1px solid var(--border);background:#fafafa;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;">
+                  <div class="metric-card"><div class="subtle">Step 1</div><h5>Client</h5><span class="pill green">Complete</span></div>
+                  <div class="metric-card"><div class="subtle">Step 2</div><h5>Templates</h5><span class="pill green">Complete</span></div>
+                  <div class="metric-card"><div class="subtle">Step 3</div><h5>Line items</h5><span class="pill gray">Current</span></div>
+                  <div class="metric-card"><div class="subtle">Step 4</div><h5>Preview</h5><span class="pill gray">Next</span></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1.15fr 0.85fr;gap:18px;padding:24px;background:#fcfcfc;">
+                  <section class="card">
+                    <h5>Build line items</h5>
+                    <div class="line-item"><div><strong>Brand workshop</strong><div class="subtle">2 sessions · editable description</div></div><span>$1,800</span></div>
+                    <div class="line-item"><div><strong>Identity system</strong><div class="subtle">Logo set, colors, and rules</div></div><span>$3,900</span></div>
+                    <div class="line-item"><div><strong>Launch page UI</strong><div class="subtle">Desktop + mobile key screens</div></div><span>$2,100</span></div>
+                    <div class="line-item"><div><strong>Rush delivery</strong><div class="subtle">+12% modifier</div></div><span>Applied</span></div>
+                    <div class="button-row" style="margin-top:12px;"><div class="ghost">Add item</div><div class="ghost">Apply default</div><div class="quiet">Reset stack</div></div>
+                  </section>
+                  <aside style="display:grid;gap:14px;align-content:start;">
+                    <section class="summary">
+                      <h5>What changed</h5>
+                      <div class="preview-row"><span class="subtle">Client</span><strong>North Coast Studio</strong></div>
+                      <div class="preview-row"><span class="subtle">Templates</span><strong>2 selected</strong></div>
+                      <div class="preview-row"><span class="subtle">Quote total</span><strong>$8,456</strong></div>
+                    </section>
+                    <section class="summary">
+                      <h5>Preview unlock</h5>
+                      <div class="subtle" style="margin-bottom:10px;">Once all required items are complete, preview becomes the obvious next action.</div>
+                      <div class="btn green" style="width:100%;justify-content:center;">Ready for preview</div>
+                    </section>
+                  </aside>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside class="direction-notes">
+            <h4>Why it works</h4>
+            <ul>
+              <li>Very easy for first-time users and non-technical operators.</li>
+              <li>Progress states create confidence and reduce ambiguity.</li>
+              <li>Slightly more opinionated than a standard admin app.</li>
+            </ul>
+          </aside>
+        </div>
+      </article>
+
+      <article class="direction" data-tags="preview airy all" data-density="airy">
+        <div class="direction-header">
+          <div>
+            <h3>Direction 3 · Preview-Centered Studio</h3>
+            <p>A more premium, presentation-led direction where the preview is the emotional centerpiece. It makes professionalism highly visible and pushes the builder into a supporting role.</p>
+          </div>
+          <div class="tag-row">
+            <span class="tag">Preview-led</span>
+            <span class="tag">Airier</span>
+            <span class="tag">Presentation-heavy</span>
+          </div>
+        </div>
+        <div class="direction-body">
+          <div class="mockup">
+            <div class="chrome"><span></span><span></span><span></span></div>
+            <div class="screen" style="background:linear-gradient(180deg,#fcfcfc 0%,#f4f6f5 100%);padding:22px;">
+              <div style="display:grid;grid-template-columns:360px minmax(0,1fr);gap:18px;min-height:calc(540px - 96px);">
+                <aside style="display:grid;gap:16px;align-content:start;">
+                  <div class="card" style="padding:20px;">
+                    <div class="brand" style="margin-bottom:18px;"><span class="brand-mark"></span>mento-admin</div>
+                    <div style="font-size:28px;font-weight:700;letter-spacing:-0.04em;margin-bottom:8px;">Quote Studio</div>
+                    <div class="subtle" style="margin-bottom:16px;">Build internally. Present professionally.</div>
+                    <div class="button-row"><div class="btn green">Preview live</div><div class="ghost">Save</div></div>
+                  </div>
+                  <div class="card">
+                    <h5>Build summary</h5>
+                    <div class="field"><span class="subtle">Client</span><strong>North Coast Studio</strong></div>
+                    <div class="field"><span class="subtle">Scope stack</span><strong>Brand + launch page</strong></div>
+                    <div class="field"><span class="subtle">Terms</span><strong>50% deposit</strong></div>
+                  </div>
+                  <div class="card">
+                    <h5>Quick edit</h5>
+                    <div class="line-item"><span>Brand workshop</span><span>$1,800</span></div>
+                    <div class="line-item"><span>Identity system</span><span>$3,900</span></div>
+                    <div class="line-item"><span>Launch page UI</span><span>$2,100</span></div>
+                  </div>
+                </aside>
+                <section style="background:#fff;border:1px solid var(--border);border-radius:22px;box-shadow:0 12px 28px rgba(17,17,17,0.08);padding:30px 34px;display:grid;align-content:start;gap:18px;">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
+                    <div>
+                      <div class="subtle">Client preview</div>
+                      <div style="font-size:34px;font-weight:700;letter-spacing:-0.05em;line-height:1;">Brand and launch package</div>
+                    </div>
+                    <span class="pill green">Ready to share</span>
+                  </div>
+                  <div class="grid-three">
+                    <div class="mini-card" style="padding:14px;border:1px solid var(--border);border-radius:16px;"><div class="subtle">Client</div><strong>North Coast Studio</strong></div>
+                    <div class="mini-card" style="padding:14px;border:1px solid var(--border);border-radius:16px;"><div class="subtle">Timeline</div><strong>4 weeks</strong></div>
+                    <div class="mini-card" style="padding:14px;border:1px solid var(--border);border-radius:16px;"><div class="subtle">Investment</div><strong>$8,456</strong></div>
+                  </div>
+                  <div class="card">
+                    <h5>Scope</h5>
+                    <div class="preview-row"><span>Discovery workshop and project framing</span><strong>$1,800</strong></div>
+                    <div class="preview-row"><span>Identity system, guidance, and exports</span><strong>$3,900</strong></div>
+                    <div class="preview-row"><span>Launch page UX/UI and handoff</span><strong>$2,100</strong></div>
+                  </div>
+                  <div class="card">
+                    <h5>Terms</h5>
+                    <div class="subtle">50% deposit to begin, remaining 50% before final delivery. Two revision rounds included.</div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+          <aside class="direction-notes">
+            <h4>Why it works</h4>
+            <ul>
+              <li>Strongest emotional payoff around feeling professional.</li>
+              <li>Excellent if quote presentation is the trust checkpoint.</li>
+              <li>Less operationally dense; builder activity feels secondary.</li>
+            </ul>
+          </aside>
+        </div>
+      </article>
+
+      <article class="direction" data-tags="dense workspace all" data-density="dense">
+        <div class="direction-header">
+          <div>
+            <h3>Direction 4 · Operator Table</h3>
+            <p>A denser, more production-oriented view for fast repeat quoting. It compresses more information onscreen and favors quick scanning for experienced users who want maximum efficiency.</p>
+          </div>
+          <div class="tag-row">
+            <span class="tag">Dense</span>
+            <span class="tag">Operator-heavy</span>
+            <span class="tag">Fast scanning</span>
+          </div>
+        </div>
+        <div class="direction-body">
+          <div class="mockup">
+            <div class="chrome"><span></span><span></span><span></span></div>
+            <div class="screen">
+              <div style="display:grid;grid-template-rows:auto 1fr;min-height:100%;">
+                <div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:16px;background:#fff;">
+                  <div class="brand"><span class="brand-mark"></span>mento-admin / Quotes</div>
+                  <div class="button-row"><div class="ghost">Duplicate from last</div><div class="btn green">Preview</div></div>
+                </div>
+                <div style="padding:16px 18px;display:grid;grid-template-columns:220px minmax(0,1fr) 280px;gap:14px;background:#fbfbfb;">
+                  <aside class="card" style="padding:12px;">
+                    <h5>Records</h5>
+                    <div class="nav-group">
+                      <div class="nav-item active">Current draft</div>
+                      <div class="nav-item">Accepted quote</div>
+                      <div class="nav-item">Invoice draft</div>
+                    </div>
+                    <h5 style="margin-top:14px;">Filters</h5>
+                    <div class="pill gray">Rush</div>
+                    <div class="pill gray">Brand</div>
+                    <div class="pill gray">Launch</div>
+                  </aside>
+                  <section class="table-card">
+                    <div class="table-head"><div>Item</div><div>Group</div><div>Amount</div><div>Use</div></div>
+                    <div class="table-row"><div>Client: North Coast Studio</div><div>Client</div><div>-</div><div><span class="pill green">Locked</span></div></div>
+                    <div class="table-row"><div>Brand workshop</div><div>Template</div><div>$1,800</div><div><span class="pill green">On</span></div></div>
+                    <div class="table-row"><div>Identity system</div><div>Template</div><div>$3,900</div><div><span class="pill green">On</span></div></div>
+                    <div class="table-row"><div>Launch page UX/UI</div><div>Template</div><div>$2,100</div><div><span class="pill green">On</span></div></div>
+                    <div class="table-row"><div>Rush modifier</div><div>Default</div><div>+12%</div><div><span class="pill gray">Applied</span></div></div>
+                    <div class="table-row"><div>Two revision rounds</div><div>Terms</div><div>-</div><div><span class="pill green">On</span></div></div>
+                  </section>
+                  <aside style="display:grid;gap:10px;align-content:start;">
+                    <div class="summary">
+                      <h5>Totals</h5>
+                      <div class="preview-row"><span class="subtle">Subtotal</span><strong>$7,800</strong></div>
+                      <div class="preview-row"><span class="subtle">Modifier</span><strong>$656</strong></div>
+                      <div class="preview-row"><span class="subtle">Total</span><strong>$8,456</strong></div>
+                    </div>
+                    <div class="summary">
+                      <h5>Quote state</h5>
+                      <div class="preview-row"><span class="subtle">Draft</span><span class="pill green">Healthy</span></div>
+                      <div class="preview-row"><span class="subtle">Missing fields</span><strong>0</strong></div>
+                    </div>
+                  </aside>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside class="direction-notes">
+            <h4>Why it works</h4>
+            <ul>
+              <li>Best for quick repeat work and experienced operators.</li>
+              <li>Shows more editable data without page hopping.</li>
+              <li>Risks feeling more admin-like if not carefully polished.</li>
+            </ul>
+          </aside>
+        </div>
+      </article>
+
+      <article class="direction" data-tags="preview guided all" data-density="balanced">
+        <div class="direction-header">
+          <div>
+            <h3>Direction 5 · Split Builder / Live Preview</h3>
+            <p>A highly interactive split-screen builder where editing and preview happen side by side in real time. This makes the trust moment immediate and reinforces cause-and-effect during quote editing.</p>
+          </div>
+          <div class="tag-row">
+            <span class="tag">Preview-led</span>
+            <span class="tag">Interactive</span>
+            <span class="tag">Builder-centric</span>
+          </div>
+        </div>
+        <div class="direction-body">
+          <div class="mockup">
+            <div class="chrome"><span></span><span></span><span></span></div>
+            <div class="screen">
+              <div style="display:grid;grid-template-columns:1fr 1fr;min-height:100%;">
+                <section style="padding:22px;border-right:1px solid var(--border);background:#fbfbfb;display:grid;gap:16px;align-content:start;">
+                  <div class="main-header">
+                    <div>
+                      <h4 style="font-size:24px;">Quote builder</h4>
+                      <div class="subtle">Every change updates the preview immediately.</div>
+                    </div>
+                    <div class="pill green">Autosaved</div>
+                  </div>
+                  <div class="card">
+                    <h5>Client</h5>
+                    <div class="field"><span>North Coast Studio</span><span class="pill gray">Existing</span></div>
+                  </div>
+                  <div class="card">
+                    <h5>Template stack</h5>
+                    <div class="line-item"><span>Brand Identity Sprint</span><span class="pill green">Active</span></div>
+                    <div class="line-item"><span>Launch Page System</span><span class="pill green">Active</span></div>
+                  </div>
+                  <div class="card">
+                    <h5>Line items</h5>
+                    <div class="line-item"><span>Workshop</span><span>$1,800</span></div>
+                    <div class="line-item"><span>Identity system</span><span>$3,900</span></div>
+                    <div class="line-item"><span>Launch UI</span><span>$2,100</span></div>
+                  </div>
+                </section>
+                <section style="padding:26px;background:#ffffff;display:grid;gap:16px;align-content:start;">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
+                    <div>
+                      <div class="subtle">Live preview</div>
+                      <div style="font-size:30px;font-weight:700;letter-spacing:-0.05em;">Brand and launch package</div>
+                    </div>
+                    <div class="button-row"><div class="ghost">Export PDF</div><div class="btn green">Continue</div></div>
+                  </div>
+                  <div class="grid-two">
+                    <div class="mini-card" style="padding:14px;border:1px solid var(--border);border-radius:16px;"><div class="subtle">Investment</div><strong>$8,456</strong></div>
+                    <div class="mini-card" style="padding:14px;border:1px solid var(--border);border-radius:16px;"><div class="subtle">Deposit</div><strong>50%</strong></div>
+                  </div>
+                  <div class="card">
+                    <h5>Deliverables</h5>
+                    <div class="preview-row"><span>Discovery and planning session</span><strong>$1,800</strong></div>
+                    <div class="preview-row"><span>Identity system and usage guide</span><strong>$3,900</strong></div>
+                    <div class="preview-row"><span>Launch page design package</span><strong>$2,100</strong></div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+          <aside class="direction-notes">
+            <h4>Why it works</h4>
+            <ul>
+              <li>Makes the product feel dynamic and confidence-building.</li>
+              <li>Very strong for showing how edits affect presentation instantly.</li>
+              <li>Could increase implementation complexity compared with quieter layouts.</li>
+            </ul>
+          </aside>
+        </div>
+      </article>
+
+      <article class="direction" data-tags="workspace airy all" data-density="airy">
+        <div class="direction-header">
+          <div>
+            <h3>Direction 6 · Command Workspace</h3>
+            <p>A cleaner, more abstract workspace with fewer visible panels and stronger focus on decisive actions. This is the most minimal direction, with subtle metrics and strong action hierarchy.</p>
+          </div>
+          <div class="tag-row">
+            <span class="tag">Workspace-led</span>
+            <span class="tag">Minimal</span>
+            <span class="tag">Airy</span>
+          </div>
+        </div>
+        <div class="direction-body">
+          <div class="mockup">
+            <div class="chrome"><span></span><span></span><span></span></div>
+            <div class="screen" style="padding:22px;background:linear-gradient(180deg,#ffffff 0%,#f5f7f6 100%);">
+              <div style="display:grid;grid-template-columns:1fr 320px;gap:18px;min-height:calc(540px - 96px);">
+                <section style="display:grid;gap:18px;align-content:start;">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:18px 20px;border:1px solid var(--border);border-radius:20px;background:#fff;">
+                    <div>
+                      <div class="subtle">Quote workspace</div>
+                      <div style="font-size:34px;font-weight:700;letter-spacing:-0.05em;line-height:1;">Build the next quote.</div>
+                    </div>
+                    <div class="button-row"><div class="ghost">Reuse last quote</div><div class="btn green">New quote</div></div>
+                  </div>
+                  <div class="grid-three">
+                    <div class="metric-card"><div class="subtle">Open drafts</div><strong>4</strong></div>
+                    <div class="metric-card"><div class="subtle">Accepted</div><strong>2</strong></div>
+                    <div class="metric-card"><div class="subtle">Ready to invoice</div><strong>1</strong></div>
+                  </div>
+                  <div class="card" style="padding:20px;">
+                    <h5>Current build</h5>
+                    <div class="field"><span class="subtle">Client</span><strong>North Coast Studio</strong></div>
+                    <div class="field"><span class="subtle">Templates</span><strong>2 active</strong></div>
+                    <div class="field"><span class="subtle">Preview status</span><span class="pill green">Ready</span></div>
+                    <div class="button-row" style="margin-top:14px;"><div class="btn green">Open preview</div><div class="ghost">Edit line items</div></div>
+                  </div>
+                </section>
+                <aside style="display:grid;gap:14px;align-content:start;">
+                  <div class="summary">
+                    <h5>Next steps</h5>
+                    <div class="timeline-item"><span>Preview quote</span><span class="pill green">Now</span></div>
+                    <div class="timeline-item"><span>Share manually</span><span class="pill gray">Later</span></div>
+                    <div class="timeline-item"><span>Create invoice</span><span class="pill gray">After acceptance</span></div>
+                  </div>
+                  <div class="summary">
+                    <h5>Confidence check</h5>
+                    <div class="subtle">This direction removes most secondary chrome so the product feels more like a focused command surface.</div>
+                  </div>
+                </aside>
+              </div>
+            </div>
+          </div>
+          <aside class="direction-notes">
+            <h4>Why it works</h4>
+            <ul>
+              <li>Very calm and decisive; strong action hierarchy.</li>
+              <li>Feels less like software overhead and more like a studio tool.</li>
+              <li>Might be too minimal if users need richer record management nearby.</li>
+            </ul>
+          </aside>
+        </div>
+      </article>
+    </section>
+
+    <section class="compare">
+      <div class="compare-grid">
+        <h2>Quick comparison matrix</h2>
+        <div class="compare-table">
+          <div class="head">Criteria</div>
+          <div class="head">D1</div>
+          <div class="head">D2</div>
+          <div class="head">D3</div>
+          <div class="head">D4</div>
+          <div class="head">D5</div>
+          <div class="head">D6</div>
+
+          <div class="label">First-time clarity</div>
+          <div>High</div><div>Very high</div><div>Medium</div><div>Medium</div><div>High</div><div>High</div>
+
+          <div class="label">Repeat-use speed</div>
+          <div>High</div><div>Medium</div><div>Medium</div><div>Very high</div><div>High</div><div>High</div>
+
+          <div class="label">Preview emphasis</div>
+          <div>Medium</div><div>Medium</div><div>Very high</div><div>Low</div><div>Very high</div><div>Medium</div>
+
+          <div class="label">Implementation complexity</div>
+          <div>Low</div><div>Medium</div><div>Medium</div><div>Low</div><div>Medium-high</div><div>Low</div>
+
+          <div class="label">Geist alignment</div>
+          <div>Strong</div><div>Strong</div><div>Medium</div><div>Medium</div><div>Strong</div><div>Strong</div>
+
+          <div class="label">Best fit</div>
+          <div>Balanced default</div><div>Guided onboarding</div><div>Premium trust</div><div>Fast operators</div><div>Live cause-effect</div><div>Minimal focus</div>
+        </div>
+        <div class="muted-note">Suggested starting points: Direction 1 for safest balance, Direction 2 for strongest guided UX, Direction 5 if you want preview and editing to feel tightly connected.</div>
+      </div>
+
+      <aside class="criteria">
+        <h2>Recommended review questions</h2>
+        <ul>
+          <li>Which direction makes the path from <strong>new quote</strong> to <strong>preview</strong> feel most obvious?</li>
+          <li>Which layout best supports the future flow: quote, client, preview, send, accept, deposit, invoice?</li>
+          <li>How much density feels right for repeat work without turning into admin clutter?</li>
+          <li>Should preview be a validation side panel, a live split view, or the visual hero of the whole product?</li>
+          <li>Do you want the strongest emphasis on <strong>calm workspace</strong>, <strong>guided flow</strong>, or <strong>professional presentation</strong>?</li>
+        </ul>
+      </aside>
+    </section>
+
+    <div class="footer-note">
+      Open this file locally to review the full directions: <strong>_bmad-output/planning-artifacts/ux-design-directions.html</strong>
+    </div>
+  </div>
+
+  <script>
+    const chips = document.querySelectorAll('.chip');
+    const directions = document.querySelectorAll('.direction');
+
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        chips.forEach((c) => c.classList.remove('active'));
+        chip.classList.add('active');
+        const filter = chip.dataset.filter;
+        directions.forEach((direction) => {
+          const tags = direction.dataset.tags || '';
+          direction.classList.toggle('hidden', filter !== 'all' && !tags.includes(filter));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

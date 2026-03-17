@@ -17,19 +17,19 @@ export default async function ClientsPage() {
 
   if (result.data.clients.length === 0) {
     return (
-      <EmptyState
-        title="No clients yet"
-        description="Create your first client to start building quotes and invoices."
-        action={
-          <button
-            type="button"
-            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
-          >
-            Create client
-          </button>
-        }
-      />
-    );
+        <EmptyState
+          title="No clients yet"
+          description="Create your first client to start building quotes and invoices."
+          action={
+            <Link
+              href="/clients/new"
+              className="inline-flex rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
+            >
+              Create client
+            </Link>
+          }
+        />
+      );
   }
 
   return (
@@ -39,12 +39,12 @@ export default async function ClientsPage() {
           <h2 className="text-xl font-semibold text-zinc-900">Clients</h2>
           <p className="text-sm text-zinc-600">Open a client to continue where you left off.</p>
         </div>
-        <button
-          type="button"
+        <Link
+          href="/clients/new"
           className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
         >
           Create client
-        </button>
+        </Link>
       </div>
 
       <ul className="divide-y divide-zinc-200 rounded-xl border border-zinc-200 bg-white">

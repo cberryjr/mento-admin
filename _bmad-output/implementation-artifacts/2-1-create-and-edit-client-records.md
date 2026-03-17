@@ -1,6 +1,6 @@
 # Story 2.1: Create and Edit Client Records
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -22,33 +22,33 @@ so that my quote and invoice workflows start with accurate client information.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Define client domain schema and persistence boundaries (AC: #1, #2)
-  - [ ] 1.1 Add or complete `clients` table schema in `src/server/db/schema/clients.ts` with lifecycle fields and studio scoping (`created_at`, `updated_at`, ownership foreign key)
-  - [ ] 1.2 Export schema from `src/server/db/schema/index.ts` and generate Drizzle migration(s)
-  - [ ] 1.3 Ensure required constraints/indexes for reliable lookup and editing workflows (studio scoping + stable list ordering)
+- [x] Task 1: Define client domain schema and persistence boundaries (AC: #1, #2)
+  - [x] 1.1 Add or complete `clients` table schema in `src/server/db/schema/clients.ts` with lifecycle fields and studio scoping (`created_at`, `updated_at`, ownership foreign key)
+  - [x] 1.2 Export schema from `src/server/db/schema/index.ts` and generate Drizzle migration(s)
+  - [x] 1.3 Ensure required constraints/indexes for reliable lookup and editing workflows (studio scoping + stable list ordering)
 
-- [ ] Task 2: Implement server-side create and update actions with validation (AC: #1, #2, #3)
-  - [ ] 2.1 Create/complete `src/features/clients/server/actions/create-client.ts` and `src/features/clients/server/actions/update-client.ts`
-  - [ ] 2.2 Enforce authentication/authorization before mutation using existing session and permission helpers
-  - [ ] 2.3 Return standardized action envelopes (`ok/data` or `ok/error`) with field-level validation errors
-  - [ ] 2.4 Revalidate affected client list/detail surfaces after successful writes
+- [x] Task 2: Implement server-side create and update actions with validation (AC: #1, #2, #3)
+  - [x] 2.1 Create/complete `src/features/clients/server/actions/create-client.ts` and `src/features/clients/server/actions/update-client.ts`
+  - [x] 2.2 Enforce authentication/authorization before mutation using existing session and permission helpers
+  - [x] 2.3 Return standardized action envelopes (`ok/data` or `ok/error`) with field-level validation errors
+  - [x] 2.4 Revalidate affected client list/detail surfaces after successful writes
 
-- [ ] Task 3: Build and wire client form UX for create/edit flows (AC: #1, #2, #3, #4)
-  - [ ] 3.1 Implement `src/features/clients/components/client-form.tsx` for both create and edit modes
-  - [ ] 3.2 Wire create route `src/app/(workspace)/clients/new/page.tsx` and edit/detail route `src/app/(workspace)/clients/[clientId]/page.tsx`
-  - [ ] 3.3 Show explicit success and failure feedback on save attempts; do not allow ambiguous save states
-  - [ ] 3.4 Preserve entered values on validation failures and support safe retry
+- [x] Task 3: Build and wire client form UX for create/edit flows (AC: #1, #2, #3, #4)
+  - [x] 3.1 Implement `src/features/clients/components/client-form.tsx` for both create and edit modes
+  - [x] 3.2 Wire create route `src/app/(workspace)/clients/new/page.tsx` and edit/detail route `src/app/(workspace)/clients/[clientId]/page.tsx`
+  - [x] 3.3 Show explicit success and failure feedback on save attempts; do not allow ambiguous save states
+  - [x] 3.4 Preserve entered values on validation failures and support safe retry
 
-- [ ] Task 4: Support accessible keyboard-first interaction and robust validation feedback (AC: #3, #4)
-  - [ ] 4.1 Add `src/features/clients/schemas/client-schema.ts` (or complete existing) with required fields and normalization rules
-  - [ ] 4.2 Map schema validation errors to inline per-field guidance and set `aria-invalid` only after validation attempts
-  - [ ] 4.3 Ensure persistent labels, logical tab order, visible focus states, and descriptive submit actions
+- [x] Task 4: Support accessible keyboard-first interaction and robust validation feedback (AC: #3, #4)
+  - [x] 4.1 Add `src/features/clients/schemas/client-schema.ts` (or complete existing) with required fields and normalization rules
+  - [x] 4.2 Map schema validation errors to inline per-field guidance and set `aria-invalid` only after validation attempts
+  - [x] 4.3 Ensure persistent labels, logical tab order, visible focus states, and descriptive submit actions
 
-- [ ] Task 5: Verify quality gates and regression safety (AC: #1-#4)
-  - [ ] 5.1 Add/extend unit tests for schema validation and server action result mapping
-  - [ ] 5.2 Add integration tests for create/update persistence, authz denial, and error envelope shape
-  - [ ] 5.3 Add e2e checks for create client, edit client, invalid submission recovery, and keyboard-only completion
-  - [ ] 5.4 Verify `npm run lint`, `npm run test`, and `npm run build` pass
+- [x] Task 5: Verify quality gates and regression safety (AC: #1-#4)
+  - [x] 5.1 Add/extend unit tests for schema validation and server action result mapping
+  - [x] 5.2 Add integration tests for create/update persistence, authz denial, and error envelope shape
+  - [x] 5.3 Add e2e checks for create client, edit client, invalid submission recovery, and keyboard-only completion
+  - [x] 5.4 Verify `npm run lint`, `npm run test`, and `npm run build` pass
 
 ## Dev Notes
 
@@ -154,11 +154,78 @@ openai/gpt-5.3-codex
 ### Debug Log References
 
 - create-story workflow execution
+- `npm test -- src/features/clients/server/clients-repository.test.ts`
+- `npm test -- src/features/clients/server/actions/create-client.test.ts src/features/clients/server/actions/update-client.test.ts`
+- `npm test -- src/features/clients/schemas/client-schema.test.ts src/features/clients/components/client-form.test.tsx`
+- `npm test -- tests/integration/clients/client-flow.test.ts`
+- `npm run lint`
+- `npm test`
+- `npx playwright test tests/e2e/clients.spec.ts`
+- `npx playwright test`
+- `DATABASE_URL=postgresql://user:pass@localhost:5432/mento NEXTAUTH_SECRET=build-secret-value NEXTAUTH_URL=https://example.com STUDIO_OWNER_EMAIL=build@example.com STUDIO_OWNER_PASSWORD=build-password npm run build`
+
+### Implementation Plan
+
+- Add a studio-scoped client schema and repository boundary with database support plus a global fallback store for non-database environments.
+- Route create/edit flows through authenticated server actions and a shared client form that shows explicit save outcomes and inline correction guidance.
+- Validate the story with unit, integration, Playwright, lint, and build checks before moving the story to review.
 
 ### Completion Notes List
 
 - Ultimate context engine analysis completed - comprehensive developer guide created
+- Added the client schema, migration, repository, and fallback persistence path with studio scoping and stable ordering for list/edit workflows.
+- Implemented authenticated create/update server actions plus create/edit client routes with explicit success or failure feedback and preserved retry state.
+- Added unit, integration, and end-to-end coverage for validation, persistence, authorization denial, and keyboard-first interaction paths.
 
 ### File List
 
 - _bmad-output/implementation-artifacts/2-1-create-and-edit-client-records.md
+- _bmad-output/implementation-artifacts/sprint-status.yaml
+- drizzle/migrations/0001_clients.sql
+- src/app/(workspace)/clients/[clientId]/page.tsx
+- src/app/(workspace)/clients/new/page.tsx
+- src/app/(workspace)/clients/page.tsx
+- src/features/clients/components/client-form.test.tsx
+- src/features/clients/components/client-form.tsx
+- src/features/clients/schemas/client-schema.test.ts
+- src/features/clients/schemas/client-schema.ts
+- src/features/clients/server/actions/create-client.test.ts
+- src/features/clients/server/actions/create-client.ts
+- src/features/clients/server/actions/update-client.test.ts
+- src/features/clients/server/actions/update-client.ts
+- src/features/clients/server/clients-repository.test.ts
+- src/features/clients/server/clients-repository.ts
+- src/features/clients/server/queries/get-client-by-id.ts
+- src/features/clients/server/queries/list-clients.ts
+- src/features/clients/server/store/clients-store.ts
+- src/features/clients/types.ts
+- src/server/db/schema/clients.ts
+- src/server/db/schema/index.ts
+- tests/e2e/clients.spec.ts
+- tests/integration/clients/client-flow.test.ts
+
+## Senior Developer Review (AI)
+
+**Review Date:** 2026-03-17
+**Reviewer:** claude-sonnet-4-6
+**Outcome:** Changes Requested → All Fixed → Approved
+
+### Action Items
+
+- [x] [High] `updateClientRecord` DB path missing `studio_id` WHERE filter — cross-studio update possible [`src/features/clients/server/clients-repository.ts:172`]
+- [x] [High] `aria-invalid` set to `false` on initial render — should be absent until first submission attempt [`src/features/clients/components/client-form.tsx:144,165,186,207`]
+- [x] [Medium] `client-fixtures.ts` orphaned dead code, not deleted and not in File List [`src/features/clients/server/queries/client-fixtures.ts`]
+- [x] [Medium] Auth check ran after Zod validation in `createClient` and `updateClient` — violates architecture pattern [`src/features/clients/server/actions/create-client.ts:26`]
+- [x] [Medium] No unit tests for `list-clients.ts` or `get-client-by-id.ts` query layer
+- [x] [Medium] `createClientFromFormData` unused dead export [`src/features/clients/server/actions/create-client.ts:73`]
+- [x] [Low] Drizzle migration meta/journal missing — `drizzle-kit` state tracking broken [`drizzle/migrations/meta/`]
+- [x] [Low] `setNotice(successNotice)` in create mode fires before redirect — dead state update [`src/features/clients/components/client-form.tsx:107`]
+- [x] [Low] "Back to clients" link on new client page missing focus ring [`src/app/(workspace)/clients/new/page.tsx:17`]
+- [x] [Low] Double email `toLowerCase()` normalization in `toClientInput` + Zod chain [`src/features/clients/schemas/client-schema.ts:14`]
+
+**All 10 findings fixed. 53 unit/integration tests pass. 8 e2e tests pass. Lint clean.**
+
+## Change Log
+
+- 2026-03-17: Implemented Story 2.1 with client schema and migration support, authenticated create/edit flows, accessible validation feedback, and regression coverage across unit, integration, Playwright, lint, and build checks.
+- 2026-03-17: Code review (AI) — fixed 2 High, 4 Medium, 4 Low findings; all tests green; story marked done.

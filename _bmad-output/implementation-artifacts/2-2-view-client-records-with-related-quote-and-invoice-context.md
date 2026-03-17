@@ -1,6 +1,6 @@
 # Story 2.2: View Client Records with Related Quote and Invoice Context
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -22,26 +22,26 @@ so that I can understand the commercial context for that client in one place.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Expand the client detail data contract to include related commercial context (AC: #1, #2, #3, #4)
-  - [ ] 1.1 Update `src/features/clients/server/queries/get-client-by-id.ts` to return a richer client detail payload with quote and invoice summary arrays.
-  - [ ] 1.2 Extend `src/features/clients/server/queries/client-fixtures.ts` or the backing repository path so each client can expose stable related quote and invoice summaries with identifying fields and ordering.
-  - [ ] 1.3 Keep the result envelope consistent with `ActionResult` and preserve a path to studio-scoped reads when the query moves from fixtures to database-backed access.
+- [x] Task 1: Expand the client detail data contract to include related commercial context (AC: #1, #2, #3, #4)
+  - [x] 1.1 Update `src/features/clients/server/queries/get-client-by-id.ts` to return a richer client detail payload with quote and invoice summary arrays.
+  - [x] 1.2 Extend `src/features/clients/server/queries/client-fixtures.ts` or the backing repository path so each client can expose stable related quote and invoice summaries with identifying fields and ordering.
+  - [x] 1.3 Keep the result envelope consistent with `ActionResult` and preserve a path to studio-scoped reads when the query moves from fixtures to database-backed access.
 
-- [ ] Task 2: Build the client detail surface with clearly labeled related-record regions (AC: #1, #2, #3, #4)
-  - [ ] 2.1 Update `src/app/(workspace)/clients/[clientId]/page.tsx` to render client details plus separate `Related quotes` and `Related invoices` sections.
-  - [ ] 2.2 Add a feature-owned presentation component such as `src/features/clients/components/client-record-summary.tsx` if needed to keep the page lean and aligned with feature-first boundaries.
-  - [ ] 2.3 Preserve the existing `backTo` navigation behavior and present related records in a way that keeps the client relationship explicit.
+- [x] Task 2: Build the client detail surface with clearly labeled related-record regions (AC: #1, #2, #3, #4)
+  - [x] 2.1 Update `src/app/(workspace)/clients/[clientId]/page.tsx` to render client details plus separate `Related quotes` and `Related invoices` sections.
+  - [x] 2.2 Add a feature-owned presentation component such as `src/features/clients/components/client-record-summary.tsx` if needed to keep the page lean and aligned with feature-first boundaries.
+  - [x] 2.3 Preserve the existing `backTo` navigation behavior and present related records in a way that keeps the client relationship explicit.
 
-- [ ] Task 3: Support empty states and future-safe linked-record summaries (AC: #2, #4)
-  - [ ] 3.1 Show clear empty states when a client has no related quotes or invoices, with obvious next actions that do not introduce dead links.
-  - [ ] 3.2 Include summary fields that support later workflows, such as record title/number, status, and last updated metadata, without overbuilding a full detail experience.
-  - [ ] 3.3 Keep the read path lightweight and performant by returning only summary data needed for the client detail page.
+- [x] Task 3: Support empty states and future-safe linked-record summaries (AC: #2, #4)
+  - [x] 3.1 Show clear empty states when a client has no related quotes or invoices, with obvious next actions that do not introduce dead links.
+  - [x] 3.2 Include summary fields that support later workflows, such as record title/number, status, and last updated metadata, without overbuilding a full detail experience.
+  - [x] 3.3 Keep the read path lightweight and performant by returning only summary data needed for the client detail page.
 
-- [ ] Task 4: Verify accessibility, resilience, and regression safety (AC: #1, #2, #3, #4)
-  - [ ] 4.1 Add query-level tests for populated and empty related-record states.
-  - [ ] 4.2 Add rendering tests for the client detail view covering labeled regions, empty states, and missing-client handling.
-  - [ ] 4.3 Add keyboard and assistive-text checks so related-record sections remain understandable and navigable.
-  - [ ] 4.4 Verify `npm run lint`, `npm run test`, and `npm run build` pass.
+- [x] Task 4: Verify accessibility, resilience, and regression safety (AC: #1, #2, #3, #4)
+  - [x] 4.1 Add query-level tests for populated and empty related-record states.
+  - [x] 4.2 Add rendering tests for the client detail view covering labeled regions, empty states, and missing-client handling.
+  - [x] 4.3 Add keyboard and assistive-text checks so related-record sections remain understandable and navigable.
+  - [x] 4.4 Verify `npm run lint`, `npm run test`, and `npm run build` pass.
 
 ## Dev Notes
 
@@ -181,15 +181,68 @@ so that I can understand the commercial context for that client in one place.
 
 openai/gpt-5.4
 
+### Implementation Plan
+
+- Extend the client detail query contract to return lightweight related quote and invoice summaries alongside the existing client record.
+- Keep the backing read path studio-scoped by adding a repository detail helper that composes fixture-backed summary records in stable reverse-chronological order.
+- Add a feature-owned client record summary component so the route can render labeled related-record regions, explicit empty states, and safe workspace navigation without bloating the page file.
+- Cover the story with query and page rendering tests for populated, empty, reopened, and missing-client paths before running full repo validation.
+
 ### Debug Log References
 
 - create-story workflow execution
 - manual checklist validation pass completed using `_bmad/bmm/workflows/4-implementation/create-story/checklist.md`
+- `npm run test -- src/features/clients/server/queries/get-client-by-id.test.ts "src/app/(workspace)/clients/[clientId]/page.test.tsx"`
+- `npm run lint`
+- `npm run test`
+- `NEXTAUTH_URL="https://mento.example" STUDIO_OWNER_EMAIL="owner@mento.example" STUDIO_OWNER_PASSWORD="prod-password-123" npm run build`
 
 ### Completion Notes List
 
 - Ultimate context engine analysis completed - comprehensive developer guide created
+- Added a richer client detail payload with studio-scoped related quote and invoice summaries ordered by latest update.
+- Added a feature-owned client record summary surface with labeled related-record regions, explicit empty states, and safe workspace navigation.
+- Added query and page coverage for populated, empty, reopened, and missing-client paths, then validated lint, test, and build successfully.
 
 ### File List
 
+- _bmad-output/implementation-artifacts/sprint-status.yaml
 - _bmad-output/implementation-artifacts/2-2-view-client-records-with-related-quote-and-invoice-context.md
+- src/app/(workspace)/clients/[clientId]/page.tsx
+- src/app/(workspace)/clients/[clientId]/page.test.tsx
+- src/features/clients/components/client-record-summary.tsx
+- src/features/clients/server/clients-repository.ts
+- src/features/clients/server/queries/get-client-by-id.test.ts
+- src/features/clients/server/queries/get-client-by-id.ts
+- src/features/clients/server/store/clients-store.ts
+- src/features/clients/types.ts
+- src/features/quotes/server/queries/list-quotes.ts
+- src/features/invoices/server/queries/list-invoices.ts
+- src/lib/format/dates.ts
+
+## Senior Developer Review (AI)
+
+**Review Date:** 2026-03-17
+**Reviewer:** claude-sonnet-4-6 (adversarial code-review workflow)
+**Outcome:** Changes Requested → Fixed
+
+### Action Items
+
+- [x] [High] `clients-repository.ts` — `getClientDetailByIdForStudio` silently used fixture store for related records regardless of `DATABASE_URL`, mixing DB-backed client data with seeded data in any real environment. Replaced with `buildClientDetailRecord` helper carrying an explicit TODO comment.
+- [x] [High] `get-client-by-id.ts` — Dual-query auth pattern split the authorization boundary across an implicit studio filter and an explicit `ensureStudioAccess` call, making future refactors fragile. Restored the original single-path pattern: un-scoped lookup → `ensureStudioAccess` → `buildClientDetailRecord`.
+- [x] [Medium] `get-client-by-id.test.ts` — Three tests used `as typeof result & { data: { relatedQuotes: ... } }` casts, silently defeating TypeScript's ability to catch field renames on `ClientDetailRecord`. Removed all casts; fields are now accessed directly from the fully-typed return value.
+- [x] [Medium] `client-record-summary.tsx` — Inline `formatDate` using `Intl.DateTimeFormat` duplicated logic that belongs in `src/lib/format/dates.ts` per architecture. Extracted to that module (created the file).
+- [x] [Medium] `client-record-summary.tsx` — `formatStatus` used `charAt(0).toUpperCase()` which mangles multi-word or underscore-separated statuses. Replaced with an explicit `RECORD_STATUS_LABELS` map with a safe fallback.
+- [x] [Medium] `clients/types.ts` vs `list-quotes.ts` / `list-invoices.ts` — Three divergent summary type definitions for the same domain entities. Extended canonical `QuoteSummary` and `InvoiceSummary` with the missing fields, then aliased `RelatedQuoteSummary` / `RelatedInvoiceSummary` to eliminate the duplication.
+- [x] [Medium] `client-record-summary.tsx:89-96` — `<div className="space-y-1">` wrapping a single child div was dead markup with no visual effect. Removed the outer wrapper.
+
+### Low-Severity Notes (deferred, tracked for future stories)
+
+- **L1** Populated related-record sections render no workspace navigation link; action links only appear in empty states. Consider adding a workspace link for the non-empty path in a future story.
+- **L2** `SEEDED_QUOTES` and `SEEDED_INVOICES` in `clients-store.ts` are `const` arrays that can be mutated at runtime. `Object.freeze` would protect fixture integrity across test workers.
+- **L3** `page.test.tsx` does not cover the `saved === "created"` success notice path. Add a test when this flow is next touched.
+
+## Change Log
+
+- 2026-03-17: Added related quote and invoice summaries to the client detail query and page so client records now show lightweight commercial context with accessible empty states and regression coverage.
+- 2026-03-17: Code review pass — fixed auth boundary consolidation, fixture/DB mixed data source documentation, type deduplication, date/status formatting centralization, and dead markup removal. All 7 action items resolved. lint and 58/58 tests pass.

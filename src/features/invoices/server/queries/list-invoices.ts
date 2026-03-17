@@ -3,7 +3,9 @@ import type { ActionResult } from "@/lib/validation/action-result";
 export type InvoiceSummary = {
   id: string;
   invoiceNumber: string;
+  title: string;
   status: "draft" | "sent" | "paid";
+  updatedAt: string;
 };
 
 export async function listInvoices(): Promise<

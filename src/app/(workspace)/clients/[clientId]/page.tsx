@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ClientForm } from "@/features/clients/components/client-form";
+import { ClientRecordSummary } from "@/features/clients/components/client-record-summary";
 import { updateClient } from "@/features/clients/server/actions/update-client";
 import { getClientById } from "@/features/clients/server/queries/get-client-by-id";
 
@@ -22,22 +23,28 @@ export default async function ClientDetailPage({
   }
 
   return (
-    <section className="space-y-4 rounded-xl border border-zinc-200 bg-white p-6">
+    <section className="space-y-6 rounded-xl border border-zinc-200 bg-white p-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-zinc-900">Edit client</h2>
+          <h2 className="text-xl font-semibold text-zinc-900">Client details</h2>
           <p className="mt-2 text-sm text-zinc-600">
-            Keep client details current so future quotes and invoices use the latest saved
-            information.
+            Review the saved client record alongside recent quote and invoice context,
+            then make changes when details need to be refreshed.
           </p>
         </div>
         <Link
           href={backTo ?? "/clients"}
-          className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100"
+          className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
         >
           Back to clients
         </Link>
       </div>
+
+      <ClientRecordSummary
+        client={result.data.client}
+        relatedQuotes={result.data.relatedQuotes}
+        relatedInvoices={result.data.relatedInvoices}
+      />
 
       <ClientForm
         mode="edit"

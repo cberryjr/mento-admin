@@ -49,8 +49,8 @@ development_status:
 
   epic-2: in-progress
   2-1-create-and-edit-client-records: done
-  2-2-view-client-records-with-related-quote-and-invoice-context: ready-for-dev
-  2-3-create-and-edit-reusable-service-packages: backlog
+  2-2-view-client-records-with-related-quote-and-invoice-context: done
+  2-3-create-and-edit-reusable-service-packages: ready-for-dev
   2-4-define-service-package-structure-default-content-and-pricing: backlog
   2-5-browse-and-reopen-service-packages-in-the-library: backlog
   2-6-define-service-catalog-taxonomy-and-complexity-matrix: backlog

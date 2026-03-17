@@ -1,6 +1,11 @@
 import { randomUUID } from "node:crypto";
 
-import type { ClientInput, ClientRecord } from "@/features/clients/types";
+import type {
+  ClientInput,
+  ClientRecord,
+  RelatedInvoiceSummary,
+  RelatedQuoteSummary,
+} from "@/features/clients/types";
 
 const SEEDED_CLIENTS: ClientRecord[] = [
   {
@@ -32,6 +37,67 @@ const SEEDED_CLIENTS: ClientRecord[] = [
     contactPhone: "+1 555 0199",
     createdAt: "2026-03-03T11:00:00.000Z",
     updatedAt: "2026-03-11T16:45:00.000Z",
+  },
+];
+
+type StoredQuoteSummary = RelatedQuoteSummary & {
+  clientId: string;
+  studioId: string;
+};
+
+type StoredInvoiceSummary = RelatedInvoiceSummary & {
+  clientId: string;
+  studioId: string;
+};
+
+const SEEDED_QUOTES: StoredQuoteSummary[] = [
+  {
+    id: "quote-sunrise-retainer",
+    clientId: "client-sunrise-yoga",
+    studioId: "default-studio",
+    quoteNumber: "Q-2026-014",
+    title: "Monthly brand retainer",
+    status: "draft",
+    updatedAt: "2026-03-14T09:15:00.000Z",
+  },
+  {
+    id: "quote-sunrise-kickoff",
+    clientId: "client-sunrise-yoga",
+    studioId: "default-studio",
+    quoteNumber: "Q-2026-011",
+    title: "Website kickoff package",
+    status: "accepted",
+    updatedAt: "2026-03-09T13:45:00.000Z",
+  },
+  {
+    id: "quote-other-studio",
+    clientId: "client-other-studio",
+    studioId: "other-studio",
+    quoteNumber: "Q-2026-021",
+    title: "Seasonal menu refresh",
+    status: "draft",
+    updatedAt: "2026-03-11T08:30:00.000Z",
+  },
+];
+
+const SEEDED_INVOICES: StoredInvoiceSummary[] = [
+  {
+    id: "invoice-sunrise-deposit",
+    clientId: "client-sunrise-yoga",
+    studioId: "default-studio",
+    invoiceNumber: "INV-2026-006",
+    title: "Kickoff deposit",
+    status: "paid",
+    updatedAt: "2026-03-12T18:20:00.000Z",
+  },
+  {
+    id: "invoice-other-studio",
+    clientId: "client-other-studio",
+    studioId: "other-studio",
+    invoiceNumber: "INV-2026-010",
+    title: "Campaign deposit",
+    status: "sent",
+    updatedAt: "2026-03-10T10:00:00.000Z",
   },
 ];
 
@@ -90,6 +156,60 @@ export function readClientFromStore(
 
 export function readClientByIdFromStore(clientId: string): ClientRecord | null {
   return getClientsStore().get(clientId) ?? null;
+}
+
+function sortRelatedRecords<T extends { updatedAt: string; title: string }>(records: T[]) {
+  return [...records].sort((left, right) => {
+    const updatedComparison = right.updatedAt.localeCompare(left.updatedAt);
+
+    if (updatedComparison !== 0) {
+      return updatedComparison;
+    }
+
+    return left.title.localeCompare(right.title, undefined, {
+      sensitivity: "base",
+    });
+  });
+}
+
+function toQuoteSummary(record: StoredQuoteSummary): RelatedQuoteSummary {
+  return {
+    id: record.id,
+    quoteNumber: record.quoteNumber,
+    title: record.title,
+    status: record.status,
+    updatedAt: record.updatedAt,
+  };
+}
+
+function toInvoiceSummary(record: StoredInvoiceSummary): RelatedInvoiceSummary {
+  return {
+    id: record.id,
+    invoiceNumber: record.invoiceNumber,
+    title: record.title,
+    status: record.status,
+    updatedAt: record.updatedAt,
+  };
+}
+
+export function readQuoteSummariesForClientFromStore(
+  studioId: string,
+  clientId: string,
+): RelatedQuoteSummary[] {
+  return sortRelatedRecords(
+    SEEDED_QUOTES.filter((quote) => quote.studioId === studioId && quote.clientId === clientId),
+  ).map(toQuoteSummary);
+}
+
+export function readInvoiceSummariesForClientFromStore(
+  studioId: string,
+  clientId: string,
+): RelatedInvoiceSummary[] {
+  return sortRelatedRecords(
+    SEEDED_INVOICES.filter(
+      (invoice) => invoice.studioId === studioId && invoice.clientId === clientId,
+    ),
+  ).map(toInvoiceSummary);
 }
 
 export function createClientInStore(

@@ -2,8 +2,10 @@ import type { ActionResult } from "@/lib/validation/action-result";
 
 export type QuoteSummary = {
   id: string;
+  quoteNumber: string;
   title: string;
   status: "draft" | "accepted";
+  updatedAt: string;
 };
 
 export async function listQuotes(): Promise<

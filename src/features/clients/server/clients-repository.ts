@@ -3,13 +3,15 @@ import { randomUUID } from "node:crypto";
 import { asc, eq } from "drizzle-orm";
 
 import { env } from "@/lib/env";
-import type { ClientInput, ClientRecord } from "@/features/clients/types";
+import type { ClientDetailRecord, ClientInput, ClientRecord } from "@/features/clients/types";
 import {
   __resetClientsStore as resetClientsStore,
   createClientInStore,
   readClientByIdFromStore,
   readClientFromStore,
   readClientsFromStore,
+  readInvoiceSummariesForClientFromStore,
+  readQuoteSummariesForClientFromStore,
   updateClientInStore,
 } from "@/features/clients/server/store/clients-store";
 
@@ -120,6 +122,22 @@ export async function getClientByIdForStudio(
   } catch {
     return readClientFromStore(studioId, clientId);
   }
+}
+
+export async function buildClientDetailRecord(
+  studioId: string,
+  client: ClientRecord,
+): Promise<ClientDetailRecord> {
+  // NOTE: Related quote and invoice records are read from the in-memory fixture
+  // store because quote and invoice database schemas do not yet exist.
+  // TODO: Replace readQuoteSummariesForClientFromStore /
+  //   readInvoiceSummariesForClientFromStore with studio-scoped DB queries
+  //   once those tables are migrated (guarded with env.DATABASE_URL).
+  return {
+    client,
+    relatedQuotes: readQuoteSummariesForClientFromStore(studioId, client.id),
+    relatedInvoices: readInvoiceSummariesForClientFromStore(studioId, client.id),
+  };
 }
 
 export async function createClientRecord(

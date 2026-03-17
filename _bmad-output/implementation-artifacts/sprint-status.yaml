@@ -42,17 +42,18 @@ story_location: /Users/serveradmin/workspace/repos/mento-admin/_bmad-output/impl
 development_status:
   epic-1: in-progress
   1-1-set-up-initial-project-from-starter-template: done
-  1-2-sign-in-to-a-protected-single-studio-workspace: backlog
-  1-3-navigate-the-workspace-and-reopen-existing-records: backlog
-  1-4-manage-studio-defaults-for-quote-and-invoice-prefill: backlog
+  1-2-sign-in-to-a-protected-single-studio-workspace: review
+  1-3-navigate-the-workspace-and-reopen-existing-records: review
+  1-4-manage-studio-defaults-for-quote-and-invoice-prefill: review
   epic-1-retrospective: optional
 
-  epic-2: backlog
-  2-1-create-and-edit-client-records: backlog
+  epic-2: in-progress
+  2-1-create-and-edit-client-records: ready-for-dev
   2-2-view-client-records-with-related-quote-and-invoice-context: backlog
   2-3-create-and-edit-reusable-service-packages: backlog
   2-4-define-service-package-structure-default-content-and-pricing: backlog
   2-5-browse-and-reopen-service-packages-in-the-library: backlog
+  2-6-define-service-catalog-taxonomy-and-complexity-matrix: backlog
   epic-2-retrospective: optional
 
   epic-3: backlog
@@ -62,6 +63,7 @@ development_status:
   3-4-adjust-quote-pricing-ordering-and-totals: backlog
   3-5-review-preview-readiness-and-open-the-quote-preview: backlog
   3-6-save-and-reopen-quote-drafts: backlog
+  3-7-generate-transparent-estimate-breakdown-for-quotes: backlog
   epic-3-retrospective: optional
 
   epic-4: backlog

@@ -88,7 +88,7 @@ The long-term opportunity is larger than quoting speed alone. Once the core work
 
 ### Measurable Outcomes
 
-The most important measurable outcomes for the MVP are the user, business, and technical KPIs above. They define whether the workflow is fast enough, trustworthy enough, and commercially useful enough to justify expansion beyond the single-studio pilot.
+These KPIs determine whether the MVP is fast, trustworthy, and commercially useful enough to justify expansion beyond the single-studio pilot.
 
 ## Product Scope
 
@@ -156,7 +156,7 @@ The long-term vision is a broader studio operating layer for creative businesses
 
 These expansions are contingent on the single-studio MVP proving the core workflow first.
 
-The scope above is realized through the user journeys below, which trace the MVP from first quote creation through revision, conversion, and recovery.
+The user journeys below trace the MVP from first quote creation through revision, conversion, and recovery.
 
 ## User Journeys
 
@@ -291,7 +291,7 @@ The biggest market risk is that even if the product is cheaper and cleaner than 
 **Resource Risks:**  
 The biggest resource risk is overbuilding beyond the narrow workflow before the MVP proves value. Mitigation: keep the team small, hold the scope line around quote and invoice production, defer SaaS primitives and mobile-first optimization, and allow non-core workflow pieces to stay manual initially.
 
-The phased scope above resolves into the capability contract below.
+The functional requirements below define the capability contract for this phased scope.
 
 ## Functional Requirements
 
@@ -367,7 +367,7 @@ The non-functional requirements below define the quality bar for these capabilit
 
 - NFR4: The system shall require successful authentication for 100% of access attempts to protected workspace routes and record APIs, as measured by automated access-control tests, so commercial records are available only to studio users.
 - NFR5: The system shall block 100% of unauthenticated or unauthorized read and write attempts against client, service package, quote, revision, and invoice records, as measured by negative security tests, so a single studio's commercial data cannot be exposed or altered by invalid sessions.
-- NFR6: The system shall protect 100% of authentication and commercial data in transit with HTTPS and 100% of production-stored commercial data with encryption at rest, as measured by deployment configuration review and security scanning, so client and invoice data remain protected during normal operation.
+- NFR6: The system shall protect 100% of authentication and commercial data in transit with encryption that meets current industry standards and 100% of production-stored commercial data with encryption at rest, as measured by deployment configuration review and security scanning, so client and invoice data remain protected during normal operation.
 
 ### Reliability
 

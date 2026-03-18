@@ -21,12 +21,12 @@ export default async function ServicePackagesPage() {
         title="No service packages yet"
         description="Create a reusable package to speed up quote generation."
         action={
-          <button
-            type="button"
-            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
+          <Link
+            href="/service-packages/new"
+            className="inline-flex rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
           >
             Create service package
-          </button>
+          </Link>
         }
       />
     );
@@ -39,12 +39,12 @@ export default async function ServicePackagesPage() {
           <h2 className="text-xl font-semibold text-zinc-900">Service Packages</h2>
           <p className="text-sm text-zinc-600">Open a package to review structure and pricing.</p>
         </div>
-        <button
-          type="button"
+        <Link
+          href="/service-packages/new"
           className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
         >
           Create service package
-        </button>
+        </Link>
       </div>
 
       <ul className="divide-y divide-zinc-200 rounded-xl border border-zinc-200 bg-white">
@@ -61,6 +61,11 @@ export default async function ServicePackagesPage() {
                 <span className="block text-sm text-zinc-600">
                   {servicePackage.category} · Starts at {servicePackage.startingPriceLabel}
                 </span>
+                {servicePackage.shortDescription ? (
+                  <span className="block text-sm text-zinc-500">
+                    {servicePackage.shortDescription}
+                  </span>
+                ) : null}
               </span>
               <span className="text-xs text-zinc-500">Open</span>
             </Link>

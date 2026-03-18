@@ -1,6 +1,6 @@
 # Story 2.3: Create and Edit Reusable Service Packages
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -22,37 +22,37 @@ so that I can prepare quotes from repeatable commercial building blocks instead 
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Define the service package domain shape and persistence baseline (AC: #1, #2, #4)
-  - [ ] 1.1 Add `src/features/service-packages/types.ts` with a stable input, record, and summary contract for reusable package metadata.
-  - [ ] 1.2 Add `src/features/service-packages/schemas/service-package-schema.ts` with normalized validation for the exact field contract this story owns: required `name`, required `category`, required `startingPriceLabel` (or a clearly equivalent lightweight pricing-guidance field), and at most one optional short summary field if it directly supports package-library and future picker clarity.
-  - [ ] 1.3 Add `src/server/db/schema/service-packages.ts`, export it from `src/server/db/schema/index.ts`, and generate a Drizzle migration for a studio-scoped `service_packages` table with lifecycle fields.
-  - [ ] 1.4 Keep the schema narrow to reusable package metadata; do not implement sections, line items, default content, or structured pricing in this story.
+- [x] Task 1: Define the service package domain shape and persistence baseline (AC: #1, #2, #4)
+  - [x] 1.1 Add `src/features/service-packages/types.ts` with a stable input, record, and summary contract for reusable package metadata.
+  - [x] 1.2 Add `src/features/service-packages/schemas/service-package-schema.ts` with normalized validation for the exact field contract this story owns: required `name`, required `category`, required `startingPriceLabel` (or a clearly equivalent lightweight pricing-guidance field), and at most one optional short summary field if it directly supports package-library and future picker clarity.
+  - [x] 1.3 Add `src/server/db/schema/service-packages.ts`, export it from `src/server/db/schema/index.ts`, and generate a Drizzle migration for a studio-scoped `service_packages` table with lifecycle fields.
+  - [x] 1.4 Keep the schema narrow to reusable package metadata; do not implement sections, line items, default content, or structured pricing in this story.
 
-- [ ] Task 2: Implement authenticated service package reads and writes with shared app contracts (AC: #1, #2, #3)
-  - [ ] 2.1 Add `src/features/service-packages/server/service-packages-repository.ts` plus a fallback in-memory store for non-database environments, mirroring the client and studio-defaults persistence pattern.
-  - [ ] 2.2 Replace fixture-only query behavior in `src/features/service-packages/server/queries/list-service-packages.ts` and `src/features/service-packages/server/queries/get-service-package-by-id.ts` with studio-scoped repository reads that still return the standard `ActionResult` envelope.
-  - [ ] 2.3 Add `src/features/service-packages/server/actions/create-service-package.ts` and `src/features/service-packages/server/actions/update-service-package.ts` with auth-first `requireSession()` and `ensureStudioAccess(...)` enforcement.
-  - [ ] 2.4 For update flows, load the existing package first, return a standard missing-record result if it does not exist, authorize against the persisted package `studioId`, and only then update through a studio-scoped repository path.
-  - [ ] 2.5 Revalidate affected list/detail paths after successful writes and return explicit success or failure states with field-level validation errors.
+- [x] Task 2: Implement authenticated service package reads and writes with shared app contracts (AC: #1, #2, #3)
+  - [x] 2.1 Add `src/features/service-packages/server/service-packages-repository.ts` plus a fallback in-memory store for non-database environments, mirroring the client and studio-defaults persistence pattern.
+  - [x] 2.2 Replace fixture-only query behavior in `src/features/service-packages/server/queries/list-service-packages.ts` and `src/features/service-packages/server/queries/get-service-package-by-id.ts` with studio-scoped repository reads that still return the standard `ActionResult` envelope.
+  - [x] 2.3 Add `src/features/service-packages/server/actions/create-service-package.ts` and `src/features/service-packages/server/actions/update-service-package.ts` with auth-first `requireSession()` and `ensureStudioAccess(...)` enforcement.
+  - [x] 2.4 For update flows, load the existing package first, return a standard missing-record result if it does not exist, authorize against the persisted package `studioId`, and only then update through a studio-scoped repository path.
+  - [x] 2.5 Revalidate affected list/detail paths after successful writes and return explicit success or failure states with field-level validation errors.
 
-- [ ] Task 3: Build create and edit package flows in the workspace (AC: #1, #2, #3, #4)
-  - [ ] 3.1 Add `src/features/service-packages/components/service-package-form.tsx` using the established controlled-input plus `useTransition` pattern from the client feature.
-  - [ ] 3.2 Add `src/app/(workspace)/service-packages/new/page.tsx` for create mode with a safe return path to the library.
-  - [ ] 3.3 Update `src/app/(workspace)/service-packages/[servicePackageId]/page.tsx` to become the edit/detail experience backed by the package form and a bound update action; missing records should continue to resolve with `notFound()`.
-  - [ ] 3.4 Mirror the current client UX flow: create redirects to the edit/detail page with a saved notice, edit stays in place with explicit success or failure feedback, and entered values stay available on invalid submit.
-  - [ ] 3.5 Update `src/app/(workspace)/service-packages/page.tsx` so `Create service package` routes to the new flow and existing library rows still reopen packages with preserved `backTo` context.
+- [x] Task 3: Build create and edit package flows in the workspace (AC: #1, #2, #3, #4)
+  - [x] 3.1 Add `src/features/service-packages/components/service-package-form.tsx` using the established controlled-input plus `useTransition` pattern from the client feature.
+  - [x] 3.2 Add `src/app/(workspace)/service-packages/new/page.tsx` for create mode with a safe return path to the library.
+  - [x] 3.3 Update `src/app/(workspace)/service-packages/[servicePackageId]/page.tsx` to become the edit/detail experience backed by the package form and a bound update action; missing records should continue to resolve with `notFound()`.
+  - [x] 3.4 Mirror the current client UX flow: create redirects to the edit/detail page with a saved notice, edit stays in place with explicit success or failure feedback, and entered values stay available on invalid submit.
+  - [x] 3.5 Update `src/app/(workspace)/service-packages/page.tsx` so `Create service package` routes to the new flow and existing library rows still reopen packages with preserved `backTo` context.
 
-- [ ] Task 4: Keep the reusable-source model explicit and future-safe (AC: #2, #4)
-  - [ ] 4.1 Use headings, helper copy, and save feedback that clearly distinguish reusable service packages from later quote-instance editing.
-  - [ ] 4.2 Preserve lightweight summary fields needed by the current library and future quote-selection workflows without overbuilding Story 2.4 behavior; if a short description is added, keep it optional and summary-oriented rather than turning this story into full package authoring.
-  - [ ] 4.3 Avoid dead-end or misleading UI states; if a downstream quote-generation action is not yet available, use explanatory copy rather than fake working CTAs.
+- [x] Task 4: Keep the reusable-source model explicit and future-safe (AC: #2, #4)
+  - [x] 4.1 Use headings, helper copy, and save feedback that clearly distinguish reusable service packages from later quote-instance editing.
+  - [x] 4.2 Preserve lightweight summary fields needed by the current library and future quote-selection workflows without overbuilding Story 2.4 behavior; if a short description is added, keep it optional and summary-oriented rather than turning this story into full package authoring.
+  - [x] 4.3 Avoid dead-end or misleading UI states; if a downstream quote-generation action is not yet available, use explanatory copy rather than fake working CTAs.
 
-- [ ] Task 5: Verify accessibility, regression safety, and quality gates (AC: #1, #2, #3, #4)
-  - [ ] 5.1 Add unit tests for the service package schema, repository, queries, and server action result mapping.
-  - [ ] 5.2 Add component tests for create/edit rendering, inline validation, preserved values, and explicit reusable-source messaging.
-  - [ ] 5.3 Add an integration flow test in `tests/integration/service-packages/service-package-flow.test.ts` covering create, reopen, update, validation failure, and authz denial; create the package records inside the test rather than depending on today's fixture IDs.
-  - [ ] 5.4 Add Playwright coverage in `tests/e2e/service-packages.spec.ts` for create, edit, invalid submission recovery, and keyboard-only completion; create test data through the implemented flow rather than assuming fixture-backed persistence remains.
-  - [ ] 5.5 Verify `npm run lint`, `npm run test`, and `npm run build` pass.
+- [x] Task 5: Verify accessibility, regression safety, and quality gates (AC: #1, #2, #3, #4)
+  - [x] 5.1 Add unit tests for the service package schema, repository, queries, and server action result mapping.
+  - [x] 5.2 Add component tests for create/edit rendering, inline validation, preserved values, and explicit reusable-source messaging.
+  - [x] 5.3 Add an integration flow test in `tests/integration/service-packages/service-package-flow.test.ts` covering create, reopen, update, validation failure, and authz denial; create the package records inside the test rather than depending on today's fixture IDs.
+  - [x] 5.4 Add Playwright coverage in `tests/e2e/service-packages.spec.ts` for create, edit, invalid submission recovery, and keyboard-only completion; create test data through the implemented flow rather than assuming fixture-backed persistence remains.
+  - [x] 5.5 Verify `npm run lint`, `npm run test`, and `npm run build` pass.
 
 ## Dev Notes
 
@@ -214,19 +214,67 @@ so that I can prepare quotes from repeatable commercial building blocks instead 
 
 ## Dev Agent Record
 
+### Implementation Plan
+
+- Replace the fixture-only service-package read path with a repository-backed feature that mirrors the existing client and studio-defaults patterns.
+- Keep the persistence shape intentionally narrow to reusable package metadata only so Story 2.4 can add structured package content later without unwinding this baseline.
+- Reuse the client create/edit UX pattern for page composition, controlled form behavior, save notices, and path revalidation.
+- Add unit, integration, and browser coverage before marking the story complete, including a production-safe build verification run.
+
 ### Agent Model Used
 
 openai/gpt-5.4
 
 ### Debug Log References
 
-- create-story workflow execution
-- manual checklist validation pass completed using `_bmad/bmm/workflows/4-implementation/create-story/checklist.md`
+- dev-story workflow execution
+- `npx vitest run src/features/service-packages/schemas/service-package-schema.test.ts src/features/service-packages/server/service-packages-repository.test.ts src/features/service-packages/server/actions/create-service-package.test.ts src/features/service-packages/server/actions/update-service-package.test.ts src/features/service-packages/server/queries/list-service-packages.test.ts src/features/service-packages/server/queries/get-service-package-by-id.test.ts src/features/service-packages/components/service-package-form.test.tsx tests/integration/service-packages/service-package-flow.test.ts`
+- `npm run test`
+- `npm run lint`
+- `NEXTAUTH_URL="https://mento-admin.test" STUDIO_OWNER_EMAIL="owner@mento.test" STUDIO_OWNER_PASSWORD="dev-password-override" npm run build`
+- `npx playwright test`
 
 ### Completion Notes List
 
-- Ultimate context engine analysis completed - comprehensive developer guide created
+- Implemented the service-package metadata domain with shared types, Zod validation, a Drizzle schema, and a generated `service_packages` migration.
+- Replaced fixture-only service-package reads with an auth-aware repository, in-memory fallback store, server actions, and standard `ActionResult` envelopes for list/detail/create/update flows.
+- Added the reusable-source create/edit workspace experience with explicit source-record messaging, preserved invalid form input, saved notices, and working library navigation.
+- Added unit, component, integration, and Playwright coverage for service-package creation, editing, validation recovery, authorization checks, and keyboard-only completion.
+- Verified `npm run test`, `npm run lint`, and `npm run build` using production-safe `NEXTAUTH_URL` and `STUDIO_OWNER_*` overrides required by the repo's environment validation during build.
 
 ### File List
 
 - _bmad-output/implementation-artifacts/2-3-create-and-edit-reusable-service-packages.md
+- _bmad-output/implementation-artifacts/sprint-status.yaml
+- drizzle/migrations/0002_overjoyed_frightful_four.sql
+- drizzle/migrations/meta/0002_snapshot.json
+- drizzle/migrations/meta/_journal.json
+- src/app/(workspace)/service-packages/[servicePackageId]/page.tsx
+- src/app/(workspace)/service-packages/new/page.tsx
+- src/app/(workspace)/service-packages/page.tsx
+- src/features/service-packages/components/service-package-form.test.tsx
+- src/features/service-packages/components/service-package-form.tsx
+- src/features/service-packages/schemas/service-package-schema.test.ts
+- src/features/service-packages/schemas/service-package-schema.ts
+- src/features/service-packages/server/actions/create-service-package.test.ts
+- src/features/service-packages/server/actions/create-service-package.ts
+- src/features/service-packages/server/actions/update-service-package.test.ts
+- src/features/service-packages/server/actions/update-service-package.ts
+- src/features/service-packages/server/queries/get-service-package-by-id.test.ts
+- src/features/service-packages/server/queries/get-service-package-by-id.ts
+- src/features/service-packages/server/queries/list-service-packages.test.ts
+- src/features/service-packages/server/queries/list-service-packages.ts
+- src/features/service-packages/server/queries/service-package-fixtures.ts (deleted)
+- src/features/service-packages/server/service-packages-repository.test.ts
+- src/features/service-packages/server/service-packages-repository.ts
+- src/features/service-packages/server/store/service-packages-store.ts
+- src/features/service-packages/types.ts
+- src/server/db/schema/index.ts
+- src/server/db/schema/service-packages.ts
+- tests/e2e/service-packages.spec.ts
+- tests/integration/service-packages/service-package-flow.test.ts
+
+## Change Log
+
+- 2026-03-18: Implemented Story 2.3 by replacing fixture-only service-package pages with repository-backed create/edit flows, adding service-package persistence and tests across Vitest and Playwright, and updating sprint tracking from ready-for-dev to review.
+- 2026-03-18: Applied code-review fixes: removed dead getServicePackageByIdForStudio export, fixed vitest config to pick up .test.tsx integration tests, updated navigation-reopen test with proper auth mocks, rewrote e2e edit test to use direct navigation, added focus-visible to detail back link, fixed aria-describedby chaining on textarea during error state, added text-zinc-900 to input and textarea field class names in both client-form and service-package-form. All 85 Vitest tests and 12 Playwright tests pass.

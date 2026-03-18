@@ -29,7 +29,7 @@ const EMPTY_VALUES: ClientInput = {
 };
 
 const FIELD_CLASS_NAME =
-  "w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900";
+  "w-full rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900";
 
 function toInput(values: ClientRecord | null): ClientInput {
   if (!values) {

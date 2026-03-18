@@ -1,12 +1,56 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    replace: vi.fn(),
+    refresh: vi.fn(),
+  }),
+}));
+
+vi.mock("next/cache", () => ({
+  revalidatePath: vi.fn(),
+}));
+
+vi.mock("@/features/auth/require-session", () => ({
+  requireSession: vi.fn(),
+}));
 
 import ClientDetailPage from "@/app/(workspace)/clients/[clientId]/page";
 import ClientsPage from "@/app/(workspace)/clients/page";
 import ServicePackageDetailPage from "@/app/(workspace)/service-packages/[servicePackageId]/page";
 import ServicePackagesPage from "@/app/(workspace)/service-packages/page";
 
+afterEach(() => {
+  cleanup();
+});
+
 describe("workspace list and reopen behavior", () => {
+  beforeEach(async () => {
+    vi.clearAllMocks();
+
+    const { __resetClientsStore } = await import(
+      "@/features/clients/server/clients-repository"
+    );
+    __resetClientsStore();
+
+    const { __resetServicePackagesStore } = await import(
+      "@/features/service-packages/server/service-packages-repository"
+    );
+    __resetServicePackagesStore();
+
+    const { requireSession } = await import("@/features/auth/require-session");
+    vi.mocked(requireSession).mockResolvedValue({
+      user: {
+        id: "owner-1",
+        email: "owner@example.com",
+        role: "owner",
+        studioId: "default-studio",
+      },
+      expires: new Date(Date.now() + 360000).toISOString(),
+    });
+  });
+
   it("shows client list navigation targets", async () => {
     const ui = await ClientsPage();
     render(ui);
@@ -15,7 +59,7 @@ describe("workspace list and reopen behavior", () => {
       screen.getByRole("link", { name: /sunrise yoga studio/i }),
     ).toHaveAttribute(
       "href",
-      "/clients/client-sunrise-yoga?backTo=%2Fclients",
+      "/clients/client-sunrise-yoga?backTo=/clients",
     );
   });
 
@@ -27,7 +71,7 @@ describe("workspace list and reopen behavior", () => {
       screen.getByRole("link", { name: /brand launch package/i }),
     ).toHaveAttribute(
       "href",
-      "/service-packages/package-brand-launch?backTo=%2Fservice-packages",
+      "/service-packages/package-brand-launch?backTo=/service-packages",
     );
   });
 

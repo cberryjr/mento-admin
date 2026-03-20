@@ -5,10 +5,11 @@ import { revalidatePath } from "next/cache";
 import { requireSession } from "@/features/auth/require-session";
 import { createServicePackageRecord } from "@/features/service-packages/server/service-packages-repository";
 import {
+  getServicePackageFieldErrors,
   servicePackageSchema,
   type ServicePackageSchemaInput,
 } from "@/features/service-packages/schemas/service-package-schema";
-import type { ServicePackageRecord } from "@/features/service-packages/types";
+import type { ServicePackageDetailRecord } from "@/features/service-packages/types";
 import { AppError } from "@/lib/errors/app-error";
 import { ERROR_CODES } from "@/lib/errors/error-codes";
 import type { ActionResult } from "@/lib/validation/action-result";
@@ -21,7 +22,7 @@ function revalidateServicePackagePaths(servicePackageId: string) {
 
 export async function createServicePackage(
   input: ServicePackageSchemaInput,
-): Promise<ActionResult<{ servicePackage: ServicePackageRecord }>> {
+): Promise<ActionResult<{ servicePackage: ServicePackageDetailRecord }>> {
   try {
     const session = await requireSession();
     ensureStudioAccess(session, session.user.studioId);
@@ -34,7 +35,7 @@ export async function createServicePackage(
         error: {
           code: ERROR_CODES.VALIDATION_ERROR,
           message: "Please correct the highlighted fields.",
-          fieldErrors: parsed.error.flatten().fieldErrors,
+          fieldErrors: getServicePackageFieldErrors(input, parsed.error),
         },
       };
     }

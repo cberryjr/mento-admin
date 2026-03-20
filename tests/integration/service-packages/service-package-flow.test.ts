@@ -8,6 +8,52 @@ vi.mock("@/features/auth/require-session", () => ({
   requireSession: vi.fn(),
 }));
 
+function buildStructuredInput() {
+  return {
+    name: "Website Refresh Package",
+    category: "Web",
+    shortDescription: "Refresh a marketing site for relaunch.",
+    sections: [
+      {
+        id: "section-discovery",
+        title: "Discovery",
+        defaultContent: "Audit and kickoff work.",
+        position: 1,
+        lineItems: [
+          {
+            id: "line-item-audit",
+            sectionId: "section-discovery",
+            name: "Site audit",
+            defaultContent: "Audit current pages and conversion gaps.",
+            quantity: 1,
+            unitLabel: "audit",
+            unitPriceCents: 75000,
+            position: 1,
+          },
+        ],
+      },
+      {
+        id: "section-delivery",
+        title: "Delivery",
+        defaultContent: "Design and implementation support.",
+        position: 2,
+        lineItems: [
+          {
+            id: "line-item-pages",
+            sectionId: "section-delivery",
+            name: "Page redesign",
+            defaultContent: "Refresh homepage and sales page.",
+            quantity: 2,
+            unitLabel: "page",
+            unitPriceCents: 125000,
+            position: 1,
+          },
+        ],
+      },
+    ],
+  };
+}
+
 describe("service package integration flow", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -29,7 +75,7 @@ describe("service package integration flow", () => {
     });
   });
 
-  it("creates a service package, reloads it in list/detail reads, and persists updates", async () => {
+  it("creates a structured package, reopens it, updates it, and preserves nested integrity", async () => {
     const { createServicePackage } = await import(
       "@/features/service-packages/server/actions/create-service-package"
     );
@@ -43,49 +89,118 @@ describe("service package integration flow", () => {
       "@/features/service-packages/server/queries/list-service-packages"
     );
 
-    const createResult = await createServicePackage({
-      name: "Website Refresh Package",
-      category: "Web",
-      startingPriceLabel: "$3,200",
-      shortDescription: "Refresh a marketing site for relaunch.",
-    });
+    const createResult = await createServicePackage(buildStructuredInput());
 
     expect(createResult.ok).toBe(true);
     if (!createResult.ok) {
       return;
     }
 
+    expect(createResult.data.servicePackage.packageTotalCents).toBe(325000);
+    expect(createResult.data.servicePackage.startingPriceLabel).toBe("$3,250");
+
     const listResult = await listServicePackages();
     expect(listResult.ok).toBe(true);
     if (listResult.ok) {
-      expect(
-        listResult.data.servicePackages.some(
-          (servicePackage) => servicePackage.id === createResult.data.servicePackage.id,
-        ),
-      ).toBe(true);
+      const createdSummary = listResult.data.servicePackages.find(
+        (servicePackage) => servicePackage.id === createResult.data.servicePackage.id,
+      );
+
+      expect(createdSummary).toMatchObject({
+        name: "Website Refresh Package",
+        packageTotalCents: 325000,
+        startingPriceLabel: "$3,250",
+      });
+    }
+
+    const reopenResult = await getServicePackageById(createResult.data.servicePackage.id);
+    expect(reopenResult.ok).toBe(true);
+    if (reopenResult.ok) {
+      expect(reopenResult.data.servicePackage.sections).toHaveLength(2);
+      expect(reopenResult.data.servicePackage.sections[1].lineItems[0]).toMatchObject({
+        name: "Page redesign",
+        quantity: 2,
+        unitPriceCents: 125000,
+      });
     }
 
     const updateResult = await updateServicePackage(createResult.data.servicePackage.id, {
       name: "Website Refresh Package",
       category: "Web Strategy",
-      startingPriceLabel: "$3,500",
       shortDescription: "Refresh and relaunch support.",
+      sections: [
+        {
+          id: "section-discovery",
+          title: "Discovery",
+          defaultContent: "Audit and strategy alignment.",
+          position: 1,
+          lineItems: [
+            {
+              id: "line-item-audit",
+              sectionId: "section-discovery",
+              name: "Site audit",
+              defaultContent: "Audit current pages and conversion gaps.",
+              quantity: 1,
+              unitLabel: "audit",
+              unitPriceCents: 90000,
+              position: 1,
+            },
+          ],
+        },
+        {
+          id: "section-delivery",
+          title: "Delivery",
+          defaultContent: "Design and implementation support.",
+          position: 2,
+          lineItems: [
+            {
+              id: "line-item-pages",
+              sectionId: "section-delivery",
+              name: "Page redesign",
+              defaultContent: "Refresh homepage and sales page.",
+              quantity: 2,
+              unitLabel: "page",
+              unitPriceCents: 125000,
+              position: 1,
+            },
+            {
+              id: "line-item-handoff",
+              sectionId: "section-delivery",
+              name: "Launch handoff",
+              defaultContent: "Go-live checklist and walkthrough.",
+              quantity: 1,
+              unitLabel: "handoff",
+              unitPriceCents: 30000,
+              position: 2,
+            },
+          ],
+        },
+      ],
     });
 
     expect(updateResult.ok).toBe(true);
+    if (!updateResult.ok) {
+      return;
+    }
+
+    expect(updateResult.data.servicePackage.category).toBe("Web Strategy");
+    expect(updateResult.data.servicePackage.packageTotalCents).toBe(370000);
+    expect(updateResult.data.servicePackage.sections[1].lineItems).toHaveLength(2);
 
     const detailResult = await getServicePackageById(createResult.data.servicePackage.id);
     expect(detailResult.ok).toBe(true);
     if (detailResult.ok) {
       expect(detailResult.data.servicePackage.category).toBe("Web Strategy");
-      expect(detailResult.data.servicePackage.startingPriceLabel).toBe("$3,500");
-      expect(detailResult.data.servicePackage.shortDescription).toBe(
-        "Refresh and relaunch support.",
-      );
+      expect(detailResult.data.servicePackage.sections[0].lineItems).toHaveLength(1);
+      expect(detailResult.data.servicePackage.sections[1].lineItems).toHaveLength(2);
+      expect(detailResult.data.servicePackage.sections[1].lineItems[1]).toMatchObject({
+        name: "Launch handoff",
+        unitPriceCents: 30000,
+      });
     }
   });
 
-  it("returns standard error envelopes for validation and authz denials", async () => {
+  it("returns standard error envelopes for nested validation and authz denials", async () => {
     const { updateServicePackage } = await import(
       "@/features/service-packages/server/actions/update-service-package"
     );
@@ -93,8 +208,8 @@ describe("service package integration flow", () => {
     const invalidResult = await updateServicePackage("package-brand-launch", {
       name: "",
       category: "",
-      startingPriceLabel: "",
       shortDescription: "",
+      sections: [],
     });
 
     expect(invalidResult).toMatchObject({
@@ -108,15 +223,34 @@ describe("service package integration flow", () => {
     const authzResult = await updateServicePackage("package-other-studio", {
       name: "Hidden Orchard Package",
       category: "Campaign",
-      startingPriceLabel: "$1,900",
       shortDescription: "Other studio package.",
+      sections: [
+        {
+          id: "section-campaign",
+          title: "Campaign",
+          defaultContent: "Other studio package details.",
+          position: 1,
+          lineItems: [
+            {
+              id: "line-item-campaign",
+              sectionId: "section-campaign",
+              name: "Campaign package",
+              defaultContent: "Other studio package used for auth coverage.",
+              quantity: 1,
+              unitLabel: "package",
+              unitPriceCents: 190000,
+              position: 1,
+            },
+          ],
+        },
+      ],
     });
 
     expect(authzResult).toEqual({
       ok: false,
       error: {
-        code: "FORBIDDEN",
-        message: "You are not allowed to access this workspace.",
+        code: "UNKNOWN",
+        message: "Service package not found.",
       },
     });
   });

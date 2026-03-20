@@ -8,6 +8,52 @@ import {
   updateServicePackageRecord,
 } from "@/features/service-packages/server/service-packages-repository";
 
+function buildStructuredInput() {
+  return {
+    name: "Website Refresh Package",
+    category: "Web",
+    shortDescription: "Refresh a marketing site for relaunch.",
+    sections: [
+      {
+        id: "section-discovery",
+        title: "Discovery",
+        defaultContent: "Audit and project kickoff.",
+        position: 1,
+        lineItems: [
+          {
+            id: "line-item-audit",
+            sectionId: "section-discovery",
+            name: "Site audit",
+            defaultContent: "Audit current pages and conversion gaps.",
+            quantity: 1,
+            unitLabel: "audit",
+            unitPriceCents: 75000,
+            position: 1,
+          },
+        ],
+      },
+      {
+        id: "section-delivery",
+        title: "Delivery",
+        defaultContent: "Design and implementation support.",
+        position: 2,
+        lineItems: [
+          {
+            id: "line-item-pages",
+            sectionId: "section-delivery",
+            name: "Page redesign",
+            defaultContent: "Refresh homepage and sales page.",
+            quantity: 2,
+            unitLabel: "page",
+            unitPriceCents: 125000,
+            position: 1,
+          },
+        ],
+      },
+    ],
+  };
+}
+
 describe("servicePackagesRepository", () => {
   beforeEach(() => {
     __resetServicePackagesStore();
@@ -20,15 +66,12 @@ describe("servicePackagesRepository", () => {
       "Brand Launch Package",
       "Content Sprint Package",
     ]);
+    expect(packages[0].sections[0].title).toBe("Strategy");
+    expect(packages[0].packageTotalCents).toBe(240000);
   });
 
-  it("creates a service package record that can be loaded again", async () => {
-    const created = await createServicePackageRecord("default-studio", {
-      name: "Website Refresh Package",
-      category: "Web",
-      startingPriceLabel: "$3,200",
-      shortDescription: "Refresh a marketing site for relaunch.",
-    });
+  it("creates a structured service package record that can be loaded again", async () => {
+    const created = await createServicePackageRecord("default-studio", buildStructuredInput());
 
     const loaded = await getServicePackageById(created.id);
 
@@ -36,12 +79,19 @@ describe("servicePackagesRepository", () => {
       studioId: "default-studio",
       name: "Website Refresh Package",
       category: "Web",
-      startingPriceLabel: "$3,200",
+      startingPriceLabel: "$3,250",
       shortDescription: "Refresh a marketing site for relaunch.",
+      packageTotalCents: 325000,
+    });
+    expect(loaded?.sections).toHaveLength(2);
+    expect(loaded?.sections[1].lineItems[0]).toMatchObject({
+      name: "Page redesign",
+      quantity: 2,
+      unitPriceCents: 125000,
     });
   });
 
-  it("updates an existing service package without changing its original created timestamp", async () => {
+  it("updates a structured package without corrupting sibling content or createdAt", async () => {
     const existing = await getServicePackageById("package-brand-launch");
 
     expect(existing).not.toBeNull();
@@ -52,17 +102,67 @@ describe("servicePackagesRepository", () => {
       {
         name: "Brand Launch Package",
         category: "Brand Strategy",
-        startingPriceLabel: "$2,750",
         shortDescription: "Updated launch support summary.",
+        sections: [
+          {
+            id: "section-strategy",
+            title: "Strategy",
+            defaultContent: "Audience and positioning updates.",
+            position: 1,
+            lineItems: [
+              {
+                id: "line-item-workshop",
+                sectionId: "section-strategy",
+                name: "Discovery workshop",
+                defaultContent: "Updated discovery session.",
+                quantity: 1,
+                unitLabel: "session",
+                unitPriceCents: 140000,
+                position: 1,
+              },
+            ],
+          },
+          {
+            id: "section-delivery",
+            title: "Delivery",
+            defaultContent: "Updated delivery scope.",
+            position: 2,
+            lineItems: [
+              {
+                id: "line-item-identity",
+                sectionId: "section-delivery",
+                name: "Brand identity system",
+                defaultContent: "Refined identity package.",
+                quantity: 1,
+                unitLabel: "package",
+                unitPriceCents: 110000,
+                position: 1,
+              },
+              {
+                id: "line-item-rollout",
+                sectionId: "section-delivery",
+                name: "Rollout guidance",
+                defaultContent: "Launch checklist and handoff.",
+                quantity: 1,
+                unitLabel: "guide",
+                unitPriceCents: 30000,
+                position: 2,
+              },
+            ],
+          },
+        ],
       },
     );
 
     expect(updated).toMatchObject({
       id: "package-brand-launch",
       category: "Brand Strategy",
-      startingPriceLabel: "$2,750",
+      startingPriceLabel: "$2,800",
       shortDescription: "Updated launch support summary.",
+      packageTotalCents: 280000,
     });
+    expect(updated?.sections[1].lineItems).toHaveLength(2);
+    expect(updated?.sections[1].lineItems[0].name).toBe("Brand identity system");
     expect(updated?.createdAt).toBe(existing?.createdAt);
     expect(updated?.updatedAt).not.toBe(existing?.updatedAt);
   });

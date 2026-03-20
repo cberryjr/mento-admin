@@ -38,6 +38,11 @@ describe("listServicePackages", () => {
       expect(result.data.servicePackages.length).toBeGreaterThan(0);
       expect(result.data.servicePackages.every((servicePackage) => servicePackage.id)).toBe(true);
       expect(
+        result.data.servicePackages.every(
+          (servicePackage) => typeof servicePackage.packageTotalCents === "number",
+        ),
+      ).toBe(true);
+      expect(
         result.data.servicePackages.every((servicePackage) => !servicePackage.id.includes("other-studio")),
       ).toBe(true);
     }

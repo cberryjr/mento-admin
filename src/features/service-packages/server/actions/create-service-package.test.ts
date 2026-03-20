@@ -38,8 +38,8 @@ describe("createServicePackage", () => {
     const result = await createServicePackage({
       name: "",
       category: "",
-      startingPriceLabel: "",
       shortDescription: "",
+      sections: [],
     });
 
     expect(result.ok).toBe(false);
@@ -47,7 +47,7 @@ describe("createServicePackage", () => {
       expect(result.error.code).toBe("VALIDATION_ERROR");
       expect(result.error.fieldErrors?.name).toBeDefined();
       expect(result.error.fieldErrors?.category).toBeDefined();
-      expect(result.error.fieldErrors?.startingPriceLabel).toBeDefined();
+      expect(result.error.fieldErrors?.sections).toBeDefined();
     }
   });
 
@@ -72,14 +72,35 @@ describe("createServicePackage", () => {
     const result = await createServicePackage({
       name: "Website Refresh Package",
       category: "Web",
-      startingPriceLabel: "$3,200",
       shortDescription: "Refresh a marketing site for relaunch.",
+      sections: [
+        {
+          id: "section-web",
+          title: "Website",
+          defaultContent: "Core site refresh work.",
+          position: 1,
+          lineItems: [
+            {
+              id: "line-item-pages",
+              sectionId: "section-web",
+              name: "Page redesign",
+              defaultContent: "Homepage and sales page refresh.",
+              quantity: 2,
+              unitLabel: "page",
+              unitPriceCents: 125000,
+              position: 1,
+            },
+          ],
+        },
+      ],
     });
 
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.servicePackage.name).toBe("Website Refresh Package");
       expect(result.data.servicePackage.studioId).toBe("default-studio");
+      expect(result.data.servicePackage.packageTotalCents).toBe(250000);
+      expect(result.data.servicePackage.startingPriceLabel).toBe("$2,500");
       expect(vi.mocked(revalidatePath)).toHaveBeenCalledWith("/service-packages");
       expect(vi.mocked(revalidatePath)).toHaveBeenCalledWith(
         `/service-packages/${result.data.servicePackage.id}`,
@@ -102,8 +123,27 @@ describe("createServicePackage", () => {
     const result = await createServicePackage({
       name: "Website Refresh Package",
       category: "Web",
-      startingPriceLabel: "$3,200",
       shortDescription: "Refresh a marketing site for relaunch.",
+      sections: [
+        {
+          id: "section-web",
+          title: "Website",
+          defaultContent: "Core site refresh work.",
+          position: 1,
+          lineItems: [
+            {
+              id: "line-item-pages",
+              sectionId: "section-web",
+              name: "Page redesign",
+              defaultContent: "Homepage and sales page refresh.",
+              quantity: 2,
+              unitLabel: "page",
+              unitPriceCents: 125000,
+              position: 1,
+            },
+          ],
+        },
+      ],
     });
 
     expect(result.ok).toBe(false);

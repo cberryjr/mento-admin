@@ -1,6 +1,6 @@
 # Story 2.4: Define Service Package Structure, Default Content, and Pricing
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -22,40 +22,40 @@ so that generated quotes begin from a realistic commercial structure.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Establish the canonical structured service-package contract and persistence model (AC: #1, #2, #3)
-  - [ ] 1.1 Add `src/features/service-packages/types.ts` with stable summary, detail, section, line-item, and input contracts that preserve current library fields (`name`, `category`, `startingPriceLabel`) while adding reusable structure, default content, pricing guidance, and ordering metadata.
-  - [ ] 1.2 Lock down the minimum nested contract explicitly: each section must include a stable `id`, `title`, optional `defaultContent`, and `position`; each line item must include a stable `id`, `sectionId`, `name`, optional `defaultContent`, `quantity`, optional `unitLabel`, `unitPriceCents`, and `position`; package totals and `startingPriceLabel` should be derived from those structured line items rather than stored as unrelated display-only text.
-  - [ ] 1.3 Add `src/features/service-packages/schemas/service-package-schema.ts` with nested Zod schemas for package metadata, sections, and line items; use path-aware validation output that the UI can map back to nested fields.
-  - [ ] 1.4 Add or extend `src/server/db/schema/service-packages.ts` and `src/server/db/schema/index.ts` so the database can persist `service_packages`, `service_package_sections`, and `service_package_line_items` with studio scoping, stable order fields, default content fields, deterministic pricing data, and lifecycle timestamps.
-  - [ ] 1.5 Generate the matching Drizzle migration and fallback in-memory store shape without collapsing structured package data into an opaque blob that would block later quote-generation work.
+- [x] Task 1: Establish the canonical structured service-package contract and persistence model (AC: #1, #2, #3)
+  - [x] 1.1 Add `src/features/service-packages/types.ts` with stable summary, detail, section, line-item, and input contracts that preserve current library fields (`name`, `category`, `startingPriceLabel`) while adding reusable structure, default content, pricing guidance, and ordering metadata.
+  - [x] 1.2 Lock down the minimum nested contract explicitly: each section must include a stable `id`, `title`, optional `defaultContent`, and `position`; each line item must include a stable `id`, `sectionId`, `name`, optional `defaultContent`, `quantity`, optional `unitLabel`, `unitPriceCents`, and `position`; package totals and `startingPriceLabel` should be derived from those structured line items rather than stored as unrelated display-only text.
+  - [x] 1.3 Add `src/features/service-packages/schemas/service-package-schema.ts` with nested Zod schemas for package metadata, sections, and line items; use path-aware validation output that the UI can map back to nested fields.
+  - [x] 1.4 Add or extend `src/server/db/schema/service-packages.ts` and `src/server/db/schema/index.ts` so the database can persist `service_packages`, `service_package_sections`, and `service_package_line_items` with studio scoping, stable order fields, default content fields, deterministic pricing data, and lifecycle timestamps.
+  - [x] 1.5 Generate the matching Drizzle migration and fallback in-memory store shape without collapsing structured package data into an opaque blob that would block later quote-generation work.
 
-- [ ] Task 2: Implement authenticated repository, query, and mutation support for structured packages (AC: #1, #2, #3)
-  - [ ] 2.1 Add `src/features/service-packages/server/service-packages-repository.ts` plus `src/features/service-packages/server/store/service-packages-store.ts` to load and save package summaries and full nested package definitions in a studio-scoped way.
-  - [ ] 2.2 Replace fixture-only behavior in `src/features/service-packages/server/queries/list-service-packages.ts` and `src/features/service-packages/server/queries/get-service-package-by-id.ts` with repository-backed reads that return library-safe summaries and full editor detail data.
-  - [ ] 2.3 Add `src/features/service-packages/server/actions/create-service-package.ts` and `src/features/service-packages/server/actions/update-service-package.ts` with `requireSession()`, `ensureStudioAccess(...)`, nested validation, revalidation of list/detail paths, and explicit success or failure envelopes.
-  - [ ] 2.4 For updates, load the persisted package first, authorize against its `studioId`, and replace or reconcile nested sections and line items inside a single transaction so partial edits cannot corrupt sibling content.
-  - [ ] 2.5 Keep the library-facing `startingPriceLabel` aligned with structured pricing data by deriving or reliably synchronizing the summary value whenever package pricing changes.
+- [x] Task 2: Implement authenticated repository, query, and mutation support for structured packages (AC: #1, #2, #3)
+  - [x] 2.1 Add `src/features/service-packages/server/service-packages-repository.ts` plus `src/features/service-packages/server/store/service-packages-store.ts` to load and save package summaries and full nested package definitions in a studio-scoped way.
+  - [x] 2.2 Replace fixture-only behavior in `src/features/service-packages/server/queries/list-service-packages.ts` and `src/features/service-packages/server/queries/get-service-package-by-id.ts` with repository-backed reads that return library-safe summaries and full editor detail data.
+  - [x] 2.3 Add `src/features/service-packages/server/actions/create-service-package.ts` and `src/features/service-packages/server/actions/update-service-package.ts` with `requireSession()`, `ensureStudioAccess(...)`, nested validation, revalidation of list/detail paths, and explicit success or failure envelopes.
+  - [x] 2.4 For updates, load the persisted package first, authorize against its `studioId`, and replace or reconcile nested sections and line items inside a single transaction so partial edits cannot corrupt sibling content.
+  - [x] 2.5 Keep the library-facing `startingPriceLabel` aligned with structured pricing data by deriving or reliably synchronizing the summary value whenever package pricing changes.
 
-- [ ] Task 3: Build the structured package editor in the workspace routes (AC: #1, #2, #3, #4)
-  - [ ] 3.1 Add `src/features/service-packages/components/service-package-form.tsx` using the current controlled-input plus `useTransition` pattern, extended for nested sections and line items with add, edit, remove, and reorder interactions.
-  - [ ] 3.2 Use stable client-side row identity for unsaved sections and line items (temporary IDs or equivalent). Do not rely on array indexes for React keys, reorder behavior, or nested validation/error mapping.
-  - [ ] 3.3 Add `src/app/(workspace)/service-packages/new/page.tsx` and evolve `src/app/(workspace)/service-packages/[servicePackageId]/page.tsx` into the create/edit experience backed by the new structured form and bound server actions.
-  - [ ] 3.4 Update `src/app/(workspace)/service-packages/page.tsx` so `Create service package` routes into the create flow and existing library rows still reopen packages with preserved `backTo` context.
-  - [ ] 3.5 Surface section totals or package pricing summaries immediately in the editor when structured pricing changes, and keep save feedback explicit, accessible, and consistent with the rest of the workspace.
-  - [ ] 3.6 Make the reusable-source boundary obvious through headings, helper copy, and status messaging so users understand they are editing reusable package content, not a client-specific quote instance.
+- [x] Task 3: Build the structured package editor in the workspace routes (AC: #1, #2, #3, #4)
+  - [x] 3.1 Add `src/features/service-packages/components/service-package-form.tsx` using the current controlled-input plus `useTransition` pattern, extended for nested sections and line items with add, edit, remove, and reorder interactions.
+  - [x] 3.2 Use stable client-side row identity for unsaved sections and line items (temporary IDs or equivalent). Do not rely on array indexes for React keys, reorder behavior, or nested validation/error mapping.
+  - [x] 3.3 Add `src/app/(workspace)/service-packages/new/page.tsx` and evolve `src/app/(workspace)/service-packages/[servicePackageId]/page.tsx` into the create/edit experience backed by the new structured form and bound server actions.
+  - [x] 3.4 Update `src/app/(workspace)/service-packages/page.tsx` so `Create service package` routes into the create flow and existing library rows still reopen packages with preserved `backTo` context.
+  - [x] 3.5 Surface section totals or package pricing summaries immediately in the editor when structured pricing changes, and keep save feedback explicit, accessible, and consistent with the rest of the workspace.
+  - [x] 3.6 Make the reusable-source boundary obvious through headings, helper copy, and status messaging so users understand they are editing reusable package content, not a client-specific quote instance.
 
-- [ ] Task 4: Protect downstream quote-generation compatibility while keeping scope disciplined (AC: #2, #3, #4)
-  - [ ] 4.1 Keep Story 2.4 focused on reusable service-package authoring only; do not implement quote generation, quote-instance editing, taxonomy management, or package-library filtering in this story.
-  - [ ] 4.2 Store package structure and pricing in a deterministic format that later Epic 3 quote-generation work can map into quote sections, line items, and initial pricing guidance without reinterpreting formatted strings.
-  - [ ] 4.3 Preserve the current library summary behavior while leaving room for Story 2.5 browsing improvements and Epic 3 package-selection flows.
-  - [ ] 4.4 If the Story 2.3 create/edit baseline is still missing in the current branch, implement that missing enabling work as part of this story rather than layering structured editing on top of fixture-only pages.
+- [x] Task 4: Protect downstream quote-generation compatibility while keeping scope disciplined (AC: #2, #3, #4)
+  - [x] 4.1 Keep Story 2.4 focused on reusable service-package authoring only; do not implement quote generation, quote-instance editing, taxonomy management, or package-library filtering in this story.
+  - [x] 4.2 Store package structure and pricing in a deterministic format that later Epic 3 quote-generation work can map into quote sections, line items, and initial pricing guidance without reinterpreting formatted strings.
+  - [x] 4.3 Preserve the current library summary behavior while leaving room for Story 2.5 browsing improvements and Epic 3 package-selection flows.
+  - [x] 4.4 If the Story 2.3 create/edit baseline is still missing in the current branch, implement that missing enabling work as part of this story rather than layering structured editing on top of fixture-only pages.
 
-- [ ] Task 5: Verify regression safety, accessibility, and quality gates (AC: #1, #2, #3, #4)
-  - [ ] 5.1 Add unit tests for the nested service-package schema, repository transaction behavior, list/detail queries, and server-action result mapping.
-  - [ ] 5.2 Add component tests for nested editor rendering, inline validation, preserved values, add/remove/reorder behavior, explicit reusable-source messaging, and pricing-summary feedback.
-  - [ ] 5.3 Add an integration flow test in `tests/integration/service-packages/service-package-flow.test.ts` covering create, reopen, update, authz denial, and no-corruption regression checks across sections and line items.
-  - [ ] 5.4 Add Playwright coverage in `tests/e2e/service-packages.spec.ts` for structured package creation/editing, keyboard-only completion, saved feedback, and tablet-safe layout behavior; update existing workspace navigation tests if they currently depend on fixture IDs.
-  - [ ] 5.5 Verify `npm run lint`, `npm run test`, and `npm run build` pass.
+- [x] Task 5: Verify regression safety, accessibility, and quality gates (AC: #1, #2, #3, #4)
+  - [x] 5.1 Add unit tests for the nested service-package schema, repository transaction behavior, list/detail queries, and server-action result mapping.
+  - [x] 5.2 Add component tests for nested editor rendering, inline validation, preserved values, add/remove/reorder behavior, explicit reusable-source messaging, and pricing-summary feedback.
+  - [x] 5.3 Add an integration flow test in `tests/integration/service-packages/service-package-flow.test.ts` covering create, reopen, update, authz denial, and no-corruption regression checks across sections and line items.
+  - [x] 5.4 Add Playwright coverage in `tests/e2e/service-packages.spec.ts` for structured package creation/editing, keyboard-only completion, saved feedback, and tablet-safe layout behavior; update existing workspace navigation tests if they currently depend on fixture IDs.
+  - [x] 5.5 Verify `npm run lint`, `npm run test`, and `npm run build` pass.
 
 ## Dev Notes
 
@@ -234,20 +234,93 @@ so that generated quotes begin from a realistic commercial structure.
 
 ## Dev Agent Record
 
+### Implementation Plan
+
+- Replace the flat service-package metadata model with a structured package contract built around sections and line items, with totals and starting-price summary derived from machine-readable pricing data.
+- Extend persistence across the schema, generated migration, repository, and fallback store so structured packages can be created, reopened, and updated atomically.
+- Replace the flat package form with a structured nested editor that supports add/remove/reorder behavior, path-aware validation, immediate pricing feedback, and reusable-source messaging.
+- Add unit, component, integration, and targeted Playwright coverage for nested validation, structured persistence, editor interactions, accessibility, and workspace reopen flow safety.
+
 ### Agent Model Used
 
 openai/gpt-5.4
 
 ### Debug Log References
 
-- create-story workflow execution
-- manual checklist validation review against `_bmad/bmm/workflows/4-implementation/create-story/checklist.md`
+- `npx vitest run src/features/service-packages/types.test.ts src/features/service-packages/schemas/service-package-schema.test.ts src/features/service-packages/server/store/service-packages-store.test.ts`
+- `npx vitest run src/features/service-packages/server/service-packages-repository.test.ts src/features/service-packages/server/actions/create-service-package.test.ts src/features/service-packages/server/actions/update-service-package.test.ts src/features/service-packages/server/queries/list-service-packages.test.ts src/features/service-packages/server/queries/get-service-package-by-id.test.ts`
+- `npx vitest run src/features/service-packages/components/service-package-form.test.tsx`
+- `npx playwright test tests/e2e/service-packages.spec.ts tests/e2e/workspace-navigation.spec.ts`
+- `npm run test`
+- `npm run lint`
+- `NEXTAUTH_URL="https://mento-admin.test" STUDIO_OWNER_EMAIL="owner@mento.test" STUDIO_OWNER_PASSWORD="dev-password-override" npm run build`
 
 ### Completion Notes List
 
-- Ultimate context engine analysis completed - comprehensive developer guide created
-- Story 2.4 is marked ready-for-dev with an explicit note that the current branch still lacks the Story 2.3 service-package baseline in code, so enabling work is called out directly in the tasks and dev notes.
+- Implemented the structured service-package domain with nested section and line-item contracts, derived pricing helpers, path-aware Zod validation, and a generated Drizzle migration for `service_package_sections` and `service_package_line_items`.
+- Reworked service-package persistence so repository reads and writes handle full structured packages, preserve the library summary contract, and save updates atomically through a single transaction or deep-copy fallback store path.
+- Replaced the flat package form with a structured editor that supports add/remove/reorder interactions, stable client-side identities, immediate section/package pricing summaries, and clear reusable-source messaging.
+- Added unit, component, integration, and targeted Playwright coverage for nested validation, structured persistence, update integrity, keyboard-only completion, tablet-safe layout, and workspace reopen behavior.
+- Added a defensive `toInput` fallback for legacy or partial detail records so the editor does not crash if `sections` are absent during bootstrap.
 
 ### File List
 
 - _bmad-output/implementation-artifacts/2-4-define-service-package-structure-default-content-and-pricing.md
+- _bmad-output/implementation-artifacts/sprint-status.yaml
+- drizzle/migrations/0003_windy_randall.sql
+- drizzle/migrations/meta/0003_snapshot.json
+- drizzle/migrations/meta/_journal.json
+- src/app/(workspace)/service-packages/[servicePackageId]/page.tsx
+- src/app/(workspace)/service-packages/new/page.tsx
+- src/features/service-packages/components/service-package-form.test.tsx
+- src/features/service-packages/components/service-package-form.tsx
+- src/features/service-packages/schemas/service-package-schema.test.ts
+- src/features/service-packages/schemas/service-package-schema.ts
+- src/features/service-packages/server/actions/create-service-package.test.ts
+- src/features/service-packages/server/actions/create-service-package.ts
+- src/features/service-packages/server/actions/update-service-package.test.ts
+- src/features/service-packages/server/actions/update-service-package.ts
+- src/features/service-packages/server/queries/get-service-package-by-id.test.ts
+- src/features/service-packages/server/queries/get-service-package-by-id.ts
+- src/features/service-packages/server/queries/list-service-packages.test.ts
+- src/features/service-packages/server/service-packages-repository.test.ts
+- src/features/service-packages/server/service-packages-repository.ts
+- src/features/service-packages/server/store/service-packages-store.test.ts
+- src/features/service-packages/server/store/service-packages-store.ts
+- src/features/service-packages/types.test.ts
+- src/features/service-packages/types.ts
+- src/server/db/schema/index.ts
+- src/server/db/schema/service-packages.ts
+- tests/e2e/service-packages.spec.ts
+- tests/integration/service-packages/service-package-flow.test.ts
+- src/app/(workspace)/clients/[clientId]/page.tsx
+
+## Senior Developer Review (AI)
+
+**Reviewer:** claude-opus-4-6
+**Date:** 2026-03-18
+**Outcome:** Changes Requested → Fixed
+
+**Issues Found:** 4 HIGH, 13 MEDIUM, 6 LOW
+**Issues Fixed:** 4 HIGH, 9 MEDIUM (all actionable issues resolved)
+
+### Action Items
+
+- [x] [HIGH] Server-generate section/line-item IDs instead of using client-provided values as DB PKs
+- [x] [HIGH] Normalize authz error responses to prevent IDOR enumeration via differing error codes
+- [x] [HIGH] Sanitize `backTo` query parameter to prevent open redirect (service-packages and clients)
+- [x] [HIGH] Fix list return type: `ServicePackageRecord[]` instead of `ServicePackageDetailRecord[]` with empty sections
+- [x] [MEDIUM] Form quantity input: set `min={1}` and handler `Math.max(1, ...)` to match schema `.min(1)`
+- [x] [MEDIUM] Add schema overflow guards: quantity `.max(10000)`, unitPriceCents `.max(100_000_000)`
+- [x] [MEDIUM] Fix `parseCurrencyInputValue` floating-point rounding (`toFixed(0)` before parse)
+- [x] [MEDIUM] Move existence check inside update transaction to eliminate TOCTOU race
+- [x] [MEDIUM] Add deep-copy-on-write test for fallback store
+- [x] [MEDIUM] Add `aria-invalid` assertion test after submission failure
+- [x] [MEDIUM] Add remove-all-sections → submit → validation error test
+- [x] [MEDIUM] Update IDOR-related test expectations from FORBIDDEN to normalized not-found
+- [x] [MEDIUM] Fix eslint warning for unused variable in `stripClientSideId`
+
+## Change Log
+
+- 2026-03-18: Implemented Story 2.4 by adding structured service-package sections and line items, migrating the schema and fallback store, replacing the flat form with a nested editor, and adding regression coverage across Vitest and Playwright. Story status moved to `review`.
+- 2026-03-18: Applied code-review fixes: server-generate section/line-item IDs instead of trusting client-provided PKs, normalize authz errors to prevent IDOR enumeration on queries and updates, sanitize `backTo` parameter on both service-package and client detail pages to prevent open redirect, fix list return type from ServicePackageDetailRecord to ServicePackageRecord, set form quantity min to 1 (matching schema), add schema overflow guards (.max) on quantity and unitPriceCents, fix parseCurrencyInputValue floating-point rounding, move existence check inside update transaction to eliminate TOCTOU race, add deep-copy-on-write test, add aria-invalid test, add remove-all-sections validation test. All 93 Vitest tests and 6 targeted Playwright tests pass. Story status moved to `done`.

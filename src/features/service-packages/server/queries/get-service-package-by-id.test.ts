@@ -39,6 +39,10 @@ describe("getServicePackageById (query)", () => {
       expect(result.data.servicePackage.name).toBe("Brand Launch Package");
       expect(result.data.servicePackage.category).toBe("Branding");
       expect(result.data.servicePackage.startingPriceLabel).toBe("$2,400");
+      expect(result.data.servicePackage.sections[0].title).toBe("Strategy");
+      expect(result.data.servicePackage.sections[0].lineItems[0].name).toBe(
+        "Discovery workshop",
+      );
     }
   });
 
@@ -61,8 +65,27 @@ describe("getServicePackageById (query)", () => {
     await updateServicePackageRecord("default-studio", "package-brand-launch", {
       name: "Brand Launch Package",
       category: "Brand Strategy",
-      startingPriceLabel: "$2,750",
       shortDescription: "Updated launch support summary.",
+      sections: [
+        {
+          id: "section-strategy",
+          title: "Strategy",
+          defaultContent: "Audience and positioning updates.",
+          position: 1,
+          lineItems: [
+            {
+              id: "line-item-workshop",
+              sectionId: "section-strategy",
+              name: "Discovery workshop",
+              defaultContent: "Updated discovery session.",
+              quantity: 1,
+              unitLabel: "session",
+              unitPriceCents: 140000,
+              position: 1,
+            },
+          ],
+        },
+      ],
     });
 
     const { getServicePackageById } = await import(
@@ -74,10 +97,11 @@ describe("getServicePackageById (query)", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.servicePackage.category).toBe("Brand Strategy");
-      expect(result.data.servicePackage.startingPriceLabel).toBe("$2,750");
+      expect(result.data.servicePackage.startingPriceLabel).toBe("$1,400");
       expect(result.data.servicePackage.shortDescription).toBe(
         "Updated launch support summary.",
       );
+      expect(result.data.servicePackage.sections[0].lineItems[0].unitPriceCents).toBe(140000);
     }
   });
 
@@ -106,7 +130,7 @@ describe("getServicePackageById (query)", () => {
     }
   });
 
-  it("returns a FORBIDDEN error when the service package belongs to a different studio", async () => {
+  it("returns a normalized not-found error when the service package belongs to a different studio", async () => {
     const { requireSession } = await import("@/features/auth/require-session");
 
     vi.mocked(requireSession).mockResolvedValue({
@@ -127,7 +151,8 @@ describe("getServicePackageById (query)", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error.code).toBe("FORBIDDEN");
+      expect(result.error.code).toBe("UNKNOWN");
+      expect(result.error.message).toBe("Service package not found.");
     }
   });
 

@@ -38,8 +38,8 @@ describe("updateServicePackage", () => {
     const result = await updateServicePackage("package-brand-launch", {
       name: "",
       category: "",
-      startingPriceLabel: "",
       shortDescription: "",
+      sections: [],
     });
 
     expect(result.ok).toBe(false);
@@ -47,7 +47,7 @@ describe("updateServicePackage", () => {
       expect(result.error.code).toBe("VALIDATION_ERROR");
       expect(result.error.fieldErrors?.name).toBeDefined();
       expect(result.error.fieldErrors?.category).toBeDefined();
-      expect(result.error.fieldErrors?.startingPriceLabel).toBeDefined();
+      expect(result.error.fieldErrors?.sections).toBeDefined();
     }
   });
 
@@ -72,13 +72,34 @@ describe("updateServicePackage", () => {
     const result = await updateServicePackage("package-brand-launch", {
       name: "Brand Launch Package",
       category: "Brand Strategy",
-      startingPriceLabel: "$2,750",
       shortDescription: "Updated launch support summary.",
+      sections: [
+        {
+          id: "section-strategy",
+          title: "Strategy",
+          defaultContent: "Audience and positioning updates.",
+          position: 1,
+          lineItems: [
+            {
+              id: "line-item-workshop",
+              sectionId: "section-strategy",
+              name: "Discovery workshop",
+              defaultContent: "Updated discovery session.",
+              quantity: 1,
+              unitLabel: "session",
+              unitPriceCents: 140000,
+              position: 1,
+            },
+          ],
+        },
+      ],
     });
 
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.servicePackage.category).toBe("Brand Strategy");
+      expect(result.data.servicePackage.packageTotalCents).toBe(140000);
+      expect(result.data.servicePackage.startingPriceLabel).toBe("$1,400");
       expect(vi.mocked(revalidatePath)).toHaveBeenCalledWith("/service-packages");
       expect(vi.mocked(revalidatePath)).toHaveBeenCalledWith(
         "/service-packages/package-brand-launch",
@@ -86,7 +107,7 @@ describe("updateServicePackage", () => {
     }
   });
 
-  it("returns forbidden when the service package belongs to a different studio", async () => {
+  it("returns a normalized not-found error when the service package belongs to a different studio", async () => {
     const { requireSession } = await import("@/features/auth/require-session");
 
     vi.mocked(requireSession).mockResolvedValue({
@@ -106,13 +127,33 @@ describe("updateServicePackage", () => {
     const result = await updateServicePackage("package-other-studio", {
       name: "Hidden Orchard Package",
       category: "Campaign",
-      startingPriceLabel: "$1,900",
       shortDescription: "Other studio package.",
+      sections: [
+        {
+          id: "section-campaign",
+          title: "Campaign",
+          defaultContent: "Other studio package details.",
+          position: 1,
+          lineItems: [
+            {
+              id: "line-item-campaign",
+              sectionId: "section-campaign",
+              name: "Campaign package",
+              defaultContent: "Other studio package used for auth coverage.",
+              quantity: 1,
+              unitLabel: "package",
+              unitPriceCents: 190000,
+              position: 1,
+            },
+          ],
+        },
+      ],
     });
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error.code).toBe("FORBIDDEN");
+      expect(result.error.code).toBe("UNKNOWN");
+      expect(result.error.message).toBe("Service package not found.");
     }
   });
 });

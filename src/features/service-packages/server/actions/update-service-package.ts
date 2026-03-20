@@ -8,10 +8,11 @@ import {
   updateServicePackageRecord,
 } from "@/features/service-packages/server/service-packages-repository";
 import {
+  getServicePackageFieldErrors,
   servicePackageSchema,
   type ServicePackageSchemaInput,
 } from "@/features/service-packages/schemas/service-package-schema";
-import type { ServicePackageRecord } from "@/features/service-packages/types";
+import type { ServicePackageDetailRecord } from "@/features/service-packages/types";
 import { AppError } from "@/lib/errors/app-error";
 import { ERROR_CODES } from "@/lib/errors/error-codes";
 import type { ActionResult } from "@/lib/validation/action-result";
@@ -25,7 +26,7 @@ function revalidateServicePackagePaths(servicePackageId: string) {
 export async function updateServicePackage(
   servicePackageId: string,
   input: ServicePackageSchemaInput,
-): Promise<ActionResult<{ servicePackage: ServicePackageRecord }>> {
+): Promise<ActionResult<{ servicePackage: ServicePackageDetailRecord }>> {
   try {
     const session = await requireSession();
     const existingServicePackage = await getServicePackageById(servicePackageId);
@@ -40,7 +41,19 @@ export async function updateServicePackage(
       };
     }
 
-    ensureStudioAccess(session, existingServicePackage.studioId);
+    // Return the same "not found" message regardless of studio ownership
+    // to prevent IDOR enumeration via differing error responses.
+    try {
+      ensureStudioAccess(session, existingServicePackage.studioId);
+    } catch {
+      return {
+        ok: false,
+        error: {
+          code: ERROR_CODES.UNKNOWN,
+          message: "Service package not found.",
+        },
+      };
+    }
 
     const parsed = servicePackageSchema.safeParse(input);
 
@@ -50,7 +63,7 @@ export async function updateServicePackage(
         error: {
           code: ERROR_CODES.VALIDATION_ERROR,
           message: "Please correct the highlighted fields.",
-          fieldErrors: parsed.error.flatten().fieldErrors,
+          fieldErrors: getServicePackageFieldErrors(input, parsed.error),
         },
       };
     }

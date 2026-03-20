@@ -10,8 +10,8 @@ export default function NewServicePackagePage() {
         <div>
           <h2 className="text-xl font-semibold text-zinc-900">Create service package</h2>
           <p className="mt-2 text-sm text-zinc-600">
-            Save reusable sections, line items, default content, and pricing guidance that
-            future quote workflows can build from.
+            Save reusable category profiles, complexity defaults, sections, and pricing
+            guidance that future quote workflows can build from.
           </p>
         </div>
         <Link

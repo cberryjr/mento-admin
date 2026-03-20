@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createDefaultComplexityTiers } from "@/features/service-packages/types";
 
 vi.mock("@/features/auth/require-session", () => ({
   requireSession: vi.fn(),
@@ -37,7 +38,7 @@ describe("getServicePackageById (query)", () => {
     if (result.ok) {
       expect(result.data.servicePackage.id).toBe("package-brand-launch");
       expect(result.data.servicePackage.name).toBe("Brand Launch Package");
-      expect(result.data.servicePackage.category).toBe("Branding");
+      expect(result.data.servicePackage.categoryKey).toBe("ai-print-campaigns");
       expect(result.data.servicePackage.startingPriceLabel).toBe("$2,400");
       expect(result.data.servicePackage.sections[0].title).toBe("Strategy");
       expect(result.data.servicePackage.sections[0].lineItems[0].name).toBe(
@@ -64,8 +65,12 @@ describe("getServicePackageById (query)", () => {
 
     await updateServicePackageRecord("default-studio", "package-brand-launch", {
       name: "Brand Launch Package",
+      categoryKey: "ai-print-campaigns",
+      categoryLabel: "AI Print Campaigns",
+      categoryShortLabel: "Print",
       category: "Brand Strategy",
       shortDescription: "Updated launch support summary.",
+      complexityTiers: createDefaultComplexityTiers("ai-print-campaigns"),
       sections: [
         {
           id: "section-strategy",

@@ -34,7 +34,9 @@ export default async function ServicePackagesPage({ searchParams }: ServicePacka
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold text-zinc-900">Service Packages</h2>
-          <p className="text-sm text-zinc-600">Open a package to review structure and pricing.</p>
+          <p className="text-sm text-zinc-600">
+            Open a package to review reusable structure, pricing, and complexity defaults.
+          </p>
         </div>
         {result.data.servicePackages.length > 0 ? createAction : null}
       </div>

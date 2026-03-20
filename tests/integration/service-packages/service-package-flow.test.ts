@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createDefaultComplexityTiers } from "@/features/service-packages/types";
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
@@ -11,8 +12,12 @@ vi.mock("@/features/auth/require-session", () => ({
 function buildStructuredInput() {
   return {
     name: "Website Refresh Package",
-    category: "Web",
+    categoryKey: "ai-print-campaigns" as const,
+    categoryLabel: "AI Print Campaigns",
+    categoryShortLabel: "Print",
+    category: "AI Print Campaigns",
     shortDescription: "Refresh a marketing site for relaunch.",
+    complexityTiers: createDefaultComplexityTiers("ai-print-campaigns"),
     sections: [
       {
         id: "section-discovery",
@@ -126,8 +131,12 @@ describe("service package integration flow", () => {
 
     const updateResult = await updateServicePackage(createResult.data.servicePackage.id, {
       name: "Website Refresh Package",
-      category: "Web Strategy",
+      categoryKey: "ai-print-campaigns",
+      categoryLabel: "AI Print Campaigns",
+      categoryShortLabel: "Print",
+      category: "AI Print Campaigns",
       shortDescription: "Refresh and relaunch support.",
+      complexityTiers: createDefaultComplexityTiers("ai-print-campaigns"),
       sections: [
         {
           id: "section-discovery",
@@ -183,14 +192,14 @@ describe("service package integration flow", () => {
       return;
     }
 
-    expect(updateResult.data.servicePackage.category).toBe("Web Strategy");
+    expect(updateResult.data.servicePackage.category).toBe("AI Print Campaigns");
     expect(updateResult.data.servicePackage.packageTotalCents).toBe(370000);
     expect(updateResult.data.servicePackage.sections[1].lineItems).toHaveLength(2);
 
     const detailResult = await getServicePackageById(createResult.data.servicePackage.id);
     expect(detailResult.ok).toBe(true);
     if (detailResult.ok) {
-      expect(detailResult.data.servicePackage.category).toBe("Web Strategy");
+      expect(detailResult.data.servicePackage.category).toBe("AI Print Campaigns");
       expect(detailResult.data.servicePackage.sections[0].lineItems).toHaveLength(1);
       expect(detailResult.data.servicePackage.sections[1].lineItems).toHaveLength(2);
       expect(detailResult.data.servicePackage.sections[1].lineItems[1]).toMatchObject({
@@ -207,8 +216,12 @@ describe("service package integration flow", () => {
 
     const invalidResult = await updateServicePackage("package-brand-launch", {
       name: "",
+      categoryKey: "ai-print-campaigns",
+      categoryLabel: "AI Print Campaigns",
+      categoryShortLabel: "Print",
       category: "",
       shortDescription: "",
+      complexityTiers: [],
       sections: [],
     });
 
@@ -222,8 +235,12 @@ describe("service package integration flow", () => {
 
     const authzResult = await updateServicePackage("package-other-studio", {
       name: "Hidden Orchard Package",
+      categoryKey: "ai-animation-ads",
+      categoryLabel: "AI Animation Ads",
+      categoryShortLabel: "Animation Ads",
       category: "Campaign",
       shortDescription: "Other studio package.",
+      complexityTiers: createDefaultComplexityTiers("ai-animation-ads"),
       sections: [
         {
           id: "section-campaign",

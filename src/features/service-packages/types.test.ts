@@ -2,19 +2,28 @@ import { describe, expect, it } from "vitest";
 
 import {
   calculateServicePackageTotalCents,
+  createDefaultComplexityTiers,
   formatServicePackageStartingPriceLabel,
   toServicePackageSummary,
   type ServicePackageDetailRecord,
 } from "@/features/service-packages/types";
+import {
+  COMPLEXITY_TIERS,
+  SERVICE_CATEGORY_PROFILES,
+} from "@/features/service-packages/catalog-contract";
 
 const STRUCTURED_SERVICE_PACKAGE: ServicePackageDetailRecord = {
   id: "package-brand-launch",
   studioId: "default-studio",
   name: "Brand Launch Package",
+  categoryKey: "ai-print-campaigns",
+  categoryLabel: "AI Print Campaigns",
+  categoryShortLabel: "Print",
   category: "Branding",
   shortDescription: "Launch-ready brand deliverables.",
   startingPriceLabel: "$2,400",
   packageTotalCents: 240000,
+  complexityTiers: createDefaultComplexityTiers("ai-print-campaigns"),
   sections: [
     {
       id: "section-strategy",
@@ -58,6 +67,11 @@ const STRUCTURED_SERVICE_PACKAGE: ServicePackageDetailRecord = {
 };
 
 describe("service package types", () => {
+  it("exposes canonical catalog constants used by source-layer contracts", () => {
+    expect(SERVICE_CATEGORY_PROFILES).toHaveLength(7);
+    expect(COMPLEXITY_TIERS).toEqual(["standard", "advanced", "premium"]);
+  });
+
   it("derives package totals from structured line items", () => {
     expect(calculateServicePackageTotalCents(STRUCTURED_SERVICE_PACKAGE.sections)).toBe(240000);
     expect(formatServicePackageStartingPriceLabel(240000)).toBe("$2,400");

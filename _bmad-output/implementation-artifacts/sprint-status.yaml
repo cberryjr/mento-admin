@@ -53,7 +53,7 @@ development_status:
   2-3-create-and-edit-reusable-service-packages: done
   2-4-define-service-package-structure-default-content-and-pricing: done
   2-5-browse-and-reopen-service-packages-in-the-library: review
-  2-6-define-service-catalog-taxonomy-and-complexity-matrix: ready-for-dev
+  2-6-define-service-catalog-taxonomy-and-complexity-matrix: done
   epic-2-retrospective: optional
 
   epic-3: backlog

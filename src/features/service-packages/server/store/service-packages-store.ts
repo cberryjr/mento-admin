@@ -2,7 +2,10 @@ import { randomUUID } from "node:crypto";
 
 import {
   calculateServicePackageTotalCents,
+  createDefaultComplexityTiers,
   formatServicePackageStartingPriceLabel,
+  normalizeCatalogMetadata,
+  normalizeComplexityTiers,
   type ServicePackageDetailRecord,
   type ServicePackageInput,
 } from "@/features/service-packages/types";
@@ -12,10 +15,14 @@ const SEEDED_SERVICE_PACKAGES: ServicePackageDetailRecord[] = [
     id: "package-brand-launch",
     studioId: "default-studio",
     name: "Brand Launch Package",
+    categoryKey: "ai-print-campaigns",
+    categoryLabel: "AI Print Campaigns",
+    categoryShortLabel: "Print",
     category: "Branding",
     startingPriceLabel: "$2,400",
     shortDescription: "Launch-ready brand deliverables for a new client rollout.",
     packageTotalCents: 240000,
+    complexityTiers: createDefaultComplexityTiers("ai-print-campaigns"),
     sections: [
       {
         id: "section-strategy",
@@ -61,10 +68,14 @@ const SEEDED_SERVICE_PACKAGES: ServicePackageDetailRecord[] = [
     id: "package-content-sprint",
     studioId: "default-studio",
     name: "Content Sprint Package",
+    categoryKey: "social-media-animation",
+    categoryLabel: "Social Media Animation",
+    categoryShortLabel: "Social Animation",
     category: "Content",
     startingPriceLabel: "$1,200",
     shortDescription: "Focused content production support for a campaign push.",
     packageTotalCents: 120000,
+    complexityTiers: createDefaultComplexityTiers("social-media-animation"),
     sections: [
       {
         id: "section-planning",
@@ -110,10 +121,14 @@ const SEEDED_SERVICE_PACKAGES: ServicePackageDetailRecord[] = [
     id: "package-other-studio",
     studioId: "other-studio",
     name: "Hidden Orchard Package",
+    categoryKey: "ai-animation-ads",
+    categoryLabel: "AI Animation Ads",
+    categoryShortLabel: "Animation Ads",
     category: "Campaign",
     startingPriceLabel: "$1,900",
     shortDescription: "Other studio package used for authorization coverage.",
     packageTotalCents: 190000,
+    complexityTiers: createDefaultComplexityTiers("ai-animation-ads"),
     sections: [
       {
         id: "section-campaign",
@@ -173,15 +188,20 @@ function toStoredServicePackage(
 ): ServicePackageDetailRecord {
   const now = new Date().toISOString();
   const packageTotalCents = calculateServicePackageTotalCents(input.sections);
+  const catalog = normalizeCatalogMetadata(input);
 
   return {
     id: options?.id ?? options?.existing?.id ?? randomUUID(),
     studioId,
     name: input.name,
-    category: input.category,
+    categoryKey: catalog.categoryKey,
+    categoryLabel: catalog.categoryLabel,
+    categoryShortLabel: catalog.categoryShortLabel,
+    category: catalog.category,
     startingPriceLabel: formatServicePackageStartingPriceLabel(packageTotalCents),
     shortDescription: input.shortDescription,
     packageTotalCents,
+    complexityTiers: normalizeComplexityTiers(catalog.categoryKey, input.complexityTiers),
     sections: cloneServicePackage(input.sections),
     createdAt: options?.existing?.createdAt ?? now,
     updatedAt: now,
@@ -191,7 +211,18 @@ function toStoredServicePackage(
 export function readServicePackagesFromStore(studioId: string): ServicePackageDetailRecord[] {
   return Array.from(getServicePackagesStore().values())
     .filter((servicePackage) => servicePackage.studioId === studioId)
-    .map((servicePackage) => cloneServicePackage(servicePackage));
+    .map((servicePackage) => {
+      const catalog = normalizeCatalogMetadata(servicePackage);
+
+      return cloneServicePackage({
+        ...servicePackage,
+        ...catalog,
+        complexityTiers: normalizeComplexityTiers(
+          catalog.categoryKey,
+          servicePackage.complexityTiers,
+        ),
+      });
+    });
 }
 
 export function readServicePackageFromStore(
@@ -203,14 +234,37 @@ export function readServicePackageFromStore(
     return null;
   }
 
-  return cloneServicePackage(servicePackage);
+  const catalog = normalizeCatalogMetadata(servicePackage);
+
+  return cloneServicePackage({
+    ...servicePackage,
+    ...catalog,
+    complexityTiers: normalizeComplexityTiers(
+      catalog.categoryKey,
+      servicePackage.complexityTiers,
+    ),
+  });
 }
 
 export function readServicePackageByIdFromStore(
   servicePackageId: string,
 ): ServicePackageDetailRecord | null {
   const servicePackage = getServicePackagesStore().get(servicePackageId);
-  return servicePackage ? cloneServicePackage(servicePackage) : null;
+
+  if (!servicePackage) {
+    return null;
+  }
+
+  const catalog = normalizeCatalogMetadata(servicePackage);
+
+  return cloneServicePackage({
+    ...servicePackage,
+    ...catalog,
+    complexityTiers: normalizeComplexityTiers(
+      catalog.categoryKey,
+      servicePackage.complexityTiers,
+    ),
+  });
 }
 
 export function createServicePackageInStore(

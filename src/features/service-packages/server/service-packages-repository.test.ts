@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { createDefaultComplexityTiers } from "@/features/service-packages/types";
 
 import {
   __resetServicePackagesStore,
@@ -11,8 +12,12 @@ import {
 function buildStructuredInput() {
   return {
     name: "Website Refresh Package",
+    categoryKey: "ai-print-campaigns" as const,
+    categoryLabel: "AI Print Campaigns",
+    categoryShortLabel: "Print",
     category: "Web",
     shortDescription: "Refresh a marketing site for relaunch.",
+    complexityTiers: createDefaultComplexityTiers("ai-print-campaigns"),
     sections: [
       {
         id: "section-discovery",
@@ -66,7 +71,7 @@ describe("servicePackagesRepository", () => {
       "Brand Launch Package",
       "Content Sprint Package",
     ]);
-    expect(packages[0].sections[0].title).toBe("Strategy");
+    expect(packages[0].categoryKey).toBe("ai-print-campaigns");
     expect(packages[0].packageTotalCents).toBe(240000);
   });
 
@@ -83,6 +88,8 @@ describe("servicePackagesRepository", () => {
       shortDescription: "Refresh a marketing site for relaunch.",
       packageTotalCents: 325000,
     });
+    expect(loaded?.categoryKey).toBe("ai-print-campaigns");
+    expect(loaded?.complexityTiers).toHaveLength(3);
     expect(loaded?.sections).toHaveLength(2);
     expect(loaded?.sections[1].lineItems[0]).toMatchObject({
       name: "Page redesign",
@@ -101,8 +108,12 @@ describe("servicePackagesRepository", () => {
       "package-brand-launch",
       {
         name: "Brand Launch Package",
+        categoryKey: "ai-print-campaigns",
+        categoryLabel: "AI Print Campaigns",
+        categoryShortLabel: "Print",
         category: "Brand Strategy",
         shortDescription: "Updated launch support summary.",
+        complexityTiers: createDefaultComplexityTiers("ai-print-campaigns"),
         sections: [
           {
             id: "section-strategy",

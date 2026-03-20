@@ -1,4 +1,37 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createDefaultComplexityTiers } from "@/features/service-packages/types";
+
+function buildValidUpdateInput() {
+  return {
+    name: "Brand Launch Package",
+    categoryKey: "ai-print-campaigns" as const,
+    categoryLabel: "AI Print Campaigns",
+    categoryShortLabel: "Print",
+    category: "AI Print Campaigns",
+    shortDescription: "Updated launch support summary.",
+    complexityTiers: createDefaultComplexityTiers("ai-print-campaigns"),
+    sections: [
+      {
+        id: "section-strategy",
+        title: "Strategy",
+        defaultContent: "Audience and positioning updates.",
+        position: 1,
+        lineItems: [
+          {
+            id: "line-item-workshop",
+            sectionId: "section-strategy",
+            name: "Discovery workshop",
+            defaultContent: "Updated discovery session.",
+            quantity: 1,
+            unitLabel: "session",
+            unitPriceCents: 140000,
+            position: 1,
+          },
+        ],
+      },
+    ],
+  };
+}
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
@@ -37,8 +70,12 @@ describe("updateServicePackage", () => {
 
     const result = await updateServicePackage("package-brand-launch", {
       name: "",
+      categoryKey: "ai-print-campaigns",
+      categoryLabel: "AI Print Campaigns",
+      categoryShortLabel: "Print",
       category: "",
       shortDescription: "",
+      complexityTiers: [],
       sections: [],
     });
 
@@ -69,35 +106,11 @@ describe("updateServicePackage", () => {
       "@/features/service-packages/server/actions/update-service-package"
     );
 
-    const result = await updateServicePackage("package-brand-launch", {
-      name: "Brand Launch Package",
-      category: "Brand Strategy",
-      shortDescription: "Updated launch support summary.",
-      sections: [
-        {
-          id: "section-strategy",
-          title: "Strategy",
-          defaultContent: "Audience and positioning updates.",
-          position: 1,
-          lineItems: [
-            {
-              id: "line-item-workshop",
-              sectionId: "section-strategy",
-              name: "Discovery workshop",
-              defaultContent: "Updated discovery session.",
-              quantity: 1,
-              unitLabel: "session",
-              unitPriceCents: 140000,
-              position: 1,
-            },
-          ],
-        },
-      ],
-    });
+    const result = await updateServicePackage("package-brand-launch", buildValidUpdateInput());
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.servicePackage.category).toBe("Brand Strategy");
+      expect(result.data.servicePackage.category).toBe("AI Print Campaigns");
       expect(result.data.servicePackage.packageTotalCents).toBe(140000);
       expect(result.data.servicePackage.startingPriceLabel).toBe("$1,400");
       expect(vi.mocked(revalidatePath)).toHaveBeenCalledWith("/service-packages");
@@ -126,8 +139,12 @@ describe("updateServicePackage", () => {
 
     const result = await updateServicePackage("package-other-studio", {
       name: "Hidden Orchard Package",
+      categoryKey: "ai-animation-ads",
+      categoryLabel: "AI Animation Ads",
+      categoryShortLabel: "Animation Ads",
       category: "Campaign",
       shortDescription: "Other studio package.",
+      complexityTiers: createDefaultComplexityTiers("ai-animation-ads"),
       sections: [
         {
           id: "section-campaign",

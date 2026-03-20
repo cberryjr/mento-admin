@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { createDefaultComplexityTiers } from "@/features/service-packages/types";
 
 import {
   __resetServicePackagesStore,
@@ -15,8 +16,12 @@ describe("servicePackagesStore", () => {
   it("creates structured packages with derived pricing summaries", () => {
     const created = createServicePackageInStore("default-studio", {
       name: "Website Refresh Package",
+      categoryKey: "ai-print-campaigns",
+      categoryLabel: "AI Print Campaigns",
+      categoryShortLabel: "Print",
       category: "Web",
       shortDescription: "Refresh and relaunch support.",
+      complexityTiers: createDefaultComplexityTiers("ai-print-campaigns"),
       sections: [
         {
           id: "section-web",
@@ -41,13 +46,19 @@ describe("servicePackagesStore", () => {
 
     expect(created.packageTotalCents).toBe(250000);
     expect(created.startingPriceLabel).toBe("$2,500");
+    expect(created.categoryKey).toBe("ai-print-campaigns");
+    expect(created.complexityTiers).toHaveLength(3);
   });
 
   it("deep copies nested package data on writes so input mutation cannot corrupt stored data", () => {
     const input = {
       name: "Mutable Package",
+      categoryKey: "ai-print-campaigns" as const,
+      categoryLabel: "AI Print Campaigns",
+      categoryShortLabel: "Print",
       category: "Test",
       shortDescription: "Testing write isolation.",
+      complexityTiers: createDefaultComplexityTiers("ai-print-campaigns"),
       sections: [
         {
           id: "section-mutable",
@@ -75,10 +86,12 @@ describe("servicePackagesStore", () => {
     // Mutate the input object AFTER creating
     input.sections[0].title = "Mutated after create";
     input.sections[0].lineItems[0].name = "Mutated line item after create";
+    input.complexityTiers[0].deliverables[0] = "Mutated deliverable";
 
     const reloaded = readServicePackageByIdFromStore(created.id);
     expect(reloaded?.sections[0].title).toBe("Mutable Section");
     expect(reloaded?.sections[0].lineItems[0].name).toBe("Mutable Line Item");
+    expect(reloaded?.complexityTiers[0].deliverables[0]).not.toBe("Mutated deliverable");
   });
 
   it("deep copies nested package data on reads", () => {

@@ -12,7 +12,10 @@ vi.mock("next/navigation", () => ({
 }));
 
 import { ServicePackageForm } from "@/features/service-packages/components/service-package-form";
-import type { ServicePackageDetailRecord } from "@/features/service-packages/types";
+import {
+  createDefaultComplexityTiers,
+  type ServicePackageDetailRecord,
+} from "@/features/service-packages/types";
 
 afterEach(() => {
   cleanup();
@@ -24,10 +27,14 @@ const EXISTING_SERVICE_PACKAGE: ServicePackageDetailRecord = {
   id: "package-brand-launch",
   studioId: "default-studio",
   name: "Brand Launch Package",
+  categoryKey: "ai-print-campaigns",
+  categoryLabel: "AI Print Campaigns",
+  categoryShortLabel: "Print",
   category: "Branding",
   startingPriceLabel: "$2,400",
   shortDescription: "Launch-ready brand deliverables.",
   packageTotalCents: 240000,
+  complexityTiers: createDefaultComplexityTiers("ai-print-campaigns"),
   sections: [
     {
       id: "section-strategy",

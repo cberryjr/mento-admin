@@ -114,7 +114,7 @@ test("creates a structured service package and shows explicit confirmation", asy
   await expect(page).toHaveURL(/\/service-packages\/new$/);
 
   await page.getByLabel("Service package name").fill(packageName);
-  await page.getByLabel("Category").fill("Web");
+  await page.getByLabel("Category").selectOption("ai-print-campaigns");
   await page.getByLabel("Short summary").fill("Refresh a marketing site for relaunch.");
   await page.getByLabel("Section title").fill("Discovery");
   await page.getByLabel("Section default content").fill("Audit and kickoff work.");
@@ -148,7 +148,7 @@ test("edits an existing structured service package and persists the latest saved
   await expect(page).toHaveURL(/\/service-packages\/new$/);
 
   await page.getByLabel("Service package name").fill(packageName);
-  await page.getByLabel("Category").fill("Branding");
+  await page.getByLabel("Category").selectOption("ai-print-campaigns");
   await page.getByLabel("Short summary").fill("Reusable launch support.");
   await page.getByLabel("Section title").fill("Discovery");
   await page.getByLabel("Section default content").fill("Audit and kickoff work.");
@@ -164,11 +164,11 @@ test("edits an existing structured service package and persists the latest saved
   const detailUrl = page.url();
   await page.goto(detailUrl);
 
-  await page.getByLabel("Category").fill("Brand Strategy");
+  await page.getByLabel("Category").selectOption("ai-print-campaigns");
   await page.getByLabel("Section title").first().fill("Strategic foundation");
   await page.getByLabel("Line item name").first().fill("Discovery workshop");
   await page.getByLabel("Unit price").first().fill("1400");
-  await expect(page.getByLabel("Category")).toHaveValue("Brand Strategy");
+  await expect(page.getByLabel("Category")).toHaveValue("ai-print-campaigns");
   await expect(page.getByLabel("Section title").first()).toHaveValue("Strategic foundation");
   await expect(page.getByLabel("Unit price").first()).toHaveValue("1400");
   await page.getByRole("button", { name: "Save service package changes" }).click();
@@ -210,7 +210,7 @@ test("supports keyboard-only completion in the structured service package form",
 
   await page.keyboard.press("Tab");
   await expect(page.getByLabel("Category")).toBeFocused();
-  await page.keyboard.type("Content");
+  await page.keyboard.press("ArrowDown");
 
   await page.keyboard.press("Tab");
   await expect(page.getByLabel("Short summary")).toBeFocused();

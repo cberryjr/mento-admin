@@ -1,4 +1,37 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createDefaultComplexityTiers } from "@/features/service-packages/types";
+
+function buildValidInput() {
+  return {
+    name: "Website Refresh Package",
+    categoryKey: "ai-print-campaigns" as const,
+    categoryLabel: "AI Print Campaigns",
+    categoryShortLabel: "Print",
+    category: "AI Print Campaigns",
+    shortDescription: "Refresh a marketing site for relaunch.",
+    complexityTiers: createDefaultComplexityTiers("ai-print-campaigns"),
+    sections: [
+      {
+        id: "section-web",
+        title: "Website",
+        defaultContent: "Core site refresh work.",
+        position: 1,
+        lineItems: [
+          {
+            id: "line-item-pages",
+            sectionId: "section-web",
+            name: "Page redesign",
+            defaultContent: "Homepage and sales page refresh.",
+            quantity: 2,
+            unitLabel: "page",
+            unitPriceCents: 125000,
+            position: 1,
+          },
+        ],
+      },
+    ],
+  };
+}
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
@@ -37,8 +70,12 @@ describe("createServicePackage", () => {
 
     const result = await createServicePackage({
       name: "",
+      categoryKey: "ai-print-campaigns",
+      categoryLabel: "AI Print Campaigns",
+      categoryShortLabel: "Print",
       category: "",
       shortDescription: "",
+      complexityTiers: [],
       sections: [],
     });
 
@@ -69,31 +106,7 @@ describe("createServicePackage", () => {
       "@/features/service-packages/server/actions/create-service-package"
     );
 
-    const result = await createServicePackage({
-      name: "Website Refresh Package",
-      category: "Web",
-      shortDescription: "Refresh a marketing site for relaunch.",
-      sections: [
-        {
-          id: "section-web",
-          title: "Website",
-          defaultContent: "Core site refresh work.",
-          position: 1,
-          lineItems: [
-            {
-              id: "line-item-pages",
-              sectionId: "section-web",
-              name: "Page redesign",
-              defaultContent: "Homepage and sales page refresh.",
-              quantity: 2,
-              unitLabel: "page",
-              unitPriceCents: 125000,
-              position: 1,
-            },
-          ],
-        },
-      ],
-    });
+    const result = await createServicePackage(buildValidInput());
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -120,31 +133,7 @@ describe("createServicePackage", () => {
       "@/features/service-packages/server/actions/create-service-package"
     );
 
-    const result = await createServicePackage({
-      name: "Website Refresh Package",
-      category: "Web",
-      shortDescription: "Refresh a marketing site for relaunch.",
-      sections: [
-        {
-          id: "section-web",
-          title: "Website",
-          defaultContent: "Core site refresh work.",
-          position: 1,
-          lineItems: [
-            {
-              id: "line-item-pages",
-              sectionId: "section-web",
-              name: "Page redesign",
-              defaultContent: "Homepage and sales page refresh.",
-              quantity: 2,
-              unitLabel: "page",
-              unitPriceCents: 125000,
-              position: 1,
-            },
-          ],
-        },
-      ],
-    });
+    const result = await createServicePackage(buildValidInput());
 
     expect(result.ok).toBe(false);
     if (!result.ok) {

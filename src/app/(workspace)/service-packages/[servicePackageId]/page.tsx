@@ -54,8 +54,8 @@ export default async function ServicePackageDetailPage({
         <div>
           <h2 className="text-xl font-semibold text-zinc-900">Service package details</h2>
           <p className="mt-2 text-sm text-zinc-600">
-            Update reusable sections, line items, default content, and pricing guidance so
-            future quote workflows use the latest saved package definition.
+            Update reusable category, complexity, sections, line items, and pricing guidance
+            so future quote workflows use the latest saved package definition.
           </p>
         </div>
         <Link

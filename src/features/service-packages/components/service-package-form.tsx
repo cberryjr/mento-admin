@@ -7,12 +7,17 @@ import type { ActionResult } from "@/lib/validation/action-result";
 import {
   calculateLineItemTotalCents,
   calculateServicePackageTotalCents,
+  createDefaultComplexityTiers,
   formatServicePackageStartingPriceLabel,
+  normalizeCatalogMetadata,
+  normalizeComplexityTiers,
   type ServicePackageDetailRecord,
+  type ServicePackageComplexityTierInput,
   type ServicePackageInput,
   type ServicePackageLineItemInput,
   type ServicePackageSectionInput,
 } from "@/features/service-packages/types";
+import { SERVICE_CATEGORY_PROFILES } from "@/features/service-packages/catalog-contract";
 
 type ServicePackageFormMode = "create" | "edit";
 
@@ -78,20 +83,31 @@ function normalizeSections(sections: ServicePackageSectionInput[]): ServicePacka
 
 function toInput(values: ServicePackageDetailRecord | null): ServicePackageInput {
   if (!values) {
+    const defaultCategory = SERVICE_CATEGORY_PROFILES[0];
     return {
       name: "",
-      category: "",
+      categoryKey: defaultCategory.key,
+      categoryLabel: defaultCategory.label,
+      categoryShortLabel: defaultCategory.shortLabel,
+      category: defaultCategory.label,
       shortDescription: "",
+      complexityTiers: createDefaultComplexityTiers(defaultCategory.key),
       sections: [createEmptySection(1)],
     };
   }
 
   const sections = Array.isArray(values.sections) ? values.sections : [];
 
+  const catalog = normalizeCatalogMetadata(values);
+
   return {
     name: values.name,
-    category: values.category,
+    categoryKey: catalog.categoryKey,
+    categoryLabel: catalog.categoryLabel,
+    categoryShortLabel: catalog.categoryShortLabel,
+    category: catalog.category,
     shortDescription: values.shortDescription,
+    complexityTiers: normalizeComplexityTiers(catalog.categoryKey, values.complexityTiers),
     sections:
       sections.length > 0
         ? normalizeSections(
@@ -191,11 +207,206 @@ export function ServicePackageForm({
     }));
   }
 
-  function handleMetadataChange(field: "name" | "category" | "shortDescription", value: string) {
+  function handleMetadataChange(field: "name" | "shortDescription", value: string) {
     setFormValues((previous) => ({
       ...previous,
       [field]: value,
     }));
+  }
+
+  function handleCategoryChange(nextCategoryKey: ServicePackageInput["categoryKey"]) {
+    const profile = SERVICE_CATEGORY_PROFILES.find((item) => item.key === nextCategoryKey);
+
+    if (!profile) {
+      return;
+    }
+
+    setFormValues((previous) => ({
+      ...previous,
+      categoryKey: profile.key,
+      categoryLabel: profile.label,
+      categoryShortLabel: profile.shortLabel,
+      category: profile.label,
+      complexityTiers: normalizeComplexityTiers(
+        profile.key,
+        previous.categoryKey === profile.key ? previous.complexityTiers : createDefaultComplexityTiers(profile.key),
+      ),
+    }));
+  }
+
+  function setComplexityTiers(
+    updater: (tiers: ServicePackageComplexityTierInput[]) => ServicePackageComplexityTierInput[],
+  ) {
+    setFormValues((previous) => ({
+      ...previous,
+      complexityTiers: normalizeComplexityTiers(previous.categoryKey, updater(previous.complexityTiers)),
+    }));
+  }
+
+  function handleTierChange(
+    tierId: string,
+    field: "descriptor",
+    value: string,
+  ) {
+    setComplexityTiers((tiers) =>
+      tiers.map((tier) => (tier.id === tierId ? { ...tier, [field]: value } : tier)),
+    );
+  }
+
+  function handleTierTimeGuidanceChange(
+    tierId: string,
+    field: "minValue" | "maxValue" | "unit",
+    value: string,
+  ) {
+    setComplexityTiers((tiers) =>
+      tiers.map((tier) => {
+        if (tier.id !== tierId) {
+          return tier;
+        }
+
+        if (field === "unit") {
+          return {
+            ...tier,
+            timeGuidance: {
+              ...tier.timeGuidance,
+              unit: value as ServicePackageComplexityTierInput["timeGuidance"]["unit"],
+            },
+          };
+        }
+
+        const parsed = Math.max(1, Number.parseInt(value || "1", 10) || 1);
+
+        return {
+          ...tier,
+          timeGuidance: {
+            ...tier.timeGuidance,
+            [field]: parsed,
+          },
+        };
+      }),
+    );
+  }
+
+  function handleTierVariableDefaultsChange(
+    tierId: string,
+    field: "quantity" | "durationValue" | "durationUnit" | "resolution" | "revisions" | "urgency",
+    value: string,
+  ) {
+    setComplexityTiers((tiers) =>
+      tiers.map((tier) => {
+        if (tier.id !== tierId) {
+          return tier;
+        }
+
+        if (field === "durationUnit") {
+          return {
+            ...tier,
+            variableDefaults: {
+              ...tier.variableDefaults,
+              durationUnit: value === "none" ? null : (value as ServicePackageComplexityTierInput["variableDefaults"]["durationUnit"]),
+              durationValue:
+                value === "none"
+                  ? null
+                  : (tier.variableDefaults.durationValue ?? 1),
+            },
+          };
+        }
+
+        if (field === "resolution") {
+          return {
+            ...tier,
+            variableDefaults: {
+              ...tier.variableDefaults,
+              resolution: value === "none" ? null : (value as ServicePackageComplexityTierInput["variableDefaults"]["resolution"]),
+            },
+          };
+        }
+
+        if (field === "urgency") {
+          return {
+            ...tier,
+            variableDefaults: {
+              ...tier.variableDefaults,
+              urgency: value as ServicePackageComplexityTierInput["variableDefaults"]["urgency"],
+            },
+          };
+        }
+
+        const parsed = Math.max(0, Number.parseInt(value || "0", 10) || 0);
+
+        if (field === "durationValue") {
+          return {
+            ...tier,
+            variableDefaults: {
+              ...tier.variableDefaults,
+              durationValue: parsed <= 0 ? null : parsed,
+            },
+          };
+        }
+
+        return {
+          ...tier,
+          variableDefaults: {
+            ...tier.variableDefaults,
+            [field]: field === "revisions" ? parsed : Math.max(1, parsed),
+          },
+        };
+      }),
+    );
+  }
+
+  function updateTierListField(
+    tierId: string,
+    field: "deliverables" | "processNotes",
+    index: number,
+    value: string,
+  ) {
+    setComplexityTiers((tiers) =>
+      tiers.map((tier) => {
+        if (tier.id !== tierId) {
+          return tier;
+        }
+
+        const nextValues = [...tier[field]];
+        nextValues[index] = value;
+        return {
+          ...tier,
+          [field]: nextValues,
+        };
+      }),
+    );
+  }
+
+  function addTierListField(tierId: string, field: "deliverables" | "processNotes") {
+    setComplexityTiers((tiers) =>
+      tiers.map((tier) =>
+        tier.id === tierId
+          ? {
+              ...tier,
+              [field]: [...tier[field], ""],
+            }
+          : tier,
+      ),
+    );
+  }
+
+  function removeTierListField(
+    tierId: string,
+    field: "deliverables" | "processNotes",
+    index: number,
+  ) {
+    setComplexityTiers((tiers) =>
+      tiers.map((tier) => {
+        if (tier.id !== tierId || tier[field].length === 1) {
+          return tier;
+        }
+
+        return {
+          ...tier,
+          [field]: tier[field].filter((_item, itemIndex) => itemIndex !== index),
+        };
+      }),
+    );
   }
 
   function handleSectionChange(
@@ -270,6 +481,33 @@ export function ServicePackageForm({
     field: "name" | "defaultContent" | "quantity" | "unitLabel" | "unitPriceCents",
   ) {
     return getError(`lineItemsById.${lineItemId}.${field}`);
+  }
+
+  function getTierError(
+    tierId: string,
+    field:
+      | "descriptor"
+      | "deliverables"
+      | "processNotes"
+      | "timeGuidance.minValue"
+      | "timeGuidance.maxValue"
+      | "timeGuidance.unit"
+      | "variableDefaults.quantity"
+      | "variableDefaults.durationValue"
+      | "variableDefaults.durationUnit"
+      | "variableDefaults.resolution"
+      | "variableDefaults.revisions"
+      | "variableDefaults.urgency",
+  ) {
+    return getError(`complexityTiersById.${tierId}.${field}`);
+  }
+
+  function getTierListItemError(
+    tierId: string,
+    field: "deliverables" | "processNotes",
+    index: number,
+  ) {
+    return getError(`complexityTiersById.${tierId}.${field}.${index}`);
   }
 
   function addSection() {
@@ -375,6 +613,8 @@ export function ServicePackageForm({
     });
   }
 
+  const categoryError = getError("categoryKey") ?? getError("category");
+
   return (
     <form className="space-y-6" onSubmit={handleSubmit} noValidate>
       {notice ? <StatusNotice {...notice} /> : null}
@@ -413,19 +653,26 @@ export function ServicePackageForm({
           <label htmlFor="category" className="text-sm font-medium text-zinc-900">
             Category
           </label>
-          <input
+          <select
             id="category"
             name="category"
-            type="text"
             className={FIELD_CLASS_NAME}
-            value={formValues.category}
-            onChange={(event) => handleMetadataChange("category", event.target.value)}
-            aria-invalid={hasAttemptedSubmit ? Boolean(getError("category")) : undefined}
-            aria-describedby={getError("category") ? "category-error" : undefined}
-          />
-          {getError("category") ? (
+            value={formValues.categoryKey}
+            onChange={(event) =>
+              handleCategoryChange(event.target.value as ServicePackageInput["categoryKey"])
+            }
+            aria-invalid={hasAttemptedSubmit ? Boolean(categoryError) : undefined}
+            aria-describedby={categoryError ? "category-error" : undefined}
+          >
+            {SERVICE_CATEGORY_PROFILES.map((profile) => (
+              <option key={profile.key} value={profile.key}>
+                {profile.label}
+              </option>
+            ))}
+          </select>
+          {categoryError ? (
             <p id="category-error" className="text-xs text-red-700">
-              {getError("category")}
+              {categoryError}
             </p>
           ) : null}
         </div>
@@ -467,6 +714,314 @@ export function ServicePackageForm({
             </p>
           ) : null}
         </div>
+      </section>
+
+      <section className="space-y-4 rounded-xl border border-zinc-200 bg-white p-5">
+        <div>
+          <h3 className="text-lg font-semibold text-zinc-900">Complexity matrix</h3>
+          <p className="mt-1 text-sm text-zinc-600">
+            Define Standard, Advanced, and Premium defaults for deliverables, timing, and production variables.
+          </p>
+        </div>
+
+        {getError("complexityTiers") ? (
+          <p className="text-sm text-red-700">{getError("complexityTiers")}</p>
+        ) : null}
+
+        {formValues.complexityTiers.map((tier) => (
+          <section key={tier.id} className="space-y-4 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+            <div>
+              <p className="text-sm font-semibold text-zinc-900">{tier.title}</p>
+              <p className="text-xs text-zinc-500 uppercase tracking-wide">{tier.tier}</p>
+            </div>
+
+            <div className="space-y-1">
+              <label htmlFor={`tier-${tier.id}-descriptor`} className="text-sm font-medium text-zinc-900">
+                Tier descriptor
+              </label>
+              <input
+                id={`tier-${tier.id}-descriptor`}
+                type="text"
+                className={FIELD_CLASS_NAME}
+                value={tier.descriptor}
+                onChange={(event) => handleTierChange(tier.id, "descriptor", event.target.value)}
+                aria-invalid={hasAttemptedSubmit ? Boolean(getTierError(tier.id, "descriptor")) : undefined}
+              />
+              {getTierError(tier.id, "descriptor") ? (
+                <p className="text-xs text-red-700">{getTierError(tier.id, "descriptor")}</p>
+              ) : null}
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="space-y-1">
+                <label htmlFor={`tier-${tier.id}-time-min`} className="text-sm font-medium text-zinc-900">
+                  Min time
+                </label>
+                <input
+                  id={`tier-${tier.id}-time-min`}
+                  type="number"
+                  min={1}
+                  className={FIELD_CLASS_NAME}
+                  value={tier.timeGuidance.minValue}
+                  onChange={(event) =>
+                    handleTierTimeGuidanceChange(tier.id, "minValue", event.target.value)
+                  }
+                />
+                {getTierError(tier.id, "timeGuidance.minValue") ? (
+                  <p className="text-xs text-red-700">{getTierError(tier.id, "timeGuidance.minValue")}</p>
+                ) : null}
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor={`tier-${tier.id}-time-max`} className="text-sm font-medium text-zinc-900">
+                  Max time
+                </label>
+                <input
+                  id={`tier-${tier.id}-time-max`}
+                  type="number"
+                  min={1}
+                  className={FIELD_CLASS_NAME}
+                  value={tier.timeGuidance.maxValue}
+                  onChange={(event) =>
+                    handleTierTimeGuidanceChange(tier.id, "maxValue", event.target.value)
+                  }
+                />
+                {getTierError(tier.id, "timeGuidance.maxValue") ? (
+                  <p className="text-xs text-red-700">{getTierError(tier.id, "timeGuidance.maxValue")}</p>
+                ) : null}
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor={`tier-${tier.id}-time-unit`} className="text-sm font-medium text-zinc-900">
+                  Time unit
+                </label>
+                <select
+                  id={`tier-${tier.id}-time-unit`}
+                  className={FIELD_CLASS_NAME}
+                  value={tier.timeGuidance.unit}
+                  onChange={(event) =>
+                    handleTierTimeGuidanceChange(tier.id, "unit", event.target.value)
+                  }
+                >
+                  <option value="day">day</option>
+                  <option value="week">week</option>
+                </select>
+                {getTierError(tier.id, "timeGuidance.unit") ? (
+                  <p className="text-xs text-red-700">{getTierError(tier.id, "timeGuidance.unit")}</p>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="space-y-1">
+                <label htmlFor={`tier-${tier.id}-quantity`} className="text-sm font-medium text-zinc-900">
+                  Quantity default
+                </label>
+                <input
+                  id={`tier-${tier.id}-quantity`}
+                  type="number"
+                  min={1}
+                  className={FIELD_CLASS_NAME}
+                  value={tier.variableDefaults.quantity}
+                  onChange={(event) =>
+                    handleTierVariableDefaultsChange(tier.id, "quantity", event.target.value)
+                  }
+                />
+                {getTierError(tier.id, "variableDefaults.quantity") ? (
+                  <p className="text-xs text-red-700">{getTierError(tier.id, "variableDefaults.quantity")}</p>
+                ) : null}
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor={`tier-${tier.id}-duration-value`} className="text-sm font-medium text-zinc-900">
+                  Duration default
+                </label>
+                <input
+                  id={`tier-${tier.id}-duration-value`}
+                  type="number"
+                  min={0}
+                  className={FIELD_CLASS_NAME}
+                  value={tier.variableDefaults.durationValue ?? 0}
+                  onChange={(event) =>
+                    handleTierVariableDefaultsChange(tier.id, "durationValue", event.target.value)
+                  }
+                />
+                {getTierError(tier.id, "variableDefaults.durationValue") ? (
+                  <p className="text-xs text-red-700">{getTierError(tier.id, "variableDefaults.durationValue")}</p>
+                ) : null}
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor={`tier-${tier.id}-duration-unit`} className="text-sm font-medium text-zinc-900">
+                  Duration unit
+                </label>
+                <select
+                  id={`tier-${tier.id}-duration-unit`}
+                  className={FIELD_CLASS_NAME}
+                  value={tier.variableDefaults.durationUnit ?? "none"}
+                  onChange={(event) =>
+                    handleTierVariableDefaultsChange(tier.id, "durationUnit", event.target.value)
+                  }
+                >
+                  <option value="none">Not applicable</option>
+                  <option value="day">day</option>
+                  <option value="week">week</option>
+                </select>
+                {getTierError(tier.id, "variableDefaults.durationUnit") ? (
+                  <p className="text-xs text-red-700">{getTierError(tier.id, "variableDefaults.durationUnit")}</p>
+                ) : null}
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor={`tier-${tier.id}-resolution`} className="text-sm font-medium text-zinc-900">
+                  Resolution default
+                </label>
+                <select
+                  id={`tier-${tier.id}-resolution`}
+                  className={FIELD_CLASS_NAME}
+                  value={tier.variableDefaults.resolution ?? "none"}
+                  onChange={(event) =>
+                    handleTierVariableDefaultsChange(tier.id, "resolution", event.target.value)
+                  }
+                >
+                  <option value="none">Not applicable</option>
+                  <option value="hd">HD</option>
+                  <option value="4k">4K</option>
+                  <option value="print">Print</option>
+                </select>
+                {getTierError(tier.id, "variableDefaults.resolution") ? (
+                  <p className="text-xs text-red-700">{getTierError(tier.id, "variableDefaults.resolution")}</p>
+                ) : null}
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor={`tier-${tier.id}-revisions`} className="text-sm font-medium text-zinc-900">
+                  Revisions default
+                </label>
+                <input
+                  id={`tier-${tier.id}-revisions`}
+                  type="number"
+                  min={0}
+                  className={FIELD_CLASS_NAME}
+                  value={tier.variableDefaults.revisions}
+                  onChange={(event) =>
+                    handleTierVariableDefaultsChange(tier.id, "revisions", event.target.value)
+                  }
+                />
+                {getTierError(tier.id, "variableDefaults.revisions") ? (
+                  <p className="text-xs text-red-700">{getTierError(tier.id, "variableDefaults.revisions")}</p>
+                ) : null}
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor={`tier-${tier.id}-urgency`} className="text-sm font-medium text-zinc-900">
+                  Urgency default
+                </label>
+                <select
+                  id={`tier-${tier.id}-urgency`}
+                  className={FIELD_CLASS_NAME}
+                  value={tier.variableDefaults.urgency}
+                  onChange={(event) =>
+                    handleTierVariableDefaultsChange(tier.id, "urgency", event.target.value)
+                  }
+                >
+                  <option value="standard">standard</option>
+                  <option value="rush">rush</option>
+                </select>
+                {getTierError(tier.id, "variableDefaults.urgency") ? (
+                  <p className="text-xs text-red-700">{getTierError(tier.id, "variableDefaults.urgency")}</p>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-zinc-900">Deliverables</p>
+                <button
+                  type="button"
+                  onClick={() => addTierListField(tier.id, "deliverables")}
+                  className="rounded-md border border-zinc-300 px-3 py-1 text-xs font-medium text-zinc-700"
+                >
+                  Add deliverable
+                </button>
+              </div>
+              {getTierError(tier.id, "deliverables") ? (
+                <p className="text-xs text-red-700">{getTierError(tier.id, "deliverables")}</p>
+              ) : null}
+              {tier.deliverables.map((deliverable, deliverableIndex) => (
+                <div key={`${tier.id}-deliverable-${deliverableIndex}`} className="flex gap-2">
+                  <input
+                    aria-label={`Deliverable ${tier.title} ${deliverableIndex + 1}`}
+                    type="text"
+                    className={FIELD_CLASS_NAME}
+                    value={deliverable}
+                    onChange={(event) =>
+                      updateTierListField(
+                        tier.id,
+                        "deliverables",
+                        deliverableIndex,
+                        event.target.value,
+                      )
+                    }
+                    />
+                    {getTierListItemError(tier.id, "deliverables", deliverableIndex) ? (
+                      <p className="text-xs text-red-700">
+                        {getTierListItemError(tier.id, "deliverables", deliverableIndex)}
+                      </p>
+                    ) : null}
+                  <button
+                    type="button"
+                    onClick={() => removeTierListField(tier.id, "deliverables", deliverableIndex)}
+                    className="rounded-md border border-zinc-300 px-3 py-2 text-xs"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-zinc-900">Process notes</p>
+                <button
+                  type="button"
+                  onClick={() => addTierListField(tier.id, "processNotes")}
+                  className="rounded-md border border-zinc-300 px-3 py-1 text-xs font-medium text-zinc-700"
+                >
+                  Add note
+                </button>
+              </div>
+              {getTierError(tier.id, "processNotes") ? (
+                <p className="text-xs text-red-700">{getTierError(tier.id, "processNotes")}</p>
+              ) : null}
+              {tier.processNotes.map((note, noteIndex) => (
+                <div key={`${tier.id}-note-${noteIndex}`} className="flex gap-2">
+                  <input
+                    aria-label={`Process note ${tier.title} ${noteIndex + 1}`}
+                    type="text"
+                    className={FIELD_CLASS_NAME}
+                    value={note}
+                    onChange={(event) =>
+                      updateTierListField(tier.id, "processNotes", noteIndex, event.target.value)
+                    }
+                    />
+                    {getTierListItemError(tier.id, "processNotes", noteIndex) ? (
+                      <p className="text-xs text-red-700">
+                        {getTierListItemError(tier.id, "processNotes", noteIndex)}
+                      </p>
+                    ) : null}
+                  <button
+                    type="button"
+                    onClick={() => removeTierListField(tier.id, "processNotes", noteIndex)}
+                    className="rounded-md border border-zinc-300 px-3 py-2 text-xs"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        ))}
       </section>
 
       <section className="space-y-4">

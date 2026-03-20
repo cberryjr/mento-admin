@@ -9,6 +9,31 @@ type ServicePackageDetailPageProps = {
   searchParams: Promise<{ backTo?: string; saved?: string }>;
 };
 
+const DEFAULT_BACK_TO = "/service-packages";
+
+function sanitizeBackTo(backTo?: string) {
+  if (!backTo || !backTo.startsWith("/") || backTo.startsWith("//")) {
+    return DEFAULT_BACK_TO;
+  }
+
+  try {
+    const parsedBackTo = new URL(backTo, "https://mento-admin.local");
+
+    if (parsedBackTo.pathname !== DEFAULT_BACK_TO) {
+      return DEFAULT_BACK_TO;
+    }
+
+    const search = parsedBackTo.searchParams.get("search");
+    if (!search) {
+      return DEFAULT_BACK_TO;
+    }
+
+    return `${DEFAULT_BACK_TO}?search=${encodeURIComponent(search)}`;
+  } catch {
+    return DEFAULT_BACK_TO;
+  }
+}
+
 export default async function ServicePackageDetailPage({
   params,
   searchParams,
@@ -21,11 +46,7 @@ export default async function ServicePackageDetailPage({
     notFound();
   }
 
-  // Sanitize backTo to prevent open-redirect: only allow relative paths.
-  const safeBackTo =
-    backTo && backTo.startsWith("/") && !backTo.startsWith("//")
-      ? backTo
-      : "/service-packages";
+  const safeBackTo = sanitizeBackTo(backTo);
 
   return (
     <section className="space-y-6 rounded-xl border border-zinc-200 bg-white p-6">

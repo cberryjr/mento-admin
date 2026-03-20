@@ -1,6 +1,6 @@
 # Story 2.5: Browse and Reopen Service Packages in the Library
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -22,35 +22,35 @@ so that I can review and maintain reusable commercial sources before quote creat
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Extract and enhance the service package list into a dedicated component (AC: #1, #4)
-  - [ ] 1.1 Add `src/features/service-packages/components/service-package-list.tsx` as a client component that receives `ServicePackageSummary[]` data and renders the browsable list with clear package identity (name, category, starting price, short description) and an `updatedAt` display using the shared `formatDate()` utility from `@/lib/format/dates`.
-  - [ ] 1.2 Render a record count (e.g., "3 service packages") in the list header area so users can assess library size at a glance.
-  - [ ] 1.3 Add a search input that filters the list client-side by matching against `name`, `category`, `startingPriceLabel`, and `shortDescription` fields using case-insensitive substring matching; keep the filter in local component state.
-  - [ ] 1.4 Preserve the existing link pattern: each list item links to `/service-packages/${id}?backTo=/service-packages` for safe reopen and return navigation.
-  - [ ] 1.5 Add accessible keyboard focus styling consistent with existing workspace patterns (`focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900`), and ensure the search input has a programmatically associated label.
+- [x] Task 1: Extract and enhance the service package list into a dedicated component (AC: #1, #4)
+  - [x] 1.1 Add `src/features/service-packages/components/service-package-list.tsx` as a client component that receives `ServicePackageSummary[]` data and renders the browsable list with clear package identity (name, category, starting price, short description) and an `updatedAt` display using the shared `formatDate()` utility from `@/lib/format/dates`.
+  - [x] 1.2 Render a record count (e.g., "3 service packages") in the list header area so users can assess library size at a glance.
+  - [x] 1.3 Add a search input that filters the list client-side by matching against `name`, `category`, `startingPriceLabel`, and `shortDescription` fields using case-insensitive substring matching; keep the filter in local component state.
+  - [x] 1.4 Preserve the safe reopen link pattern by keeping `backTo`-based list item links and carrying the active library search context in `backTo` when a filter is applied.
+  - [x] 1.5 Add accessible keyboard focus styling consistent with existing workspace patterns (`focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900`), and ensure the search input has a programmatically associated label.
 
-- [ ] Task 2: Handle empty and no-results states (AC: #3)
-  - [ ] 2.1 When no service packages exist at all, render the existing `<EmptyState>` component with a "Create service package" CTA linking to `/service-packages/new`, matching the current behavior.
-  - [ ] 2.2 When service packages exist but the search filter produces zero matches, render a distinct no-results state with clear text such as "No service packages match your search" and a one-action clear-filter control so the user can reset without losing orientation.
-  - [ ] 2.3 Ensure both empty and no-results states are accessible and announce their purpose through text, not layout cues alone.
+- [x] Task 2: Handle empty and no-results states (AC: #3)
+  - [x] 2.1 When no service packages exist at all, render the existing `<EmptyState>` component with a "Create service package" CTA linking to `/service-packages/new`, matching the current behavior.
+  - [x] 2.2 When service packages exist but the search filter produces zero matches, render a distinct no-results state with clear text such as "No service packages match your search" and a one-action clear-filter control so the user can reset without losing orientation.
+  - [x] 2.3 Ensure both empty and no-results states are accessible and announce their purpose through text, not layout cues alone.
 
-- [ ] Task 3: Update the service packages page to compose the new list component (AC: #1, #2, #3, #4)
-  - [ ] 3.1 Refactor `src/app/(workspace)/service-packages/page.tsx` to delegate list rendering to the new `ServicePackageList` component, passing `servicePackages` data and a "Create service package" action link.
-  - [ ] 3.2 Keep the page as a server component that loads data via the existing `listServicePackages()` query and passes the result to the client list component.
-  - [ ] 3.3 Preserve the existing error state rendering using `<InlineAlert>` when the query fails.
-  - [ ] 3.4 Preserve the "Create service package" CTA in the page header area, accessible from both the populated list header and the empty state.
+- [x] Task 3: Update the service packages page to compose the new list component (AC: #1, #2, #3, #4)
+  - [x] 3.1 Refactor `src/app/(workspace)/service-packages/page.tsx` to delegate list rendering to the new `ServicePackageList` component, passing `servicePackages` data and a "Create service package" action link.
+  - [x] 3.2 Keep the page as a server component that loads data via the existing `listServicePackages()` query and passes the result to the client list component.
+  - [x] 3.3 Preserve the existing error state rendering using `<InlineAlert>` when the query fails.
+  - [x] 3.4 Preserve the "Create service package" CTA as an obvious next action without duplicating it; show it in the page header when the library is populated and in the empty state when no packages exist.
 
-- [ ] Task 4: Confirm the reopen and back-navigation flow (AC: #2)
-  - [ ] 4.1 Verify that clicking a service package in the list navigates to the detail page at `/service-packages/[servicePackageId]?backTo=/service-packages` and that the detail page renders the latest persisted package definition.
-  - [ ] 4.2 Verify that the detail page back link reads `backTo` from search params and returns the user to `/service-packages`, preserving orientation.
-  - [ ] 4.3 No changes are needed to `src/app/(workspace)/service-packages/[servicePackageId]/page.tsx` unless a regression is discovered during testing; the reopen and back-navigation flow is already implemented by Story 2.3.
+- [x] Task 4: Confirm the reopen and back-navigation flow (AC: #2)
+  - [x] 4.1 Verify that clicking a service package in the list navigates to the detail page at `/service-packages/[servicePackageId]?backTo=/service-packages` and that the detail page renders the latest persisted package definition.
+  - [x] 4.2 Verify that the detail page back link reads `backTo` from search params and returns the user to the correct `/service-packages` library context, including the active search filter when present.
+  - [x] 4.3 No changes are needed to `src/app/(workspace)/service-packages/[servicePackageId]/page.tsx` unless a regression is discovered during testing; the reopen and back-navigation flow is already implemented by Story 2.3.
 
-- [ ] Task 5: Add tests for browse, search, empty, no-results, and reopen behaviors (AC: #1, #2, #3, #4)
-  - [ ] 5.1 Add component tests for `ServicePackageList` in `src/features/service-packages/components/service-package-list.test.tsx` covering: list rendering with correct identity fields and `updatedAt`, record count display, search filtering with matching and non-matching input, no-results state with clear-filter action, keyboard focus styles on list items, and accessible search input label.
-  - [ ] 5.2 Update `tests/integration/workspace/navigation-reopen.test.tsx` to verify the new list component renders correctly with seeded data, including the search input presence and link targets with `backTo` context.
-  - [ ] 5.3 Add or extend Playwright coverage in `tests/e2e/service-packages.spec.ts` for: library page loads with seeded packages visible, search filters the list correctly, no-results state appears for non-matching search, clearing search restores the full list, clicking a package navigates to the detail page, and back-navigation returns to the library.
-  - [ ] 5.4 Add Playwright keyboard accessibility coverage: Tab into the search input, type a filter term, Tab through filtered results, Enter to open a package, and verify the back link returns to the library.
-  - [ ] 5.5 Verify `npm run lint`, `npm run test`, and `npm run build` pass.
+- [x] Task 5: Add tests for browse, search, empty, no-results, and reopen behaviors (AC: #1, #2, #3, #4)
+  - [x] 5.1 Add component tests for `ServicePackageList` in `src/features/service-packages/components/service-package-list.test.tsx` covering: list rendering with correct identity fields and `updatedAt`, record count display, search filtering with matching and non-matching input, no-results state with clear-filter action, keyboard focus styles on list items, and accessible search input label.
+  - [x] 5.2 Add page- and integration-level coverage for the extracted list composition, including initial search hydration, a single empty-state create CTA, the search input presence, and link targets with `backTo` context.
+  - [x] 5.3 Add or extend Playwright coverage in `tests/e2e/service-packages.spec.ts` for: library page loads with seeded packages visible, search filters the list correctly, no-results state appears for non-matching search, clearing search restores the full list, clicking a package navigates to the detail page, and back-navigation returns to the same filtered library context when applicable.
+  - [x] 5.4 Add Playwright keyboard accessibility coverage: Tab into the search input, type a filter term, Tab through filtered results, Enter to open a package, and verify the back link returns to the library.
+  - [x] 5.5 Verify `npm run lint`, `npm run test`, and `npm run build` pass, providing the required production-safe auth env values for the build because `src/lib/env.ts` validates production builds strictly.
 
 ## Dev Notes
 
@@ -65,10 +65,11 @@ so that I can review and maintain reusable commercial sources before quote creat
 
 - The `ServicePackageList` component must be a `"use client"` component because it manages local search state. The page remains a server component that passes data down.
 - Search filtering must happen in local component state using a controlled input. Filter against `name`, `category`, `startingPriceLabel`, and `shortDescription` with case-insensitive substring matching. Do not call the server on every keystroke.
+- Preserve filtered reopen context by hydrating the list from `searchParams.search` and by carrying the current search term through `backTo` whenever the user opens a filtered result.
 - Use the existing `ServicePackageSummary` type from `src/features/service-packages/types.ts` as the data contract for list items. This type already includes `updatedAt` -- display it using `formatDate()` from `@/lib/format/dates`.
 - Do not modify the list query `listServicePackages()`, the repository, or the database schema. The current query returns all packages sorted by name, which is sufficient for client-side filtering at MVP scale.
 - Do not introduce pagination, server-side search, or Zustand state. The in-memory filter on the client component is the right level of complexity for 1-5 concurrent users with a small number of service packages.
-- Preserve the `?backTo=/service-packages` query parameter on all list item links so the detail page back-navigation continues to work.
+- Preserve `backTo` on all list item links so the detail page back-navigation continues to work; when a filter is active, `backTo` should carry the current `/service-packages?search=...` context rather than dropping the user back into the unfiltered library.
 - The search input must have a visible `<label>` or `aria-label` for accessibility. Use `htmlFor` association or a visible label element, consistent with existing form patterns.
 - The no-results state must be distinct from the empty state: empty state means zero packages exist (shows create CTA), no-results state means packages exist but the filter matched none (shows clear-filter action).
 
@@ -122,12 +123,12 @@ so that I can review and maintain reusable commercial sources before quote creat
 
 - Cover all acceptance-criteria paths explicitly:
   - Populated list renders each package with name, category, starting price, short description (if present), and updated date
-  - Record count is displayed and accurate
+  - Record count is displayed and accurate for both the full library and filtered results
   - Search input filters the list correctly by name, category, price label, and description
   - No-results state appears when search matches nothing, with a clear-filter action
   - Empty state appears when no packages exist, with a create CTA
   - Clicking a package navigates to the correct detail page with `backTo` context
-  - Back-navigation from the detail page returns to the library
+  - Back-navigation from the detail page returns to the correct library context, including the active filter when present
   - Keyboard-only flow: focus search, type filter, tab to results, enter to open
 - Add accessibility checks for the search input label, focus states on list items, and meaningful text in empty/no-results states.
 - Update existing navigation-reopen integration test to verify compatibility with the extracted list component.
@@ -210,9 +211,40 @@ anthropic/claude-opus-4-6
 
 ### Debug Log References
 
+- `npm test -- src/features/service-packages/components/service-package-list.test.tsx`
+- `npm test -- "src/app/(workspace)/service-packages/page.test.tsx"`
+- `npm test -- tests/integration/workspace/navigation-reopen.test.tsx`
+- `npx playwright test tests/e2e/service-packages.spec.ts`
+- `npm test && npx playwright test tests/e2e/service-packages.spec.ts && npm run lint && NEXTAUTH_URL="https://mento-admin.example.com" STUDIO_OWNER_EMAIL="build@example.com" STUDIO_OWNER_PASSWORD="build-password-123" npm run build`
+
 ### Completion Notes List
 
 - Ultimate context engine analysis completed - comprehensive developer guide created
 - Story 2.5 is a UI-only browsing enhancement. No server-side, schema, repository, or migration changes needed. The story extracts the inline list into a component, adds client-side search, record count, updatedAt display, and proper no-results handling.
+- Added `ServicePackageList` as a client-owned library component with record count, updated date display, local search filtering, safe reopen links, and accessible search/focus treatment.
+- Added focused component tests covering summary rendering, record count, client-side filtering across summary fields, and focus/search accessibility; full Vitest suite passes.
+- Extended the list component with shared empty-state handling and a distinct no-results state that keeps filter reset obvious through text and a single clear-search action.
+- Refactored the service-packages page to stay server-rendered while delegating interactive library behavior to `ServicePackageList`; integration coverage now verifies the library search control and safe reopen links.
+- Extended Playwright coverage for seeded library browse/search/no-results/reopen flows plus keyboard-only filtering and open behavior from the library.
+- Fixed the review follow-up gaps by preserving filtered library context through `backTo`, making filtered result counts explicit, and removing the duplicate create CTA from the empty library page.
+- Added page-level coverage for initial search hydration and single-CTA empty-state rendering, plus Playwright assertions that reopening from a filtered result returns to the same filtered library context.
+- Tightened detail-page back-navigation safety to allow only service-package library targets, synchronized list query state when URL search params change, and reduced Playwright coupling to encoded href internals by asserting decoded `backTo` semantics.
+- Verified `npm test`, `npx playwright test tests/e2e/service-packages.spec.ts`, `npm run lint`, and `npm run build` all pass when the required production-safe auth env values are supplied; plain `npm run build` without those values still fails intentionally because `src/lib/env.ts` validates production builds strictly.
+- Dirty-worktree note: `_bmad-output/implementation-artifacts/2-6-define-service-catalog-taxonomy-and-complexity-matrix.md` exists as separate story work and is not part of Story 2.5.
 
 ### File List
+
+- _bmad-output/implementation-artifacts/2-5-browse-and-reopen-service-packages-in-the-library.md
+- _bmad-output/implementation-artifacts/sprint-status.yaml
+- src/features/service-packages/components/service-package-list.tsx
+- src/features/service-packages/components/service-package-list.test.tsx
+- src/app/(workspace)/service-packages/page.tsx
+- src/app/(workspace)/service-packages/page.test.tsx
+- tests/integration/workspace/navigation-reopen.test.tsx
+- tests/e2e/service-packages.spec.ts
+
+## Change Log
+
+- 2026-03-19: Implemented the service package library component, added client-side search and empty/no-results states, refactored the page to compose the new list, and expanded component, integration, and Playwright coverage for browse and reopen flows.
+- 2026-03-19: Fixed code-review findings by preserving filtered back-navigation context, clarifying filtered result counts, removing duplicate empty-state CTAs, and adding regression coverage for those paths.
+- 2026-03-19: Resolved post-review hardening items by restricting detail `backTo` targets to service-package library routes, syncing query hydration across param changes, adding inline-error page coverage, and making e2e assertions robust against URL-encoding implementation details.

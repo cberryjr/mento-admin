@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 async function signIn(page: Page, path: string) {
   const email = process.env.STUDIO_OWNER_EMAIL ?? "owner@example.com";
@@ -11,6 +11,101 @@ async function signIn(page: Page, path: string) {
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
 }
+
+async function tabUntilFocused(page: Page, target: ReturnType<Page["getByLabel"]>, maxTabs = 12) {
+  for (let index = 0; index < maxTabs; index += 1) {
+    await page.keyboard.press("Tab");
+
+    if (await target.evaluate((element) => element === document.activeElement)) {
+      return;
+    }
+  }
+
+  throw new Error("Could not reach target with keyboard navigation.");
+}
+
+async function expectBackToParam(link: Locator, expectedBackTo: string) {
+  const href = await link.getAttribute("href");
+  expect(href).toBeTruthy();
+
+  const backTo = new URL(href!, "https://example.com").searchParams.get("backTo");
+  expect(backTo).toBe(expectedBackTo);
+}
+
+test("browses, filters, and reopens service packages from the library", async ({ page }) => {
+  await signIn(page, "/service-packages");
+  await expect(page).toHaveURL(/\/service-packages$/);
+
+  const brandLaunchLink = page.locator(
+    'a[href^="/service-packages/package-brand-launch?backTo="]',
+  );
+  const contentSprintLink = page.locator(
+    'a[href^="/service-packages/package-content-sprint?backTo="]',
+  );
+
+  await expect(page.getByRole("heading", { name: "Service Packages" })).toBeVisible();
+  await expect(page.getByText(/\d+ service packages?/)).toBeVisible();
+  await expect(brandLaunchLink).toBeVisible();
+  await expect(contentSprintLink).toBeVisible();
+  await expectBackToParam(brandLaunchLink, "/service-packages");
+  await expectBackToParam(contentSprintLink, "/service-packages");
+  await expect(brandLaunchLink).toContainText(/Updated Mar \d{1,2}, 2026/);
+
+  const searchInput = page.getByLabel("Search service packages");
+  await searchInput.fill("campaign push");
+  const filteredContentSprintLink = page.locator(
+    'a[href^="/service-packages/package-content-sprint?backTo="]',
+  );
+  await expect(filteredContentSprintLink).toBeVisible();
+  await expect(brandLaunchLink).toBeHidden();
+  await expectBackToParam(filteredContentSprintLink, "/service-packages?search=campaign%20push");
+
+  await searchInput.fill("non-matching term");
+  await expect(page.getByText("No service packages match your search")).toBeVisible();
+  await page.getByRole("button", { name: "Clear search" }).click();
+
+  await expect(brandLaunchLink).toBeVisible();
+  await expect(contentSprintLink).toBeVisible();
+
+  await searchInput.fill("campaign push");
+  await expect(filteredContentSprintLink).toBeVisible();
+  await expect(brandLaunchLink).toBeHidden();
+
+  await filteredContentSprintLink.click();
+  await expect(page).toHaveURL(/\/service-packages\/package-content-sprint/);
+  await expect(page.getByLabel("Service package name")).toHaveValue("Content Sprint Package");
+
+  await page.getByRole("link", { name: /back to service packages/i }).click();
+  await expect(page).toHaveURL(/\/service-packages\?search=campaign(?:%20|\+)push$/);
+  await expect(page.getByLabel("Search service packages")).toHaveValue("campaign push");
+  await expect(filteredContentSprintLink).toBeVisible();
+  await expect(brandLaunchLink).toBeHidden();
+});
+
+test("supports keyboard filtering and reopen flow from the service package library", async ({ page }) => {
+  await signIn(page, "/service-packages");
+  await expect(page).toHaveURL(/\/service-packages$/);
+
+  const searchInput = page.getByLabel("Search service packages");
+  await tabUntilFocused(page, searchInput);
+  await expect(searchInput).toBeFocused();
+  await page.keyboard.type("campaign push");
+
+  const filteredPackageLink = page.locator(
+    'a[href^="/service-packages/package-content-sprint?backTo="]',
+  );
+  await page.keyboard.press("Tab");
+  await expect(filteredPackageLink).toBeFocused();
+  await expectBackToParam(filteredPackageLink, "/service-packages?search=campaign%20push");
+  await page.keyboard.press("Enter");
+
+  await expect(page).toHaveURL(/\/service-packages\/package-content-sprint/);
+  await expect(page.getByLabel("Service package name")).toHaveValue("Content Sprint Package");
+
+  await page.getByRole("link", { name: /back to service packages/i }).click();
+  await expect(page).toHaveURL(/\/service-packages\?search=campaign(?:%20|\+)push$/);
+  await expect(page.getByLabel("Search service packages")).toHaveValue("campaign push");
+});
 
 test("creates a structured service package and shows explicit confirmation", async ({ page }) => {
   const packageName = `Website Refresh Package ${Date.now()}`;

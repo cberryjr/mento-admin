@@ -63,15 +63,16 @@ describe("workspace list and reopen behavior", () => {
     );
   });
 
-  it("shows service package list navigation targets", async () => {
+  it("shows service package library links and search input", async () => {
     const ui = await ServicePackagesPage();
     render(ui);
 
+    expect(screen.getByLabelText("Search service packages")).toBeVisible();
     expect(
       screen.getByRole("link", { name: /brand launch package/i }),
     ).toHaveAttribute(
       "href",
-      "/service-packages/package-brand-launch?backTo=/service-packages",
+      "/service-packages/package-brand-launch?backTo=%2Fservice-packages",
     );
   });
 
@@ -90,6 +91,30 @@ describe("workspace list and reopen behavior", () => {
     const serviceUi = await ServicePackageDetailPage({
       params: Promise.resolve({ servicePackageId: "package-brand-launch" }),
       searchParams: Promise.resolve({ backTo: "/service-packages" }),
+    });
+    render(serviceUi);
+
+    expect(
+      screen.getByRole("link", { name: /back to service packages/i }),
+    ).toHaveAttribute("href", "/service-packages");
+  });
+
+  it("preserves service package library search context in the back link", async () => {
+    const serviceUi = await ServicePackageDetailPage({
+      params: Promise.resolve({ servicePackageId: "package-brand-launch" }),
+      searchParams: Promise.resolve({ backTo: "/service-packages?search=campaign%20push" }),
+    });
+    render(serviceUi);
+
+    expect(
+      screen.getByRole("link", { name: /back to service packages/i }),
+    ).toHaveAttribute("href", "/service-packages?search=campaign%20push");
+  });
+
+  it("sanitizes non-library back targets to service package library", async () => {
+    const serviceUi = await ServicePackageDetailPage({
+      params: Promise.resolve({ servicePackageId: "package-brand-launch" }),
+      searchParams: Promise.resolve({ backTo: "/clients" }),
     });
     render(serviceUi);
 

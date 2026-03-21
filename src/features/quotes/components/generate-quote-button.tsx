@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 
 import { generateQuoteContent } from "@/features/quotes/server/actions/generate-quote-content";
 
@@ -9,9 +10,10 @@ type GenerateQuoteButtonProps = {
 };
 
 export function GenerateQuoteButton({ quoteId }: GenerateQuoteButtonProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [succeeded, setSucceeded] = useState(false);
 
   function handleGenerate() {
     setError(null);
@@ -20,26 +22,12 @@ export function GenerateQuoteButton({ quoteId }: GenerateQuoteButtonProps) {
       const result = await generateQuoteContent({ quoteId });
 
       if (result.ok) {
-        setSucceeded(true);
+        setIsRefreshing(true);
+        router.refresh();
       } else {
         setError(result.error.message);
       }
     });
-  }
-
-  if (succeeded) {
-    return (
-      <div
-        role="status"
-        className="rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-900"
-      >
-        <p className="font-semibold">Quote content generated</p>
-        <p className="mt-1">
-          The quote structure has been generated from the selected service
-          packages. You can now review and edit the content below.
-        </p>
-      </div>
-    );
   }
 
   return (
@@ -47,11 +35,21 @@ export function GenerateQuoteButton({ quoteId }: GenerateQuoteButtonProps) {
       <button
         type="button"
         onClick={handleGenerate}
-        disabled={isPending}
+        disabled={isPending || isRefreshing}
         className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isPending ? "Generating..." : "Generate quote content"}
+        {isRefreshing
+          ? "Refreshing quote..."
+          : isPending
+            ? "Generating..."
+            : "Generate quote content"}
       </button>
+
+      {isRefreshing ? (
+        <p role="status" className="text-sm text-zinc-600">
+          Quote content generated. Reloading the quote details...
+        </p>
+      ) : null}
 
       {error ? (
         <div

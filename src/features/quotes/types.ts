@@ -116,6 +116,25 @@ export function toQuoteSummary(quote: QuoteRecord): QuoteSummary {
   };
 }
 
+export type QuotePreviewPayload = {
+  quoteId: string;
+  clientId: string;
+  quoteNumber: string;
+  title: string;
+  status: QuoteStatus;
+  clientName: string;
+  clientContact: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  sections: QuoteSectionRecord[];
+  grandTotalCents: number;
+  terms: string;
+  preparedAt: string;
+  studioName: string;
+};
+
 export function calculateQuoteTotalCents(sections: QuoteSectionRecord[]): number {
   return sections.reduce((total, section) => {
     return (

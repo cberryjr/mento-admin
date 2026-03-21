@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { ReactNode } from "react";
 import {
   cleanup,
   fireEvent,
@@ -12,11 +13,53 @@ import {
 } from "@/features/quotes/store/quote-editor-store";
 import type { QuoteSectionRecord } from "@/features/quotes/types";
 
+const routerPush = vi.fn();
+
+let sectionDragHandlers: Array<
+  (event: { active: { id: string }; over: { id: string } | null }) => void
+> = [];
+
 vi.mock("next/navigation", () => ({
   usePathname: () => "/quotes/q-1",
   useRouter: () => ({
-    push: vi.fn(),
+    push: routerPush,
   }),
+}));
+
+vi.mock("@dnd-kit/core", () => ({
+  DndContext: ({ children, onDragEnd }: { children: ReactNode; onDragEnd?: typeof sectionDragHandlers[number] }) => {
+    if (onDragEnd) {
+      sectionDragHandlers.push(onDragEnd);
+    }
+    return children;
+  },
+  closestCenter: vi.fn(),
+  KeyboardSensor: class {},
+  PointerSensor: class {},
+  useSensor: vi.fn(() => ({})),
+  useSensors: vi.fn((...sensors: unknown[]) => sensors),
+}));
+
+vi.mock("@dnd-kit/sortable", () => ({
+  SortableContext: ({ children }: { children: ReactNode }) => children,
+  sortableKeyboardCoordinates: vi.fn(),
+  verticalListSortingStrategy: {},
+  useSortable: ({ id }: { id: string }) => ({
+    attributes: { "data-sortable-id": id },
+    listeners: {},
+    setNodeRef: vi.fn(),
+    transform: null,
+    transition: null,
+    isDragging: false,
+  }),
+}));
+
+vi.mock("@dnd-kit/utilities", () => ({
+  CSS: {
+    Transform: {
+      toString: vi.fn(() => undefined),
+    },
+  },
 }));
 
 vi.mock("@/features/quotes/server/actions/add-quote-section", () => ({
@@ -34,11 +77,21 @@ vi.mock("@/features/quotes/server/actions/remove-quote-line-item", () => ({
 vi.mock("@/features/quotes/server/actions/update-quote-sections", () => ({
   updateQuoteSections: vi.fn(),
 }));
+vi.mock("@/features/quotes/server/actions/update-quote-line-item", () => ({
+  updateQuoteLineItem: vi.fn(),
+}));
+vi.mock("@/features/quotes/server/actions/reorder-quote-sections", () => ({
+  reorderQuoteSections: vi.fn(),
+}));
+vi.mock("@/features/quotes/server/actions/reorder-quote-line-items", () => ({
+  reorderQuoteLineItems: vi.fn(),
+}));
 
 afterEach(() => {
   cleanup();
   __resetQuoteEditorStore();
   vi.clearAllMocks();
+  sectionDragHandlers = [];
 });
 
 const VALID_SECTIONS: QuoteSectionRecord[] = [
@@ -68,6 +121,20 @@ const VALID_SECTIONS: QuoteSectionRecord[] = [
   },
 ];
 
+const TWO_SECTIONS: QuoteSectionRecord[] = [
+  ...VALID_SECTIONS,
+  {
+    id: "qs-2",
+    quoteId: "q-1",
+    studioId: "s-1",
+    sourceServicePackageId: "",
+    title: "Strategy Workshop",
+    content: "Facilitated planning",
+    position: 2,
+    lineItems: [],
+  },
+];
+
 describe("QuoteStructureEditor", () => {
   it("renders mapped source package names", async () => {
     const { QuoteStructureEditor } = await import(
@@ -75,11 +142,13 @@ describe("QuoteStructureEditor", () => {
     );
 
     render(
-      <QuoteStructureEditor
-        quoteId="q-1"
-        initialSections={VALID_SECTIONS}
-        sourcePackageNames={{ "sp-1": "Brand Launch Package" }}
-      />,
+        <QuoteStructureEditor
+          quoteId="q-1"
+          initialSections={VALID_SECTIONS}
+          sourcePackageNames={{ "sp-1": "Brand Launch Package" }}
+          clientId="client-1"
+          backTo="/quotes"
+        />,
     );
 
     expect(
@@ -93,9 +162,9 @@ describe("QuoteStructureEditor", () => {
     );
 
     render(
-      <QuoteStructureEditor
-        quoteId="q-1"
-        initialSections={[
+        <QuoteStructureEditor
+          quoteId="q-1"
+          initialSections={[
           {
             ...VALID_SECTIONS[0],
             title: "",
@@ -106,9 +175,11 @@ describe("QuoteStructureEditor", () => {
               },
             ],
           },
-        ]}
-        sourcePackageNames={{}}
-      />,
+          ]}
+          sourcePackageNames={{}}
+          clientId="client-1"
+          backTo="/quotes"
+        />,
     );
 
     expect(screen.getByRole("button", { name: /save draft/i })).toBeDisabled();
@@ -143,11 +214,13 @@ describe("QuoteStructureEditor", () => {
     } as Awaited<ReturnType<typeof addQuoteSection>>);
 
     render(
-      <QuoteStructureEditor
-        quoteId="q-1"
-        initialSections={VALID_SECTIONS}
-        sourcePackageNames={{}}
-      />,
+        <QuoteStructureEditor
+          quoteId="q-1"
+          initialSections={VALID_SECTIONS}
+          sourcePackageNames={{}}
+          clientId="client-1"
+          backTo="/quotes"
+        />,
     );
 
     fireEvent.click(screen.getByRole("button", { name: /add section/i }));
@@ -175,11 +248,13 @@ describe("QuoteStructureEditor", () => {
     } as Awaited<ReturnType<typeof updateQuoteSections>>);
 
     render(
-      <QuoteStructureEditor
-        quoteId="q-1"
-        initialSections={VALID_SECTIONS}
-        sourcePackageNames={{}}
-      />,
+        <QuoteStructureEditor
+          quoteId="q-1"
+          initialSections={VALID_SECTIONS}
+          sourcePackageNames={{}}
+          clientId="client-1"
+          backTo="/quotes"
+        />,
     );
 
     fireEvent.keyDown(screen.getByLabelText("Section title"), {
@@ -197,11 +272,13 @@ describe("QuoteStructureEditor", () => {
     );
 
     render(
-      <QuoteStructureEditor
-        quoteId="q-1"
-        initialSections={VALID_SECTIONS}
-        sourcePackageNames={{}}
-      />,
+        <QuoteStructureEditor
+          quoteId="q-1"
+          initialSections={VALID_SECTIONS}
+          sourcePackageNames={{}}
+          clientId="client-1"
+          backTo="/quotes"
+        />,
     );
 
     const lineItemInput = screen.getByLabelText("Line item name");
@@ -211,5 +288,221 @@ describe("QuoteStructureEditor", () => {
     fireEvent.keyDown(lineItemInput, { key: "Escape" });
 
     expect(screen.getByDisplayValue("Logo Design")).toBeInTheDocument();
+  });
+
+  it("persists section drag reorders", async () => {
+    const { reorderQuoteSections } = await import(
+      "@/features/quotes/server/actions/reorder-quote-sections"
+    );
+    const { QuoteStructureEditor } = await import(
+      "@/features/quotes/components/quote-structure-editor"
+    );
+
+    vi.mocked(reorderQuoteSections).mockResolvedValue({
+      ok: true,
+      data: {
+        quote: {
+          sections: [TWO_SECTIONS[1], TWO_SECTIONS[0]],
+        },
+      },
+    } as Awaited<ReturnType<typeof reorderQuoteSections>>);
+
+    render(
+        <QuoteStructureEditor
+          quoteId="q-1"
+          initialSections={TWO_SECTIONS}
+          sourcePackageNames={{}}
+          clientId="client-1"
+          backTo="/quotes"
+        />,
+    );
+
+    sectionDragHandlers.forEach((handler) => {
+      handler({
+        active: { id: "qs-2" },
+        over: { id: "qs-1" },
+      });
+    });
+
+    await waitFor(() => {
+      expect(reorderQuoteSections).toHaveBeenCalledWith("q-1", ["qs-2", "qs-1"]);
+    });
+  });
+
+  it("auto-saves a line item on blur", async () => {
+    const { updateQuoteLineItem } = await import(
+      "@/features/quotes/server/actions/update-quote-line-item"
+    );
+    const { QuoteStructureEditor } = await import(
+      "@/features/quotes/components/quote-structure-editor"
+    );
+
+    vi.mocked(updateQuoteLineItem).mockResolvedValue({
+      ok: true,
+      data: {
+        quote: {
+          sections: [
+            {
+              ...VALID_SECTIONS[0],
+              lineItems: [
+                {
+                  ...VALID_SECTIONS[0].lineItems[0],
+                  unitPriceCents: 75000,
+                  lineTotalCents: 75000,
+                },
+              ],
+            },
+          ],
+        },
+      },
+    } as Awaited<ReturnType<typeof updateQuoteLineItem>>);
+
+    render(
+        <QuoteStructureEditor
+          quoteId="q-1"
+          initialSections={VALID_SECTIONS}
+          sourcePackageNames={{}}
+          clientId="client-1"
+          backTo="/quotes"
+        />,
+    );
+
+    const priceInput = screen.getByLabelText("Unit price in dollars");
+    fireEvent.change(priceInput, { target: { value: "750" } });
+    fireEvent.blur(priceInput);
+
+    await waitFor(() => {
+      expect(updateQuoteLineItem).toHaveBeenCalledWith(
+        "q-1",
+        "qs-1",
+        "li-1",
+        "Logo Design",
+        "3 concepts",
+        1,
+        "item",
+        75000,
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent("Line item saved.");
+    });
+  });
+
+  it("updates the readiness indicator as quote fields change", async () => {
+    const { QuoteStructureEditor } = await import(
+      "@/features/quotes/components/quote-structure-editor"
+    );
+
+    render(
+        <QuoteStructureEditor
+          quoteId="q-1"
+          initialSections={VALID_SECTIONS}
+          sourcePackageNames={{}}
+          clientId="client-1"
+          backTo="/quotes"
+        />,
+    );
+
+    const nameInput = screen.getByLabelText("Line item name");
+    fireEvent.change(nameInput, { target: { value: "" } });
+
+    expect(screen.getByText("1 item need attention")).toBeInTheDocument();
+
+    fireEvent.change(nameInput, { target: { value: "Logo Design" } });
+
+    expect(screen.getByText("Ready for preview")).toBeInTheDocument();
+  });
+
+  it("opens the preview route when the quote is ready", async () => {
+    const { QuoteStructureEditor } = await import(
+      "@/features/quotes/components/quote-structure-editor"
+    );
+
+    render(
+        <QuoteStructureEditor
+          quoteId="q-1"
+          initialSections={VALID_SECTIONS}
+          sourcePackageNames={{}}
+          clientId="client-1"
+          backTo="/quotes"
+        />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /^preview$/i }));
+
+    await waitFor(() => {
+      expect(routerPush).toHaveBeenCalledWith(
+        "/quotes/q-1/preview?backTo=%2Fquotes",
+      );
+    });
+  });
+
+  it("auto-saves before opening preview when local edits exist", async () => {
+    const { updateQuoteSections } = await import(
+      "@/features/quotes/server/actions/update-quote-sections"
+    );
+    const { QuoteStructureEditor } = await import(
+      "@/features/quotes/components/quote-structure-editor"
+    );
+
+    vi.mocked(updateQuoteSections).mockResolvedValue({
+      ok: true,
+      data: {
+        quote: {
+          sections: [
+            {
+              ...VALID_SECTIONS[0],
+              lineItems: [
+                {
+                  ...VALID_SECTIONS[0].lineItems[0],
+                  name: "Strategy Intensive",
+                },
+              ],
+            },
+          ],
+        },
+      },
+    } as Awaited<ReturnType<typeof updateQuoteSections>>);
+
+    render(
+      <QuoteStructureEditor
+        quoteId="q-1"
+        initialSections={VALID_SECTIONS}
+        sourcePackageNames={{}}
+        clientId="client-1"
+        backTo="/quotes"
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Line item name"), {
+      target: { value: "Strategy Intensive" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^preview$/i }));
+
+    await waitFor(() => {
+      expect(updateQuoteSections).toHaveBeenCalledTimes(1);
+      expect(routerPush).toHaveBeenCalledWith(
+        "/quotes/q-1/preview?backTo=%2Fquotes",
+      );
+    });
+  });
+
+  it("disables the Preview button when readiness issues exist", async () => {
+    const { QuoteStructureEditor } = await import(
+      "@/features/quotes/components/quote-structure-editor"
+    );
+
+    render(
+        <QuoteStructureEditor
+          quoteId="q-1"
+          initialSections={VALID_SECTIONS}
+          sourcePackageNames={{}}
+          clientId=""
+          backTo="/quotes"
+        />,
+    );
+
+    expect(screen.getByRole("button", { name: /^preview$/i })).toBeDisabled();
   });
 });

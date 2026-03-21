@@ -103,3 +103,42 @@ export const removeQuoteLineItemSchema = z.object({
 export type RemoveQuoteLineItemSchemaInput = z.infer<
   typeof removeQuoteLineItemSchema
 >;
+
+const uuidSchema = z.string().uuid("ID must be a valid UUID.");
+
+const uuidArraySchema = z
+  .array(uuidSchema)
+  .min(1, "At least one item is required.");
+
+function hasDuplicates(ids: string[]): boolean {
+  return new Set(ids).size !== ids.length;
+}
+
+export const reorderQuoteSectionsSchema = z
+  .object({
+    quoteId: uuidSchema,
+    sectionIds: uuidArraySchema,
+  })
+  .refine((data) => !hasDuplicates(data.sectionIds), {
+    message: "Duplicate section IDs are not allowed.",
+    path: ["sectionIds"],
+  });
+
+export type ReorderQuoteSectionsSchemaInput = z.infer<
+  typeof reorderQuoteSectionsSchema
+>;
+
+export const reorderQuoteLineItemsSchema = z
+  .object({
+    quoteId: uuidSchema,
+    sectionId: uuidSchema,
+    lineItemIds: uuidArraySchema,
+  })
+  .refine((data) => !hasDuplicates(data.lineItemIds), {
+    message: "Duplicate line item IDs are not allowed.",
+    path: ["lineItemIds"],
+  });
+
+export type ReorderQuoteLineItemsSchemaInput = z.infer<
+  typeof reorderQuoteLineItemsSchema
+>;

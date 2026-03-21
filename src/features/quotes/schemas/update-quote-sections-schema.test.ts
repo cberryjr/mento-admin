@@ -9,6 +9,8 @@ import {
   removeQuoteSectionSchema,
   addQuoteLineItemSchema,
   removeQuoteLineItemSchema,
+  reorderQuoteSectionsSchema,
+  reorderQuoteLineItemsSchema,
 } from "@/features/quotes/schemas/update-quote-sections-schema";
 
 describe("updateQuoteLineItemSchema", () => {
@@ -173,5 +175,88 @@ describe("add/remove schemas", () => {
       lineItemId: "li-1",
     });
     expect(result.success).toBe(true);
+  });
+});
+
+describe("reorder schemas", () => {
+  const quoteId = "11111111-1111-4111-8111-111111111111";
+  const sectionId = "22222222-2222-4222-8222-222222222222";
+
+  it("reorderQuoteSectionsSchema accepts valid input", () => {
+    const result = reorderQuoteSectionsSchema.safeParse({
+      quoteId,
+      sectionIds: [
+        sectionId,
+        "33333333-3333-4333-8333-333333333333",
+        "44444444-4444-4444-8444-444444444444",
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("reorderQuoteSectionsSchema rejects empty array", () => {
+    const result = reorderQuoteSectionsSchema.safeParse({
+      quoteId,
+      sectionIds: [],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("reorderQuoteSectionsSchema rejects duplicate IDs", () => {
+    const result = reorderQuoteSectionsSchema.safeParse({
+      quoteId,
+      sectionIds: [sectionId, sectionId],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("reorderQuoteSectionsSchema rejects non-UUID values", () => {
+    const result = reorderQuoteSectionsSchema.safeParse({
+      quoteId,
+      sectionIds: ["not-a-uuid"],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("reorderQuoteLineItemsSchema accepts valid input", () => {
+    const result = reorderQuoteLineItemsSchema.safeParse({
+      quoteId,
+      sectionId,
+      lineItemIds: [
+        "55555555-5555-4555-8555-555555555555",
+        "66666666-6666-4666-8666-666666666666",
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("reorderQuoteLineItemsSchema rejects empty array", () => {
+    const result = reorderQuoteLineItemsSchema.safeParse({
+      quoteId,
+      sectionId,
+      lineItemIds: [],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("reorderQuoteLineItemsSchema rejects duplicate IDs", () => {
+    const result = reorderQuoteLineItemsSchema.safeParse({
+      quoteId,
+      sectionId,
+      lineItemIds: [
+        "55555555-5555-4555-8555-555555555555",
+        "55555555-5555-4555-8555-555555555555",
+      ],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("reorderQuoteLineItemsSchema rejects non-UUID values", () => {
+    const result = reorderQuoteLineItemsSchema.safeParse({
+      quoteId,
+      sectionId,
+      lineItemIds: ["not-a-uuid"],
+    });
+    expect(result.success).toBe(false);
   });
 });

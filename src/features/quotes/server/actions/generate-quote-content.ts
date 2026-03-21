@@ -19,11 +19,14 @@ import type {
   QuoteLineItemRecord,
   QuoteSectionRecord,
 } from "@/features/quotes/types";
+import { env } from "@/lib/env";
 import { AppError } from "@/lib/errors/app-error";
 import { ERROR_CODES } from "@/lib/errors/error-codes";
 import type { ActionResult } from "@/lib/validation/action-result";
 import { ensureStudioAccess } from "@/server/auth/permissions";
-import { getServicePackageById } from "@/features/service-packages/server/queries/get-service-package-by-id";
+import {
+  getServicePackageById as getServicePackageByIdFromRepository,
+} from "@/features/service-packages/server/service-packages-repository";
 import type { ServicePackageDetailRecord } from "@/features/service-packages/types";
 
 function revalidateQuotePaths(quoteId: string) {
@@ -131,9 +134,9 @@ export async function generateQuoteContent(
     const servicePackages: ServicePackageDetailRecord[] = [];
 
     for (const spId of quote.selectedServicePackageIds) {
-      const spResult = await getServicePackageById(spId);
+      const servicePackage = await getServicePackageByIdFromRepository(spId);
 
-      if (!spResult.ok) {
+      if (!servicePackage || !Array.isArray(servicePackage.sections)) {
         return {
           ok: false,
           error: {
@@ -143,17 +146,17 @@ export async function generateQuoteContent(
         };
       }
 
-      if (spResult.data.servicePackage.studioId !== session.user.studioId) {
+      if (servicePackage.studioId !== session.user.studioId) {
         return {
           ok: false,
           error: {
-            code: ERROR_CODES.FORBIDDEN,
-            message: "One or more selected service packages are not accessible.",
+            code: ERROR_CODES.VALIDATION_ERROR,
+            message: `Service package ${spId} not found or no longer available.`,
           },
         };
       }
 
-      servicePackages.push(spResult.data.servicePackage);
+      servicePackages.push(servicePackage);
     }
 
     const sections = buildQuoteSectionsFromPackages(
@@ -202,7 +205,10 @@ export async function generateQuoteContent(
       ok: false,
       error: {
         code: ERROR_CODES.UNKNOWN,
-        message: "Could not generate quote content.",
+        message:
+          env.NODE_ENV === "development" && error instanceof Error
+            ? `Could not generate quote content. ${error.message}`
+            : "Could not generate quote content.",
       },
     };
   }

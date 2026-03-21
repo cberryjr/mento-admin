@@ -4,6 +4,7 @@ import { createDefaultComplexityTiers } from "@/features/service-packages/types"
 import {
   __resetServicePackagesStore,
   createServicePackageRecord,
+  getServicePackageForStudioById,
   getServicePackageById,
   listServicePackagesForStudio,
   updateServicePackageRecord,
@@ -96,6 +97,15 @@ describe("servicePackagesRepository", () => {
       quantity: 2,
       unitPriceCents: 125000,
     });
+  });
+
+  it("returns null when studio-scoped lookup targets another studio", async () => {
+    const servicePackage = await getServicePackageForStudioById(
+      "default-studio",
+      "package-other-studio",
+    );
+
+    expect(servicePackage).toBeNull();
   });
 
   it("updates a structured package without corrupting sibling content or createdAt", async () => {

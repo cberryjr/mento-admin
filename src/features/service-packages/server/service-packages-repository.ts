@@ -471,6 +471,25 @@ export async function getServicePackageById(
   }
 }
 
+export async function getServicePackageForStudioById(
+  studioId: string,
+  servicePackageId: string,
+): Promise<ServicePackageDetailRecord | null> {
+  const visibleServicePackages = await listServicePackagesForStudio(studioId);
+
+  if (!visibleServicePackages.some((servicePackage) => servicePackage.id === servicePackageId)) {
+    return null;
+  }
+
+  const servicePackage = await getServicePackageById(servicePackageId);
+
+  if (!servicePackage || servicePackage.studioId !== studioId) {
+    return null;
+  }
+
+  return servicePackage;
+}
+
 export async function createServicePackageRecord(
   studioId: string,
   input: ServicePackageInput,

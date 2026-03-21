@@ -1,17 +1,10 @@
 import type { QuoteSectionRecord } from "@/features/quotes/types";
 import { calculateQuoteTotalCents } from "@/features/quotes/types";
+import { formatCurrencyFromCents } from "@/lib/format/currency";
 
 type QuoteStructureViewProps = {
   sections: QuoteSectionRecord[];
 };
-
-function formatCents(cents: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-  }).format(cents / 100);
-}
 
 function calculateSectionTotal(section: QuoteSectionRecord): number {
   return section.lineItems.reduce((total, li) => total + li.lineTotalCents, 0);
@@ -59,7 +52,7 @@ export function QuoteStructureView({ sections }: QuoteStructureViewProps) {
                 ) : null}
               </div>
               <p className="text-sm font-semibold text-zinc-900">
-                {formatCents(sectionTotal)}
+                {formatCurrencyFromCents(sectionTotal)}
               </p>
             </div>
 
@@ -98,10 +91,10 @@ export function QuoteStructureView({ sections }: QuoteStructureViewProps) {
                           {lineItem.unitLabel || "—"}
                         </td>
                         <td className="py-2 pr-3 text-right text-zinc-700">
-                          {formatCents(lineItem.unitPriceCents)}
+                          {formatCurrencyFromCents(lineItem.unitPriceCents)}
                         </td>
                         <td className="py-2 text-right font-medium text-zinc-900">
-                          {formatCents(lineItem.lineTotalCents)}
+                          {formatCurrencyFromCents(lineItem.lineTotalCents)}
                         </td>
                       </tr>
                     ))}
@@ -116,7 +109,7 @@ export function QuoteStructureView({ sections }: QuoteStructureViewProps) {
       <div className="flex items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50 px-5 py-4">
         <p className="text-base font-semibold text-zinc-900">Grand total</p>
         <p className="text-lg font-bold text-zinc-900">
-          {formatCents(grandTotal)}
+          {formatCurrencyFromCents(grandTotal)}
         </p>
       </div>
     </div>

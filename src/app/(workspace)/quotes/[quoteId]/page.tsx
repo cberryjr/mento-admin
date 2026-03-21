@@ -6,44 +6,23 @@ import { getClientById } from "@/features/clients/server/queries/get-client-by-i
 import { GenerateQuoteButton } from "@/features/quotes/components/generate-quote-button";
 import { QuoteStructureView } from "@/features/quotes/components/quote-structure-view";
 import { QuoteStructureEditor } from "@/features/quotes/components/quote-structure-editor";
+import {
+  buildQuotePreviewHref,
+  sanitizeQuoteBackTo,
+} from "@/features/quotes/lib/navigation";
 import { getServicePackageById } from "@/features/service-packages/server/queries/get-service-package-by-id";
 
 type QuoteDetailPageProps = {
   params: Promise<{ quoteId: string }>;
-  searchParams: Promise<{ backTo?: string; saved?: string }>;
+  searchParams: Promise<{ backTo?: string; preview?: string; saved?: string }>;
 };
-
-const DEFAULT_BACK_TO = "/quotes";
-
-function sanitizeBackTo(backTo?: string) {
-  if (!backTo || !backTo.startsWith("/") || backTo.startsWith("//")) {
-    return DEFAULT_BACK_TO;
-  }
-
-  try {
-    const parsedBackTo = new URL(backTo, "https://mento-admin.local");
-
-    if (parsedBackTo.pathname !== DEFAULT_BACK_TO) {
-      return DEFAULT_BACK_TO;
-    }
-
-    const search = parsedBackTo.searchParams.get("search");
-    if (!search) {
-      return DEFAULT_BACK_TO;
-    }
-
-    return `${DEFAULT_BACK_TO}?search=${encodeURIComponent(search)}`;
-  } catch {
-    return DEFAULT_BACK_TO;
-  }
-}
 
 export default async function QuoteDetailPage({
   params,
   searchParams,
 }: QuoteDetailPageProps) {
   const { quoteId } = await params;
-  const { backTo, saved } = await searchParams;
+  const { backTo, preview, saved } = await searchParams;
   const result = await getQuoteById(quoteId);
 
   if (!result.ok) {
@@ -51,7 +30,7 @@ export default async function QuoteDetailPage({
   }
 
   const { quote } = result.data;
-  const safeBackTo = sanitizeBackTo(backTo);
+  const safeBackTo = sanitizeQuoteBackTo(backTo);
 
   const clientResult = await getClientById(quote.clientId);
   const clientName = clientResult.ok
@@ -88,12 +67,22 @@ export default async function QuoteDetailPage({
             service packages.
           </p>
         </div>
-        <Link
-          href={safeBackTo}
-          className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
-        >
-          Back to quotes
-        </Link>
+        <div className="flex items-center gap-2">
+          {hasGeneratedContent && quote.status === "draft" ? (
+            <Link
+              href={buildQuotePreviewHref(quote.id, safeBackTo)}
+              className="rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+            >
+              Preview quote
+            </Link>
+          ) : null}
+          <Link
+            href={safeBackTo}
+            className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+          >
+            Back to quotes
+          </Link>
+        </div>
       </div>
 
       {saved === "created" ? (
@@ -105,6 +94,30 @@ export default async function QuoteDetailPage({
           <p className="mt-1">
             Your quote draft is saved. Generate quote content from the selected
             service packages to continue.
+          </p>
+        </section>
+      ) : null}
+
+      {preview === "unavailable" ? (
+        <section
+          role="status"
+          className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+        >
+          <p className="font-semibold">Quote preview unavailable</p>
+          <p className="mt-1">
+            Generate quote content from the selected service packages before opening the preview.
+          </p>
+        </section>
+      ) : null}
+
+      {preview === "blocked" ? (
+        <section
+          role="alert"
+          className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+        >
+          <p className="font-semibold">Quote preview blocked</p>
+          <p className="mt-1">
+            Resolve the preview readiness issues before opening the client-facing preview.
           </p>
         </section>
       ) : null}
@@ -133,7 +146,7 @@ export default async function QuoteDetailPage({
           <p className="text-sm text-zinc-900">{quote.title}</p>
         </div>
 
-        <div className="space-y-1">
+        <div id="quote-client-summary" tabIndex={-1} className="space-y-1">
           <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
             Client
           </p>
@@ -159,14 +172,23 @@ export default async function QuoteDetailPage({
         ) : (
           <ul className="list-inside list-disc space-y-1 text-sm text-zinc-700">
             {quote.selectedServicePackageIds.map((spId) => (
-              <li key={spId}>{spId}</li>
+              <li key={spId}>
+                {sourcePackageNames[spId]
+                  ? sourcePackageNames[spId]
+                  : "Selected package currently unavailable"}
+              </li>
             ))}
           </ul>
         )}
       </div>
 
       {quote.status === "draft" && !hasGeneratedContent ? (
-        <GenerateQuoteButton quoteId={quote.id} />
+        <div className="space-y-3">
+          <p className="text-sm text-zinc-600">
+            Generate quote content to unlock the editor and preview controls.
+          </p>
+          <GenerateQuoteButton quoteId={quote.id} />
+        </div>
       ) : null}
 
       {hasGeneratedContent && quote.status === "draft" ? (
@@ -174,6 +196,8 @@ export default async function QuoteDetailPage({
           quoteId={quote.id}
           initialSections={quote.sections}
           sourcePackageNames={sourcePackageNames}
+          clientId={quote.clientId}
+          backTo={safeBackTo}
         />
       ) : hasGeneratedContent ? (
         <QuoteStructureView sections={quote.sections} />

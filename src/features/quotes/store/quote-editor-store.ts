@@ -15,6 +15,8 @@ type QuoteEditorState = {
   initialSections: QuoteSectionRecord[];
   sections: QuoteSectionRecord[];
   hasUnsavedChanges: boolean;
+  isReordering: boolean;
+  reorderError: string | null;
   initialize: (sections: QuoteSectionRecord[]) => void;
   replaceSections: (sections: QuoteSectionRecord[], markSaved?: boolean) => void;
   updateSectionTitle: (sectionId: string, title: string) => void;
@@ -25,9 +27,14 @@ type QuoteEditorState = {
     field: QuoteLineItemField,
     value: string | number,
   ) => void;
+  reorderSections: (sectionIds: string[]) => void;
+  reorderLineItems: (sectionId: string, lineItemIds: string[]) => void;
   revertSection: (sectionId: string) => void;
   revertLineItem: (sectionId: string, lineItemId: string) => void;
   markSaved: (sections: QuoteSectionRecord[]) => void;
+  startReordering: () => void;
+  finishReordering: () => void;
+  setReorderError: (message: string | null) => void;
 };
 
 function cloneSections(sections: QuoteSectionRecord[]) {
@@ -59,6 +66,8 @@ export const useQuoteEditorStore = create<QuoteEditorState>((set, get) => ({
   initialSections: [],
   sections: [],
   hasUnsavedChanges: false,
+  isReordering: false,
+  reorderError: null,
   initialize: (sections) => {
     const nextSections = normalizeSections(sections);
 
@@ -66,6 +75,8 @@ export const useQuoteEditorStore = create<QuoteEditorState>((set, get) => ({
       initialSections: nextSections,
       sections: nextSections,
       hasUnsavedChanges: false,
+      isReordering: false,
+      reorderError: null,
     });
   },
   replaceSections: (sections, markSaved = true) => {
@@ -78,6 +89,7 @@ export const useQuoteEditorStore = create<QuoteEditorState>((set, get) => ({
       initialSections,
       sections: nextSections,
       hasUnsavedChanges: buildDirtyState(nextSections, initialSections),
+      reorderError: null,
     });
   },
   updateSectionTitle: (sectionId, title) => {
@@ -90,6 +102,7 @@ export const useQuoteEditorStore = create<QuoteEditorState>((set, get) => ({
     set((state) => ({
       sections: nextSections,
       hasUnsavedChanges: buildDirtyState(nextSections, state.initialSections),
+      reorderError: null,
     }));
   },
   updateSectionContent: (sectionId, content) => {
@@ -102,6 +115,7 @@ export const useQuoteEditorStore = create<QuoteEditorState>((set, get) => ({
     set((state) => ({
       sections: nextSections,
       hasUnsavedChanges: buildDirtyState(nextSections, state.initialSections),
+      reorderError: null,
     }));
   },
   updateLineItemField: (sectionId, lineItemId, field, value) => {
@@ -125,7 +139,56 @@ export const useQuoteEditorStore = create<QuoteEditorState>((set, get) => ({
     set((state) => ({
       sections: nextSections,
       hasUnsavedChanges: buildDirtyState(nextSections, state.initialSections),
+      reorderError: null,
     }));
+  },
+  reorderSections: (sectionIds) => {
+    const state = get();
+    const sectionMap = new Map(state.sections.map((s) => [s.id, s]));
+
+    const reordered = sectionIds
+      .map((id) => sectionMap.get(id))
+      .filter((s): s is QuoteSectionRecord => s !== undefined);
+
+    if (reordered.length !== state.sections.length) {
+      return;
+    }
+
+    const nextSections = normalizeSections(reordered);
+
+    set({
+      sections: nextSections,
+      hasUnsavedChanges: buildDirtyState(nextSections, state.initialSections),
+      reorderError: null,
+    });
+  },
+  reorderLineItems: (sectionId, lineItemIds) => {
+    const state = get();
+
+    const nextSections = normalizeSections(
+      state.sections.map((section) => {
+        if (section.id !== sectionId) {
+          return section;
+        }
+
+        const itemMap = new Map(section.lineItems.map((li) => [li.id, li]));
+        const reordered = lineItemIds
+          .map((id) => itemMap.get(id))
+          .filter((li): li is QuoteLineItemRecord => li !== undefined);
+
+        if (reordered.length !== section.lineItems.length) {
+          return section;
+        }
+
+        return { ...section, lineItems: reordered };
+      }),
+    );
+
+    set({
+      sections: nextSections,
+      hasUnsavedChanges: buildDirtyState(nextSections, state.initialSections),
+      reorderError: null,
+    });
   },
   revertSection: (sectionId) => {
     const state = get();
@@ -146,6 +209,7 @@ export const useQuoteEditorStore = create<QuoteEditorState>((set, get) => ({
     set({
       sections: nextSections,
       hasUnsavedChanges: buildDirtyState(nextSections, state.initialSections),
+      reorderError: null,
     });
   },
   revertLineItem: (sectionId, lineItemId) => {
@@ -179,6 +243,7 @@ export const useQuoteEditorStore = create<QuoteEditorState>((set, get) => ({
     set({
       sections: nextSections,
       hasUnsavedChanges: buildDirtyState(nextSections, state.initialSections),
+      reorderError: null,
     });
   },
   markSaved: (sections) => {
@@ -188,7 +253,18 @@ export const useQuoteEditorStore = create<QuoteEditorState>((set, get) => ({
       initialSections: nextSections,
       sections: nextSections,
       hasUnsavedChanges: false,
+      isReordering: false,
+      reorderError: null,
     });
+  },
+  startReordering: () => {
+    set({ isReordering: true, reorderError: null });
+  },
+  finishReordering: () => {
+    set({ isReordering: false });
+  },
+  setReorderError: (message) => {
+    set({ isReordering: false, reorderError: message });
   },
 }));
 
@@ -197,5 +273,7 @@ export function __resetQuoteEditorStore() {
     initialSections: [],
     sections: [],
     hasUnsavedChanges: false,
+    isReordering: false,
+    reorderError: null,
   });
 }

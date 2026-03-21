@@ -48,6 +48,12 @@ type QuoteStructureEditorProps = {
   backTo: string;
 };
 
+type SaveErrorState = {
+  title: string;
+  message: string;
+  recoveryMessage: string;
+};
+
 function areSectionsEqual(
   left: QuoteSectionRecord[],
   right: QuoteSectionRecord[],
@@ -264,7 +270,7 @@ export function QuoteStructureEditor({
   const setReorderError = useQuoteEditorStore((state) => state.setReorderError);
   const router = useRouter();
   const [isSaving, startSave] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<SaveErrorState | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -326,6 +332,29 @@ export function QuoteStructureEditor({
     setSuccessMessage(message);
   }
 
+  function buildSaveErrorState(message: string, code?: string): SaveErrorState {
+    if (code === "CONFLICT") {
+      return {
+        title: "Save failed",
+        message,
+        recoveryMessage:
+          "Your latest edits are still open in this browser. Reload the quote to pick up the other session's changes, or save again after reviewing them.",
+      };
+    }
+
+    return {
+      title: "Save failed",
+      message,
+      recoveryMessage:
+        "Your latest edits are still in this editor. Try Save draft again, or reload the quote if the problem continues.",
+    };
+  }
+
+  function showSaveError(message: string, code?: string) {
+    setSuccessMessage(null);
+    setError(buildSaveErrorState(message, code));
+  }
+
   function clearMessages() {
     setError(null);
     setSuccessMessage(null);
@@ -338,14 +367,15 @@ export function QuoteStructureEditor({
     }
 
     if (hasValidationErrors) {
-      setError("Fix the highlighted fields before saving this quote draft.");
+      setError(null);
+      setSuccessMessage(null);
       return false;
     }
 
     const result = await updateQuoteSections(saveInput);
 
     if (!result.ok) {
-      setError(result.error.message);
+      showSaveError(result.error.message, result.error.code);
       return false;
     }
 
@@ -380,7 +410,7 @@ export function QuoteStructureEditor({
 
   function handleSave() {
     if (hasValidationErrors) {
-      setError("Fix the highlighted fields before saving this quote draft.");
+      setError(null);
       setSuccessMessage(null);
       return;
     }
@@ -396,7 +426,7 @@ export function QuoteStructureEditor({
           "Quote draft saved successfully.",
         );
       } else {
-        setError(result.error.message);
+        showSaveError(result.error.message, result.error.code);
       }
     });
   }
@@ -416,7 +446,7 @@ export function QuoteStructureEditor({
       if (result.ok) {
         handlePersistedSections(result.data.quote.sections, "Section added.");
       } else {
-        setError(result.error.message);
+        showSaveError(result.error.message, result.error.code);
       }
     });
   }
@@ -436,7 +466,7 @@ export function QuoteStructureEditor({
       if (result.ok) {
         handlePersistedSections(result.data.quote.sections, "Section removed.");
       } else {
-        setError(result.error.message);
+        showSaveError(result.error.message, result.error.code);
       }
     });
   }
@@ -456,7 +486,7 @@ export function QuoteStructureEditor({
       if (result.ok) {
         handlePersistedSections(result.data.quote.sections, "Line item added.");
       } else {
-        setError(result.error.message);
+        showSaveError(result.error.message, result.error.code);
       }
     });
   }
@@ -476,7 +506,7 @@ export function QuoteStructureEditor({
       if (result.ok) {
         handlePersistedSections(result.data.quote.sections, "Line item removed.");
       } else {
-        setError(result.error.message);
+        showSaveError(result.error.message, result.error.code);
       }
     });
   }
@@ -505,7 +535,7 @@ export function QuoteStructureEditor({
       } else {
         reorderSectionsStore(previousIds);
         setReorderError(result.error.message);
-        setError(result.error.message);
+        showSaveError(result.error.message, result.error.code);
       }
     });
   }
@@ -582,7 +612,7 @@ export function QuoteStructureEditor({
       } else {
         reorderLineItemsStore(sectionId, previousItemIds);
         setReorderError(result.error.message);
-        setError(result.error.message);
+        showSaveError(result.error.message, result.error.code);
       }
     });
   }
@@ -689,7 +719,7 @@ export function QuoteStructureEditor({
       if (result.ok) {
         handlePersistedSections(result.data.quote.sections, "Line item saved.");
       } else {
-        setError(result.error.message);
+        showSaveError(result.error.message, result.error.code);
       }
     });
   }
@@ -770,8 +800,9 @@ export function QuoteStructureEditor({
           role="alert"
           className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900"
         >
-          <p className="font-semibold">Save failed</p>
-          <p className="mt-1">{error}</p>
+          <p className="font-semibold">{error.title}</p>
+          <p className="mt-1">{error.message}</p>
+          <p className="mt-1">{error.recoveryMessage}</p>
         </div>
       ) : null}
 

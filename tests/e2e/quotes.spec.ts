@@ -184,3 +184,44 @@ test("opens preview from the editor with the latest saved draft state and return
     "Strategy Intensive",
   );
 });
+
+test("saves a draft, navigates to the quotes list, and reopens it with preserved content", async ({ page }) => {
+  await signIn(page, "/quotes/new");
+  await expect(page).toHaveURL(/\/quotes\/new$/);
+
+  await page.getByRole("radio", { name: /Sunrise Yoga Studio/i }).check();
+  await page.getByRole("button", { name: "Continue to service packages" }).click();
+
+  const quoteTitle = `SaveReopen ${Date.now()}`;
+  await page.getByLabel("Quote title").fill(quoteTitle);
+  await page.getByRole("checkbox", { name: /Brand Launch Package/i }).check();
+  await page.getByRole("button", { name: "Create quote draft" }).click();
+  await page.getByRole("button", { name: "Generate quote content" }).click();
+
+  await expect(page.getByText(/Quote editor/)).toBeVisible({ timeout: 10000 });
+
+  const sectionTitleInput = page.getByLabel("Section title").first();
+  await sectionTitleInput.fill("Reopened Section Title");
+  await page.getByRole("button", { name: /save draft/i }).click();
+  await expect(page.getByText("Quote draft saved successfully.")).toBeVisible();
+
+  await page.getByLabel("Quantity").first().fill("2");
+  await page.getByRole("button", { name: /save draft/i }).click();
+  await expect(page.getByText("Quote draft saved successfully.")).toBeVisible();
+
+  await page.getByRole("link", { name: /back to quotes/i }).click();
+  await expect(page).toHaveURL(/\/quotes$/);
+
+  const quoteRow = page.getByRole("link", { name: new RegExp(quoteTitle) });
+  await expect(quoteRow).toBeVisible();
+  await expect(quoteRow.getByText(/^draft$/i)).toBeVisible();
+
+  await quoteRow.click();
+  await expect(page).toHaveURL(/\/quotes\/[^?]+/);
+  await expect(page.getByText(/Quote editor/)).toBeVisible({ timeout: 10000 });
+
+  await expect(page.getByLabel("Section title").first()).toHaveValue(
+    "Reopened Section Title",
+  );
+  await expect(page.getByLabel("Quantity").first()).toHaveValue("2");
+});

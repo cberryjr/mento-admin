@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { asc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 
 import { env } from "@/lib/env";
 import type {
@@ -124,7 +124,10 @@ function mapLineItemRowToRecord(row: QuoteLineItemRow): QuoteLineItemRecord {
 
 function sortQuotes(quotes: QuoteDetailRecord[]) {
   return [...quotes].sort((left, right) => {
-    return right.createdAt.localeCompare(left.createdAt);
+    return (
+      right.updatedAt.localeCompare(left.updatedAt) ||
+      right.createdAt.localeCompare(left.createdAt)
+    );
   });
 }
 
@@ -214,7 +217,7 @@ export async function listQuotesForStudio(
       .select()
       .from(quotesTable)
       .where(eq(quotesTable.studioId, studioId))
-      .orderBy(asc(quotesTable.createdAt));
+      .orderBy(desc(quotesTable.updatedAt), desc(quotesTable.createdAt));
 
     const quoteIds = rows.map((row) => row.id);
     let spRows: QuoteServicePackageRow[] = [];
@@ -235,8 +238,8 @@ export async function listQuotesForStudio(
       spByQuoteId.set(sp.quoteId, ids);
     }
 
-    return rows.map((row) =>
-      mapRowToRecord(row, spByQuoteId.get(row.id) ?? [], []),
+    return sortQuotes(
+      rows.map((row) => mapRowToRecord(row, spByQuoteId.get(row.id) ?? [], [])),
     );
   } catch {
     return sortQuotes(readQuotesFromStore(studioId));

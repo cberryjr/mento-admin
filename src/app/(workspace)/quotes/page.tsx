@@ -2,6 +2,24 @@ import Link from "next/link";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { InlineAlert } from "@/components/feedback/inline-alert";
 import { listQuotes } from "@/features/quotes/server/queries/list-quotes";
+import type { QuoteStatus } from "@/features/quotes/types";
+import { formatDate } from "@/lib/format/dates";
+
+function StatusBadge({ status }: { status: QuoteStatus }) {
+  const styles: Record<QuoteStatus, string> = {
+    draft: "bg-blue-100 text-blue-800",
+    accepted: "bg-green-100 text-green-800",
+    invoiced: "bg-purple-100 text-purple-800",
+  };
+
+  return (
+    <span
+      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${styles[status]}`}
+    >
+      {status}
+    </span>
+  );
+}
 
 export default async function QuotesPage() {
   const result = await listQuotes();
@@ -53,15 +71,19 @@ export default async function QuotesPage() {
               href={`/quotes/${quote.id}`}
               className="flex items-center justify-between gap-3 px-4 py-4 hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
             >
-              <span>
+              <span className="min-w-0 flex-1">
                 <span className="block text-sm font-semibold text-zinc-900">
                   {quote.title}
                 </span>
-                <span className="block text-xs text-zinc-500">
-                  {quote.quoteNumber} · {quote.status}
+                <span className="mt-0.5 flex items-center gap-2 text-xs text-zinc-500">
+                  <span>{quote.quoteNumber}</span>
+                  <StatusBadge status={quote.status} />
                 </span>
               </span>
-              <span className="text-xs text-zinc-500">Open</span>
+              <span className="flex flex-col items-end gap-1 text-xs text-zinc-500">
+                <span>{formatDate(quote.updatedAt)}</span>
+                <span className="text-zinc-400">Open</span>
+              </span>
             </Link>
           </li>
         ))}

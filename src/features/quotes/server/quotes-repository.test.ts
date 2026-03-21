@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   __resetQuotesStore,
@@ -18,6 +18,10 @@ import type { QuoteSectionRecord } from "@/features/quotes/types";
 beforeEach(() => {
   __resetQuotesStore();
   resetRepositoryStore();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("quotes-repository (fallback store path)", () => {
@@ -53,6 +57,33 @@ describe("quotes-repository (fallback store path)", () => {
     const quotes = await listQuotesForStudio(studioId);
     expect(quotes).toHaveLength(1);
     expect(quotes[0].title).toBe("Test Quote");
+  });
+
+  it("listQuotesForStudio returns most recently updated quotes first", async () => {
+    vi.useFakeTimers();
+
+    vi.setSystemTime(new Date("2026-03-21T09:00:00.000Z"));
+    const olderQuote = await createQuoteRecord(studioId, baseInput);
+
+    vi.setSystemTime(new Date("2026-03-21T09:01:00.000Z"));
+    const newerQuote = await createQuoteRecord(studioId, {
+      ...baseInput,
+      title: "Newer Quote",
+    });
+
+    vi.setSystemTime(new Date("2026-03-21T09:02:00.000Z"));
+    await updateQuoteRecord(studioId, olderQuote.id, {
+      ...baseInput,
+      title: "Refined Older Quote",
+    });
+
+    const quotes = await listQuotesForStudio(studioId);
+
+    expect(quotes.map((quote) => quote.id)).toEqual([
+      olderQuote.id,
+      newerQuote.id,
+    ]);
+    expect(quotes[0].updatedAt).toBe("2026-03-21T09:02:00.000Z");
   });
 
   it("getQuoteById returns a quote by id", async () => {

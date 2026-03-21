@@ -505,4 +505,107 @@ describe("QuoteStructureEditor", () => {
 
     expect(screen.getByRole("button", { name: /^preview$/i })).toBeDisabled();
   });
+
+  it("shows success feedback after explicit save", async () => {
+    const { updateQuoteSections } = await import(
+      "@/features/quotes/server/actions/update-quote-sections"
+    );
+    const { QuoteStructureEditor } = await import(
+      "@/features/quotes/components/quote-structure-editor"
+    );
+
+    vi.mocked(updateQuoteSections).mockResolvedValue({
+      ok: true,
+      data: { quote: { sections: VALID_SECTIONS } },
+    } as Awaited<ReturnType<typeof updateQuoteSections>>);
+
+    render(
+      <QuoteStructureEditor
+        quoteId="q-1"
+        initialSections={VALID_SECTIONS}
+        sourcePackageNames={{}}
+        clientId="client-1"
+        backTo="/quotes"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /save draft/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Quote draft saved successfully.",
+      );
+    });
+  });
+
+  it("shows error feedback on save failure", async () => {
+    const { updateQuoteSections } = await import(
+      "@/features/quotes/server/actions/update-quote-sections"
+    );
+    const { QuoteStructureEditor } = await import(
+      "@/features/quotes/components/quote-structure-editor"
+    );
+
+    vi.mocked(updateQuoteSections).mockResolvedValue({
+      ok: false,
+      error: { code: "CONFLICT", message: "Quote was modified by another session." },
+    } as Awaited<ReturnType<typeof updateQuoteSections>>);
+
+    render(
+      <QuoteStructureEditor
+        quoteId="q-1"
+        initialSections={VALID_SECTIONS}
+        sourcePackageNames={{}}
+        clientId="client-1"
+        backTo="/quotes"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /save draft/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Quote was modified by another session.",
+      );
+    });
+
+    expect(screen.getByText("Save failed")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Reload the quote to pick up the other session's changes, or save again after reviewing them\./,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the Save draft button enabled after a failed save for retry", async () => {
+    const { updateQuoteSections } = await import(
+      "@/features/quotes/server/actions/update-quote-sections"
+    );
+    const { QuoteStructureEditor } = await import(
+      "@/features/quotes/components/quote-structure-editor"
+    );
+
+    vi.mocked(updateQuoteSections).mockResolvedValue({
+      ok: false,
+      error: { code: "UNKNOWN", message: "Network error." },
+    } as Awaited<ReturnType<typeof updateQuoteSections>>);
+
+    render(
+      <QuoteStructureEditor
+        quoteId="q-1"
+        initialSections={VALID_SECTIONS}
+        sourcePackageNames={{}}
+        clientId="client-1"
+        backTo="/quotes"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /save draft/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole("button", { name: /save draft/i })).toBeEnabled();
+  });
 });

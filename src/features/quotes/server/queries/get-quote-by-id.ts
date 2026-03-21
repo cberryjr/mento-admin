@@ -3,6 +3,7 @@ import { requireSession } from "@/features/auth/require-session";
 import {
   getQuoteById as getQuoteRecordById,
 } from "@/features/quotes/server/quotes-repository";
+import { syncQuoteEstimateBreakdownSnapshot } from "@/features/quotes/server/estimate-breakdown-snapshot";
 import type { QuoteDetailRecord } from "@/features/quotes/types";
 import { AppError } from "@/lib/errors/app-error";
 import { ERROR_CODES } from "@/lib/errors/error-codes";
@@ -39,10 +40,15 @@ export async function getQuoteById(
       };
     }
 
+    const estimateBreakdown = await syncQuoteEstimateBreakdownSnapshot(quote);
+
     return {
       ok: true,
       data: {
-        quote,
+        quote: {
+          ...quote,
+          estimateBreakdown,
+        },
       },
     };
   } catch (error) {

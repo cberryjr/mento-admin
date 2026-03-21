@@ -88,6 +88,7 @@ function toStoredQuote(
     createdAt: options?.existing?.createdAt ?? now,
     updatedAt: now,
     sections: options?.existing?.sections ?? [],
+    estimateBreakdown: options?.existing?.estimateBreakdown ?? null,
   };
 }
 
@@ -166,6 +167,16 @@ export function setQuoteGeneratedAtInStore(
   if (quote) {
     quote.generatedAt = generatedAt;
     quote.updatedAt = new Date().toISOString();
+  }
+}
+
+export function setQuoteEstimateBreakdownInStore(
+  quoteId: string,
+  estimateBreakdown: QuoteDetailRecord["estimateBreakdown"],
+): void {
+  const quote = getQuotesStore().get(quoteId);
+  if (quote) {
+    quote.estimateBreakdown = cloneQuote(estimateBreakdown ?? null);
   }
 }
 

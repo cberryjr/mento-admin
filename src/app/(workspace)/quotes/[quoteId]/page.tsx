@@ -6,6 +6,7 @@ import { getClientById } from "@/features/clients/server/queries/get-client-by-i
 import { GenerateQuoteButton } from "@/features/quotes/components/generate-quote-button";
 import { QuoteStructureView } from "@/features/quotes/components/quote-structure-view";
 import { QuoteStructureEditor } from "@/features/quotes/components/quote-structure-editor";
+import { EstimateBreakdownPanel } from "@/features/quotes/components/estimate-breakdown-panel";
 import {
   buildQuotePreviewHref,
   sanitizeQuoteBackTo,
@@ -54,6 +55,8 @@ export default async function QuoteDetailPage({
       (entry): entry is readonly [string, string] => entry !== null,
     ),
   );
+
+  const breakdown = hasGeneratedContent ? quote.estimateBreakdown ?? null : null;
 
   return (
     <section className="space-y-6 rounded-xl border border-zinc-200 bg-white p-6">
@@ -195,12 +198,17 @@ export default async function QuoteDetailPage({
         <QuoteStructureEditor
           quoteId={quote.id}
           initialSections={quote.sections}
+          initialEstimateBreakdown={quote.estimateBreakdown ?? null}
           sourcePackageNames={sourcePackageNames}
           clientId={quote.clientId}
           backTo={safeBackTo}
         />
       ) : hasGeneratedContent ? (
         <QuoteStructureView sections={quote.sections} />
+      ) : null}
+
+      {breakdown ? (
+        <EstimateBreakdownPanel breakdown={breakdown} />
       ) : null}
     </section>
   );

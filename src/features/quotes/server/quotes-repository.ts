@@ -2,8 +2,10 @@ import { randomUUID } from "node:crypto";
 
 import { asc, desc, eq } from "drizzle-orm";
 
+import { estimateBreakdownPayloadSchema } from "@/features/quotes/schemas/estimate-breakdown-schema";
 import { env } from "@/lib/env";
 import type {
+  EstimateBreakdownPayload,
   QuoteDetailRecord,
   QuoteInput,
   QuoteLineItemRecord,
@@ -16,6 +18,7 @@ import {
   deleteQuoteSectionsFromStore,
   readQuoteByIdFromStore,
   readQuotesFromStore,
+  setQuoteEstimateBreakdownInStore,
   setQuoteGeneratedAtInStore,
   updateQuoteInStore,
   writeQuoteSectionsToStore,
@@ -29,6 +32,7 @@ type QuoteRow = {
   title: string;
   status: string;
   terms: string;
+  estimateBreakdownSnapshot: string | null;
   generatedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -74,6 +78,10 @@ function mapRowToRecord(
   servicePackageIds: string[],
   sections: QuoteSectionRecord[],
 ): QuoteDetailRecord {
+  const estimateBreakdown = deserializeEstimateBreakdownSnapshot(
+    row.estimateBreakdownSnapshot,
+  );
+
   return {
     id: row.id,
     studioId: row.studioId,
@@ -87,6 +95,7 @@ function mapRowToRecord(
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     sections,
+    estimateBreakdown,
   };
 }
 
@@ -129,6 +138,28 @@ function sortQuotes(quotes: QuoteDetailRecord[]) {
       right.createdAt.localeCompare(left.createdAt)
     );
   });
+}
+
+function deserializeEstimateBreakdownSnapshot(
+  value: string | null | undefined,
+): EstimateBreakdownPayload | null {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+    const result = estimateBreakdownPayloadSchema.safeParse(parsed);
+    return result.success ? result.data : null;
+  } catch {
+    return null;
+  }
+}
+
+function serializeEstimateBreakdownSnapshot(
+  value: EstimateBreakdownPayload | null | undefined,
+): string | null {
+  return value ? JSON.stringify(value) : null;
 }
 
 function generateQuoteNumber(): string {
@@ -305,6 +336,7 @@ export async function createQuoteRecord(
         title: input.title,
         status: "draft",
         terms: input.terms ?? "",
+        estimateBreakdownSnapshot: null,
       });
 
       if (input.selectedServicePackageIds.length > 0) {
@@ -351,6 +383,7 @@ export async function updateQuoteRecord(
           clientId: input.clientId,
           title: input.title,
           terms: input.terms ?? "",
+          estimateBreakdownSnapshot: null,
           updatedAt: new Date(),
         })
         .where(
@@ -414,6 +447,34 @@ export async function setQuoteGeneratedAt(
       .where(eq(schema.quotes.id, quoteId));
   } catch {
     setQuoteGeneratedAtInStore(quoteId, generatedAt.toISOString());
+  }
+}
+
+export async function setQuoteEstimateBreakdownSnapshot(
+  quoteId: string,
+  estimateBreakdown: EstimateBreakdownPayload | null,
+): Promise<void> {
+  if (!env.DATABASE_URL) {
+    setQuoteEstimateBreakdownInStore(quoteId, estimateBreakdown);
+    return;
+  }
+
+  try {
+    const [{ db }, schema] = await Promise.all([
+      import("@/server/db"),
+      import("@/server/db/schema/quotes"),
+    ]);
+
+    await db
+      .update(schema.quotes)
+      .set({
+        estimateBreakdownSnapshot: serializeEstimateBreakdownSnapshot(
+          estimateBreakdown,
+        ),
+      })
+      .where(eq(schema.quotes.id, quoteId));
+  } catch {
+    setQuoteEstimateBreakdownInStore(quoteId, estimateBreakdown);
   }
 }
 

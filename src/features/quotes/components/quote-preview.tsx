@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import type { QuotePreviewPayload } from "@/features/quotes/types";
 import { formatCurrencyFromCents } from "@/lib/format/currency";
+import { EstimateBreakdownPanel } from "@/features/quotes/components/estimate-breakdown-panel";
 
 type QuotePreviewProps = {
   payload: QuotePreviewPayload;
@@ -28,6 +29,7 @@ export function QuotePreview({ payload, editorHref }: QuotePreviewProps) {
     terms,
     preparedAt,
     studioName,
+    estimateBreakdown,
   } = payload;
 
   return (
@@ -163,6 +165,12 @@ export function QuotePreview({ payload, editorHref }: QuotePreviewProps) {
               {formatCurrencyFromCents(grandTotalCents)}
             </p>
           </section>
+
+          {estimateBreakdown ? (
+            <section aria-label="Estimate breakdown" className="border-t border-zinc-200 pt-6">
+              <EstimateBreakdownPanel breakdown={estimateBreakdown} isPreview />
+            </section>
+          ) : null}
 
           {terms ? (
             <section

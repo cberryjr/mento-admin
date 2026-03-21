@@ -3,6 +3,7 @@ import { requireSession } from "@/features/auth/require-session";
 import { getQuoteById as getQuoteRecordById } from "@/features/quotes/server/quotes-repository";
 import type { QuotePreviewPayload } from "@/features/quotes/types";
 import { calculateQuoteTotalCents } from "@/features/quotes/types";
+import { syncQuoteEstimateBreakdownSnapshot } from "@/features/quotes/server/estimate-breakdown-snapshot";
 import { AppError } from "@/lib/errors/app-error";
 import { ERROR_CODES } from "@/lib/errors/error-codes";
 import { ensureStudioAccess } from "@/server/auth/permissions";
@@ -73,6 +74,8 @@ export async function getQuotePreview(
         ? (defaultsResult.data.studioDefaults?.defaultQuoteTerms ?? "")
         : "");
 
+    const estimateBreakdown = await syncQuoteEstimateBreakdownSnapshot(quote);
+
     return {
       ok: true,
       data: {
@@ -88,6 +91,7 @@ export async function getQuotePreview(
         terms,
         preparedAt: new Date().toISOString(),
         studioName,
+        estimateBreakdown,
       },
     };
   } catch (error) {

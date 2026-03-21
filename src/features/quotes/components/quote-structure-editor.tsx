@@ -35,14 +35,19 @@ import {
   getUpdateQuoteSectionsFieldErrors,
   updateQuoteSectionsSchema,
 } from "@/features/quotes/schemas/update-quote-sections-schema";
+import { EstimateBreakdownPanel } from "@/features/quotes/components/estimate-breakdown-panel";
 import { useQuoteEditorStore } from "@/features/quotes/store/quote-editor-store";
-import type { QuoteSectionRecord } from "@/features/quotes/types";
+import type {
+  EstimateBreakdownPayload,
+  QuoteSectionRecord,
+} from "@/features/quotes/types";
 import { calculateQuoteTotalCents } from "@/features/quotes/types";
 import { formatCurrencyFromCents } from "@/lib/format/currency";
 
 type QuoteStructureEditorProps = {
   quoteId: string;
   initialSections: QuoteSectionRecord[];
+  initialEstimateBreakdown?: EstimateBreakdownPayload | null;
   sourcePackageNames: Record<string, string>;
   clientId: string;
   backTo: string;
@@ -235,6 +240,7 @@ function SortableSectionWrapper({
 export function QuoteStructureEditor({
   quoteId,
   initialSections,
+  initialEstimateBreakdown = null,
   sourcePackageNames,
   clientId,
   backTo,
@@ -272,6 +278,9 @@ export function QuoteStructureEditor({
   const [isSaving, startSave] = useTransition();
   const [error, setError] = useState<SaveErrorState | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [estimateBreakdown, setEstimateBreakdown] = useState(
+    initialEstimateBreakdown,
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -283,6 +292,10 @@ export function QuoteStructureEditor({
   useEffect(() => {
     initialize(initialSections);
   }, [initialSections, initialize]);
+
+  useEffect(() => {
+    setEstimateBreakdown(initialEstimateBreakdown);
+  }, [initialEstimateBreakdown]);
 
   const saveInput = useMemo(
     () => buildUpdateInput(quoteId, sections),
@@ -324,12 +337,24 @@ export function QuoteStructureEditor({
   function handlePersistedSections(
     nextSections: QuoteSectionRecord[],
     message: string,
+    nextEstimateBreakdown?: EstimateBreakdownPayload | null,
   ) {
     markSaved(nextSections);
     finishReordering();
     setReorderError(null);
     setError(null);
     setSuccessMessage(message);
+    if (nextEstimateBreakdown !== undefined) {
+      setEstimateBreakdown(nextEstimateBreakdown);
+    }
+  }
+
+  function getReturnedEstimateBreakdown(
+    quote: { estimateBreakdown?: EstimateBreakdownPayload | null },
+  ): EstimateBreakdownPayload | null | undefined {
+    return Object.prototype.hasOwnProperty.call(quote, "estimateBreakdown")
+      ? quote.estimateBreakdown ?? null
+      : undefined;
   }
 
   function buildSaveErrorState(message: string, code?: string): SaveErrorState {
@@ -380,6 +405,10 @@ export function QuoteStructureEditor({
     }
 
     markSaved(result.data.quote.sections);
+    const nextEstimateBreakdown = getReturnedEstimateBreakdown(result.data.quote);
+    if (nextEstimateBreakdown !== undefined) {
+      setEstimateBreakdown(nextEstimateBreakdown);
+    }
 
     if (!options?.silent) {
       setSuccessMessage("Quote draft saved successfully.");
@@ -424,6 +453,7 @@ export function QuoteStructureEditor({
         handlePersistedSections(
           result.data.quote.sections,
           "Quote draft saved successfully.",
+          getReturnedEstimateBreakdown(result.data.quote),
         );
       } else {
         showSaveError(result.error.message, result.error.code);
@@ -444,7 +474,11 @@ export function QuoteStructureEditor({
       const result = await addQuoteSection(quoteId);
 
       if (result.ok) {
-        handlePersistedSections(result.data.quote.sections, "Section added.");
+        handlePersistedSections(
+          result.data.quote.sections,
+          "Section added.",
+          getReturnedEstimateBreakdown(result.data.quote),
+        );
       } else {
         showSaveError(result.error.message, result.error.code);
       }
@@ -464,7 +498,11 @@ export function QuoteStructureEditor({
       const result = await removeQuoteSection(quoteId, sectionId);
 
       if (result.ok) {
-        handlePersistedSections(result.data.quote.sections, "Section removed.");
+        handlePersistedSections(
+          result.data.quote.sections,
+          "Section removed.",
+          getReturnedEstimateBreakdown(result.data.quote),
+        );
       } else {
         showSaveError(result.error.message, result.error.code);
       }
@@ -484,7 +522,11 @@ export function QuoteStructureEditor({
       const result = await addQuoteLineItem(quoteId, sectionId);
 
       if (result.ok) {
-        handlePersistedSections(result.data.quote.sections, "Line item added.");
+        handlePersistedSections(
+          result.data.quote.sections,
+          "Line item added.",
+          getReturnedEstimateBreakdown(result.data.quote),
+        );
       } else {
         showSaveError(result.error.message, result.error.code);
       }
@@ -504,7 +546,11 @@ export function QuoteStructureEditor({
       const result = await removeQuoteLineItem(quoteId, sectionId, lineItemId);
 
       if (result.ok) {
-        handlePersistedSections(result.data.quote.sections, "Line item removed.");
+        handlePersistedSections(
+          result.data.quote.sections,
+          "Line item removed.",
+          getReturnedEstimateBreakdown(result.data.quote),
+        );
       } else {
         showSaveError(result.error.message, result.error.code);
       }
@@ -531,7 +577,11 @@ export function QuoteStructureEditor({
       const result = await reorderQuoteSections(quoteId, newSectionIds);
 
       if (result.ok) {
-        handlePersistedSections(result.data.quote.sections, message);
+        handlePersistedSections(
+          result.data.quote.sections,
+          message,
+          getReturnedEstimateBreakdown(result.data.quote),
+        );
       } else {
         reorderSectionsStore(previousIds);
         setReorderError(result.error.message);
@@ -608,7 +658,11 @@ export function QuoteStructureEditor({
       const result = await reorderQuoteLineItems(quoteId, sectionId, newItemIds);
 
       if (result.ok) {
-        handlePersistedSections(result.data.quote.sections, message);
+        handlePersistedSections(
+          result.data.quote.sections,
+          message,
+          getReturnedEstimateBreakdown(result.data.quote),
+        );
       } else {
         reorderLineItemsStore(sectionId, previousItemIds);
         setReorderError(result.error.message);
@@ -717,7 +771,11 @@ export function QuoteStructureEditor({
       );
 
       if (result.ok) {
-        handlePersistedSections(result.data.quote.sections, "Line item saved.");
+        handlePersistedSections(
+          result.data.quote.sections,
+          "Line item saved.",
+          getReturnedEstimateBreakdown(result.data.quote),
+        );
       } else {
         showSaveError(result.error.message, result.error.code);
       }
@@ -939,6 +997,10 @@ export function QuoteStructureEditor({
           </div>
         </div>
       </div>
+
+      {estimateBreakdown ? (
+        <EstimateBreakdownPanel breakdown={estimateBreakdown} />
+      ) : null}
 
       <PreviewReadinessIndicator
         sections={sections}

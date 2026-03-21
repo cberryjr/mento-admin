@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
 import { QuotePreview } from "@/features/quotes/components/quote-preview";
 import type { QuotePreviewPayload } from "@/features/quotes/types";
@@ -69,6 +69,7 @@ const BASE_PAYLOAD: QuotePreviewPayload = {
   terms: "Net 30",
   preparedAt: "2026-03-21T12:00:00.000Z",
   studioName: "My Studio",
+  estimateBreakdown: null,
 };
 
 describe("QuotePreview", () => {
@@ -183,5 +184,76 @@ describe("QuotePreview", () => {
     render(<QuotePreview payload={payload} editorHref="/quotes/q-1?backTo=%2Fquotes" />);
 
     expect(screen.queryByText("Custom design work")).not.toBeInTheDocument();
+  });
+
+  it("renders the estimate breakdown when snapshot data is present", () => {
+    const payload: QuotePreviewPayload = {
+      ...BASE_PAYLOAD,
+      estimateBreakdown: {
+        quoteId: "q-1",
+        computedAt: "2026-03-21T12:00:00.000Z",
+        sectionBreakdowns: [
+          {
+            sectionId: "qs-1",
+            sectionTitle: "Design",
+            source: {
+              servicePackageId: "sp-1",
+              servicePackageName: "Brand Launch",
+              categoryLabel: "AI Print Campaigns",
+              tierKey: "standard",
+              tierTitle: "Standard",
+              tierDescriptor: "Fast production",
+              timeGuidance: { minValue: 1, maxValue: 3, unit: "day" },
+              variableDefaults: {
+                quantity: 1,
+                durationValue: null,
+                durationUnit: null,
+                resolution: "print",
+                revisions: 1,
+                urgency: "standard",
+              },
+            },
+            breakdown: {
+              estimatedHours: { min: 8, max: 24 },
+              roleBreakdown: [
+                {
+                  role: "Creative Director",
+                  hours: 4.8,
+                  hourlyRateCents: 15000,
+                  costCents: 72000,
+                },
+              ],
+              internalCostCents: 72000,
+              marginPercent: 0.3,
+              marginCents: 21600,
+              finalPriceCents: 55000,
+              deliverables: ["Print deliverable set"],
+            },
+          },
+        ],
+        grandTotal: {
+          estimatedHours: { min: 8, max: 24 },
+          roleBreakdown: [
+            {
+              role: "Creative Director",
+              hours: 4.8,
+              hourlyRateCents: 15000,
+              costCents: 72000,
+            },
+          ],
+          internalCostCents: 72000,
+          marginPercent: 0.3,
+          marginCents: 21600,
+          finalPriceCents: 55000,
+          deliverables: ["Print deliverable set"],
+        },
+      },
+    };
+
+    render(<QuotePreview payload={payload} editorHref="/quotes/q-1?backTo=%2Fquotes" />);
+
+    expect(screen.getByText("Estimate breakdown")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /expand details/i }));
+    expect(screen.getByText(/Brand Launch/)).toBeInTheDocument();
   });
 });

@@ -14,6 +14,10 @@ vi.mock("@/features/studio-defaults/server/queries/get-studio-defaults", () => (
   getStudioDefaults: vi.fn(),
 }));
 
+vi.mock("@/features/service-packages/server/queries/get-service-package-by-id", () => ({
+  getServicePackageById: vi.fn(),
+}));
+
 function setSession(studioId = "default-studio") {
   return {
     user: {
@@ -23,6 +27,44 @@ function setSession(studioId = "default-studio") {
       studioId,
     },
     expires: new Date(Date.now() + 360000).toISOString(),
+  };
+}
+
+function makeServicePackage(id: string) {
+  return {
+    id,
+    studioId: "default-studio",
+    name: "Brand Launch",
+    categoryKey: "ai-print-campaigns" as const,
+    categoryLabel: "AI Print Campaigns",
+    categoryShortLabel: "Print",
+    category: "AI Print Campaigns",
+    startingPriceLabel: "$500",
+    shortDescription: "Test",
+    packageTotalCents: 50000,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    complexityTiers: [
+      {
+        id: `${id}-standard`,
+        tier: "standard" as const,
+        title: "Standard",
+        descriptor: "Fast production",
+        deliverables: ["Print deliverable set"],
+        processNotes: ["Prompt design"],
+        timeGuidance: { minValue: 1, maxValue: 3, unit: "day" as const },
+        variableDefaults: {
+          quantity: 1,
+          durationValue: null,
+          durationUnit: null,
+          resolution: "print" as const,
+          revisions: 1,
+          urgency: "standard" as const,
+        },
+        position: 1,
+      },
+    ],
+    sections: [],
   };
 }
 
@@ -210,6 +252,95 @@ describe("getQuotePreview", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.data.terms).toBe("Studio default terms");
+  });
+
+  it("includes the persisted estimate breakdown snapshot when package-backed sections exist", async () => {
+    const { createQuoteRecord, saveQuoteSections } = await import(
+      "@/features/quotes/server/quotes-repository"
+    );
+    const { getClientById } = await import(
+      "@/features/clients/server/queries/get-client-by-id"
+    );
+    const { getStudioDefaults } = await import(
+      "@/features/studio-defaults/server/queries/get-studio-defaults"
+    );
+    const { getServicePackageById } = await import(
+      "@/features/service-packages/server/queries/get-service-package-by-id"
+    );
+    const { getQuotePreview } = await import(
+      "@/features/quotes/server/queries/get-quote-preview"
+    );
+
+    const quote = await createQuoteRecord("default-studio", {
+      clientId: "client-1",
+      title: "Snapshot Quote",
+      selectedServicePackageIds: ["sp-1"],
+      terms: "",
+    });
+
+    await saveQuoteSections(quote.id, "default-studio", [
+      {
+        id: "qs-1",
+        quoteId: quote.id,
+        studioId: "default-studio",
+        sourceServicePackageId: "sp-1",
+        title: "Design",
+        content: "Design services",
+        position: 1,
+        lineItems: [
+          {
+            id: "li-1",
+            quoteId: quote.id,
+            quoteSectionId: "qs-1",
+            studioId: "default-studio",
+            name: "Logo design",
+            content: "Custom logo",
+            quantity: 1,
+            unitLabel: "item",
+            unitPriceCents: 50000,
+            lineTotalCents: 50000,
+            position: 1,
+          },
+        ],
+      },
+    ]);
+
+    vi.mocked(getClientById).mockResolvedValue({
+      ok: true,
+      data: {
+        client: {
+          id: "client-1",
+          studioId: "default-studio",
+          name: "Acme Corp",
+          contactName: "Jane",
+          contactEmail: "jane@acme.com",
+          contactPhone: "555-1234",
+          createdAt: "",
+          updatedAt: "",
+        },
+        relatedQuotes: [],
+        relatedInvoices: [],
+      },
+    });
+
+    vi.mocked(getStudioDefaults).mockResolvedValue({
+      ok: true,
+      data: { studioDefaults: null },
+    });
+
+    vi.mocked(getServicePackageById).mockResolvedValue({
+      ok: true,
+      data: { servicePackage: makeServicePackage("sp-1") },
+    });
+
+    const result = await getQuotePreview(quote.id);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.estimateBreakdown).not.toBeNull();
+    expect(
+      result.data.estimateBreakdown?.sectionBreakdowns[0].source.servicePackageName,
+    ).toBe("Brand Launch");
   });
 
   it("handles missing studio defaults gracefully", async () => {

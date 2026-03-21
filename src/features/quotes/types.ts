@@ -1,5 +1,54 @@
 export type QuoteStatus = "draft" | "accepted" | "invoiced";
 
+export type RoleBreakdownEntry = {
+  role: string;
+  hours: number;
+  hourlyRateCents: number;
+  costCents: number;
+};
+
+export type EstimateBreakdown = {
+  estimatedHours: {
+    min: number;
+    max: number;
+  };
+  roleBreakdown: RoleBreakdownEntry[];
+  internalCostCents: number;
+  marginPercent: number;
+  marginCents: number;
+  finalPriceCents: number;
+  deliverables: string[];
+};
+
+export type EstimateBreakdownSource = {
+  servicePackageId: string;
+  servicePackageName: string;
+  categoryLabel: string;
+  tierKey: string;
+  tierTitle: string;
+  tierDescriptor: string;
+  timeGuidance: {
+    minValue: number;
+    maxValue: number;
+    unit: string;
+  };
+  variableDefaults: {
+    quantity: number;
+    durationValue: number | null;
+    durationUnit: string | null;
+    resolution: string | null;
+    revisions: number;
+    urgency: string;
+  };
+};
+
+export type SectionEstimateBreakdown = {
+  sectionId: string;
+  sectionTitle: string;
+  source: EstimateBreakdownSource;
+  breakdown: EstimateBreakdown;
+};
+
 export type QuoteInput = {
   clientId: string;
   title: string;
@@ -56,6 +105,7 @@ export type QuoteSummary = {
 export type QuoteDetailRecord = QuoteRecord & {
   generatedAt: string | null;
   sections: QuoteSectionRecord[];
+  estimateBreakdown?: EstimateBreakdownPayload | null;
 };
 
 export type QuoteLineItemInput = {
@@ -116,6 +166,13 @@ export function toQuoteSummary(quote: QuoteRecord): QuoteSummary {
   };
 }
 
+export type EstimateBreakdownPayload = {
+  quoteId: string;
+  computedAt: string;
+  sectionBreakdowns: SectionEstimateBreakdown[];
+  grandTotal: EstimateBreakdown;
+};
+
 export type QuotePreviewPayload = {
   quoteId: string;
   clientId: string;
@@ -133,6 +190,7 @@ export type QuotePreviewPayload = {
   terms: string;
   preparedAt: string;
   studioName: string;
+  estimateBreakdown: EstimateBreakdownPayload | null;
 };
 
 export function calculateQuoteTotalCents(sections: QuoteSectionRecord[]): number {

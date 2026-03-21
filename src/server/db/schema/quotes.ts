@@ -22,6 +22,7 @@ export const quotes = pgTable(
     title: text("title").notNull(),
     status: text("status").notNull().default("draft"),
     terms: text("terms").notNull().default(""),
+    estimateBreakdownSnapshot: text("estimate_breakdown_snapshot"),
     generatedAt: timestamp("generated_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true })

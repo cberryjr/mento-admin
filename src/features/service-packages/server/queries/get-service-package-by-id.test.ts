@@ -101,7 +101,7 @@ describe("getServicePackageById (query)", () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.servicePackage.category).toBe("Brand Strategy");
+      expect(result.data.servicePackage.category).toBe("AI Print Campaigns");
       expect(result.data.servicePackage.startingPriceLabel).toBe("$1,400");
       expect(result.data.servicePackage.shortDescription).toBe(
         "Updated launch support summary.",

@@ -1,5 +1,5 @@
 import type { InvoiceSummary } from "@/features/invoices/server/queries/list-invoices";
-import type { QuoteSummary } from "@/features/quotes/server/queries/list-quotes";
+import type { QuoteSummary } from "@/features/quotes/types";
 
 export type ClientInput = {
   name: string;

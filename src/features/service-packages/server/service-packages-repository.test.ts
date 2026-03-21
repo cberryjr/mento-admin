@@ -83,7 +83,7 @@ describe("servicePackagesRepository", () => {
     expect(loaded).toMatchObject({
       studioId: "default-studio",
       name: "Website Refresh Package",
-      category: "Web",
+      category: "AI Print Campaigns",
       startingPriceLabel: "$3,250",
       shortDescription: "Refresh a marketing site for relaunch.",
       packageTotalCents: 325000,
@@ -167,7 +167,7 @@ describe("servicePackagesRepository", () => {
 
     expect(updated).toMatchObject({
       id: "package-brand-launch",
-      category: "Brand Strategy",
+      category: "AI Print Campaigns",
       startingPriceLabel: "$2,800",
       shortDescription: "Updated launch support summary.",
       packageTotalCents: 280000,

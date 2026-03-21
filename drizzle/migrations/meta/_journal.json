@@ -36,6 +36,20 @@
       "when": 1773971425014,
       "tag": "0004_service_catalog_matrix",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1774057800000,
+      "tag": "0005_quotes",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1774142400000,
+      "tag": "0006_quote_sections",
+      "breakpoints": true
     }
   ]
 }

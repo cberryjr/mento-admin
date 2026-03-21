@@ -212,7 +212,7 @@ test("saves a draft, navigates to the quotes list, and reopens it with preserved
   await page.getByRole("link", { name: /back to quotes/i }).click();
   await expect(page).toHaveURL(/\/quotes$/);
 
-  const quoteRow = page.getByRole("link", { name: new RegExp(quoteTitle) });
+  const quoteRow = page.getByRole("link", { name: `Open ${quoteTitle}` });
   await expect(quoteRow).toBeVisible();
   await expect(quoteRow.getByText(/^draft$/i)).toBeVisible();
 
@@ -224,4 +224,39 @@ test("saves a draft, navigates to the quotes list, and reopens it with preserved
     "Reopened Section Title",
   );
   await expect(page.getByLabel("Quantity").first()).toHaveValue("2");
+});
+
+test("reopens a draft in revision mode and keeps revision orientation through preview return", async ({ page }) => {
+  await signIn(page, "/quotes/new");
+  await expect(page).toHaveURL(/\/quotes\/new$/);
+
+  await page.getByRole("radio", { name: /Sunrise Yoga Studio/i }).check();
+  await page.getByRole("button", { name: "Continue to service packages" }).click();
+
+  const quoteTitle = `RevisionFlow ${Date.now()}`;
+  await page.getByLabel("Quote title").fill(quoteTitle);
+  await page.getByRole("checkbox", { name: /Brand Launch Package/i }).check();
+  await page.getByRole("button", { name: "Create quote draft" }).click();
+  await page.getByRole("button", { name: "Generate quote content" }).click();
+
+  await expect(page.getByText(/Quote editor/)).toBeVisible({ timeout: 10000 });
+  await page.getByRole("button", { name: /save draft/i }).click();
+  await expect(page.getByText("Quote draft saved successfully.")).toBeVisible();
+
+  await page.getByRole("link", { name: /back to quotes/i }).click();
+  await expect(page).toHaveURL(/\/quotes$/);
+
+  await page.getByRole("link", { name: `Revise ${quoteTitle}` }).click();
+  await expect(page).toHaveURL(/\/quotes\/[^?]+\?backTo=%2Fquotes&saved=revised$/);
+  await expect(page.getByText("Revising existing quote")).toBeVisible();
+
+  await page.getByRole("link", { name: /preview quote/i }).click();
+  await expect(page).toHaveURL(
+    /\/quotes\/[^/]+\/preview\?backTo=%2Fquotes&saved=revised$/,
+    { timeout: 15000 },
+  );
+
+  await page.getByRole("link", { name: /back to editor/i }).click();
+  await expect(page).toHaveURL(/\/quotes\/[^?]+\?backTo=%2Fquotes&saved=revised$/);
+  await expect(page.getByText("Revising existing quote")).toBeVisible();
 });

@@ -18,6 +18,34 @@ type QuoteDetailPageProps = {
   searchParams: Promise<{ backTo?: string; preview?: string; saved?: string }>;
 };
 
+function renderQuoteLoadFailure(message: string, backTo?: string) {
+  return (
+    <section className="space-y-6 rounded-xl border border-zinc-200 bg-white p-6">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-semibold text-zinc-900">Quote details</h2>
+        </div>
+        <Link
+          href={sanitizeQuoteBackTo(backTo)}
+          className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+        >
+          Back to quotes
+        </Link>
+      </div>
+      <section
+        role="alert"
+        className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900"
+      >
+        <p className="font-semibold">Could not load quote</p>
+        <p className="mt-1">{message}</p>
+        <p className="mt-1">
+          Try reloading the page, or return to the quotes list and reopen the quote.
+        </p>
+      </section>
+    </section>
+  );
+}
+
 export default async function QuoteDetailPage({
   params,
   searchParams,
@@ -27,16 +55,24 @@ export default async function QuoteDetailPage({
   const result = await getQuoteById(quoteId);
 
   if (!result.ok) {
-    notFound();
+    if (result.error.message === "Quote not found.") {
+      notFound();
+    }
+
+    return renderQuoteLoadFailure(result.error.message, backTo);
   }
 
   const { quote } = result.data;
   const safeBackTo = sanitizeQuoteBackTo(backTo);
+  const isRevisionReady = saved === "revised" && quote.status === "draft";
 
   const clientResult = await getClientById(quote.clientId);
-  const clientName = clientResult.ok
-    ? clientResult.data.client.name
-    : "Unknown client";
+
+  if (!clientResult.ok) {
+    return renderQuoteLoadFailure(clientResult.error.message, backTo);
+  }
+
+  const clientName = clientResult.data.client.name;
 
   const hasGeneratedContent = quote.sections.length > 0;
   const servicePackageEntries = await Promise.all(
@@ -73,7 +109,11 @@ export default async function QuoteDetailPage({
         <div className="flex items-center gap-2">
           {hasGeneratedContent && quote.status === "draft" ? (
             <Link
-              href={buildQuotePreviewHref(quote.id, safeBackTo)}
+              href={buildQuotePreviewHref(
+                quote.id,
+                safeBackTo,
+                isRevisionReady ? "revised" : undefined,
+              )}
               className="rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
             >
               Preview quote
@@ -121,6 +161,18 @@ export default async function QuoteDetailPage({
           <p className="font-semibold">Quote preview blocked</p>
           <p className="mt-1">
             Resolve the preview readiness issues before opening the client-facing preview.
+          </p>
+        </section>
+      ) : null}
+
+      {isRevisionReady ? (
+        <section
+          role="status"
+          className="rounded-lg border border-blue-300 bg-blue-50 px-4 py-3 text-sm text-blue-900"
+        >
+          <p className="font-semibold">Revising existing quote</p>
+          <p className="mt-1">
+            You are continuing from an existing quote. Make your changes and save to update the quote.
           </p>
         </section>
       ) : null}
@@ -202,6 +254,7 @@ export default async function QuoteDetailPage({
           sourcePackageNames={sourcePackageNames}
           clientId={quote.clientId}
           backTo={safeBackTo}
+          saved={isRevisionReady ? "revised" : undefined}
         />
       ) : hasGeneratedContent ? (
         <QuoteStructureView sections={quote.sections} />

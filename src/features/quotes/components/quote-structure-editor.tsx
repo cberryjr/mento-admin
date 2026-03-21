@@ -51,6 +51,7 @@ type QuoteStructureEditorProps = {
   sourcePackageNames: Record<string, string>;
   clientId: string;
   backTo: string;
+  saved?: string;
 };
 
 type SaveErrorState = {
@@ -244,6 +245,7 @@ export function QuoteStructureEditor({
   sourcePackageNames,
   clientId,
   backTo,
+  saved,
 }: QuoteStructureEditorProps) {
   const initialize = useQuoteEditorStore((state) => state.initialize);
   const savedSections = useQuoteEditorStore((state) => state.initialSections);
@@ -328,8 +330,8 @@ export function QuoteStructureEditor({
   );
   const isPreviewReady = readinessIssues.length === 0;
   const previewHref = useMemo(
-    () => buildQuotePreviewHref(quoteId, backTo),
-    [backTo, quoteId],
+    () => buildQuotePreviewHref(quoteId, backTo, saved),
+    [backTo, quoteId, saved],
   );
 
   useUnsavedChangesGuard(hasUnsavedChanges);

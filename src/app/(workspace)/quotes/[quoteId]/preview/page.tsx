@@ -7,7 +7,7 @@ import { computeReadinessIssues } from "@/features/quotes/lib/preview-readiness"
 
 type QuotePreviewPageProps = {
   params: Promise<{ quoteId: string }>;
-  searchParams: Promise<{ backTo?: string }>;
+  searchParams: Promise<{ backTo?: string; saved?: string }>;
 };
 
 export default async function QuotePreviewPage({
@@ -15,9 +15,9 @@ export default async function QuotePreviewPage({
   searchParams,
 }: QuotePreviewPageProps) {
   const { quoteId } = await params;
-  const { backTo } = await searchParams;
+  const { backTo, saved } = await searchParams;
   const safeBackTo = sanitizeQuoteBackTo(backTo);
-  const detailHref = buildQuoteDetailHref(quoteId, safeBackTo);
+  const detailHref = buildQuoteDetailHref(quoteId, safeBackTo, saved);
 
   const result = await getQuotePreview(quoteId);
 
@@ -32,6 +32,11 @@ export default async function QuotePreviewPage({
       backTo: safeBackTo,
       preview: "unavailable",
     });
+
+    if (saved) {
+      unavailableParams.set("saved", saved);
+    }
+
     redirect(`/quotes/${quoteId}?${unavailableParams.toString()}`);
   }
 
@@ -42,6 +47,11 @@ export default async function QuotePreviewPage({
       backTo: safeBackTo,
       preview: "blocked",
     });
+
+    if (saved) {
+      blockedParams.set("saved", saved);
+    }
+
     redirect(`/quotes/${quoteId}?${blockedParams.toString()}`);
   }
 

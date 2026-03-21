@@ -47,13 +47,24 @@ describe("QuotesPage", () => {
     const ui = await QuotesPage();
     render(ui);
 
-    const acceptedRow = screen.getByRole("link", { name: /Accepted Rebrand/i });
+    const acceptedRow = screen.getByRole("link", { name: /Open Accepted Rebrand/i });
     expect(within(acceptedRow).getByText("accepted")).toBeVisible();
     expect(within(acceptedRow).getByText("Mar 21, 2026")).toBeVisible();
 
-    const draftRow = screen.getByRole("link", { name: /Draft Discovery Sprint/i });
+    const draftRow = screen.getByRole("link", { name: /Open Draft Discovery Sprint/i });
     expect(within(draftRow).getByText("draft")).toBeVisible();
     expect(within(draftRow).getByText("Mar 20, 2026")).toBeVisible();
+
+    const reviseLink = screen.getByRole("link", {
+      name: /Revise Draft Discovery Sprint/i,
+    });
+    expect(reviseLink).toHaveAttribute(
+      "href",
+      "/quotes/quote-draft?backTo=%2Fquotes&saved=revised",
+    );
+    expect(
+      screen.queryByRole("link", { name: /Revise Accepted Rebrand/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders an empty state with a single create CTA when no quotes exist", async () => {

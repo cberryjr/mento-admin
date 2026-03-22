@@ -386,8 +386,11 @@ test("marks a generated draft quote as accepted and removes revise action from l
       "Quote marked as accepted. You can now convert this quote into an invoice.",
     ),
   ).toBeVisible();
+  await page.reload();
   await expect(page.getByLabel("Quote status: accepted")).toBeVisible();
-  await expect(page.getByText("Invoice conversion coming soon")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Convert to invoice" }),
+  ).toBeVisible();
 
   await page.getByRole("link", { name: /back to quotes/i }).click();
   await expect(page).toHaveURL(/\/quotes$/);
@@ -397,4 +400,116 @@ test("marks a generated draft quote as accepted and removes revise action from l
   await expect(
     page.getByRole("link", { name: `Revise ${quoteTitle}` }),
   ).toHaveCount(0);
+});
+
+test("accepted quote shows read-only view without edit controls", async ({ page }) => {
+  await signIn(page, "/quotes/new");
+  await expect(page).toHaveURL(/\/quotes\/new$/);
+
+  await page.getByRole("radio", { name: /Sunrise Yoga Studio/i }).check();
+  await page.getByRole("button", { name: "Continue to service packages" }).click();
+
+  const quoteTitle = `ReadOnly ${Date.now()}`;
+  await page.getByLabel("Quote title").fill(quoteTitle);
+  await page.getByRole("checkbox", { name: /Brand Launch Package/i }).check();
+  await page.getByRole("button", { name: "Create quote draft" }).click();
+  await page.getByRole("button", { name: "Generate quote content" }).click();
+
+  await expect(page.getByText(/Quote editor/)).toBeVisible({ timeout: 10000 });
+  await page.getByRole("button", { name: /mark as accepted/i }).click();
+  await expect(
+    page.getByText(
+      "Quote marked as accepted. You can now convert this quote into an invoice.",
+    ),
+  ).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByLabel("Quote status: accepted")).toBeVisible();
+  await expect(page.getByRole("button", { name: /mark as accepted/i })).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Convert to invoice" }),
+  ).toBeVisible();
+  await expect(page.getByText(/Quote editor/)).toHaveCount(0);
+});
+
+test("converts an accepted quote into an invoice detail review", async ({ page }) => {
+  await signIn(page, "/quotes/new");
+  await expect(page).toHaveURL(/\/quotes\/new$/);
+
+  await page.getByRole("radio", { name: /Sunrise Yoga Studio/i }).check();
+  await page.getByRole("button", { name: "Continue to service packages" }).click();
+
+  const quoteTitle = `InvoiceFlow ${Date.now()}`;
+  await page.getByLabel("Quote title").fill(quoteTitle);
+  await page.getByRole("checkbox", { name: /Brand Launch Package/i }).check();
+  await page.getByRole("button", { name: "Create quote draft" }).click();
+  await page.getByRole("button", { name: "Generate quote content" }).click();
+
+  await expect(page.getByText(/Quote editor/)).toBeVisible({ timeout: 10000 });
+  await page.getByRole("button", { name: /mark as accepted/i }).click();
+  await expect(
+    page.getByText(
+      "Quote marked as accepted. You can now convert this quote into an invoice.",
+    ),
+  ).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByLabel("Quote status: accepted")).toBeVisible();
+
+  await page.getByRole("button", { name: "Convert to invoice" }).click();
+
+  await expect(page).toHaveURL(/\/invoices\/[^/?]+$/, { timeout: 15000 });
+  await expect(
+    page.getByRole("heading", { name: "Edit invoice", level: 2 }),
+  ).toBeVisible();
+  await expect(page.getByText("Sunrise Yoga Studio").first()).toBeVisible();
+  await expect(page.getByLabel("Invoice title")).toHaveValue(quoteTitle);
+  await expect(page.getByText(/Sections and line items/i)).toBeVisible();
+});
+
+test("edits a converted draft invoice and preserves saved changes", async ({ page }) => {
+  await signIn(page, "/quotes/new");
+  await expect(page).toHaveURL(/\/quotes\/new$/);
+
+  await page.getByRole("radio", { name: /Sunrise Yoga Studio/i }).check();
+  await page.getByRole("button", { name: "Continue to service packages" }).click();
+
+  const quoteTitle = `InvoiceEditFlow ${Date.now()}`;
+  await page.getByLabel("Quote title").fill(quoteTitle);
+  await page.getByRole("checkbox", { name: /Brand Launch Package/i }).check();
+  await page.getByRole("button", { name: "Create quote draft" }).click();
+  await page.getByRole("button", { name: "Generate quote content" }).click();
+
+  await expect(page.getByText(/Quote editor/)).toBeVisible({ timeout: 10000 });
+  await page.getByRole("button", { name: /mark as accepted/i }).click();
+  await expect(
+    page.getByText(
+      "Quote marked as accepted. You can now convert this quote into an invoice.",
+    ),
+  ).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByLabel("Quote status: accepted")).toBeVisible();
+
+  await page.getByRole("button", { name: "Convert to invoice" }).click();
+
+  await expect(page).toHaveURL(/\/invoices\/[^/?]+$/, { timeout: 15000 });
+  await expect(
+    page.getByRole("heading", { name: "Edit invoice", level: 2 }),
+  ).toBeVisible();
+
+  await page.getByLabel("Invoice title").fill(`${quoteTitle} updated`);
+  await page.getByLabel("Quantity").first().fill("2");
+  await page.getByLabel("Unit price in dollars").first().fill("750.00");
+  await page.getByRole("button", { name: /save invoice/i }).click();
+
+  await expect(page.getByText("Invoice saved")).toBeVisible();
+  await expect(
+    page.locator("table tbody tr").first().locator("td").nth(5),
+  ).toContainText("$1500.00");
+
+  await page.reload();
+  await expect(page.getByLabel("Invoice title")).toHaveValue(`${quoteTitle} updated`);
+  await expect(page.getByLabel("Quantity").first()).toHaveValue("2");
+  await expect(page.getByLabel("Unit price in dollars").first()).toHaveValue("750.00");
 });

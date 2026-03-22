@@ -70,12 +70,12 @@ development_status:
   4-1-reopen-an-existing-quote-for-revision: done
   4-2-save-a-revised-quote-while-preserving-prior-versions: done
   4-3-view-revision-history-and-identify-the-current-quote-version: done
-  4-4-mark-quotes-as-accepted-and-show-lifecycle-status: review
+  4-4-mark-quotes-as-accepted-and-show-lifecycle-status: done
   epic-4-retrospective: optional
 
-  epic-5: backlog
-  5-1-convert-an-accepted-quote-into-a-linked-invoice-draft: backlog
-  5-2-edit-invoice-content-and-line-items-after-generation: backlog
+  epic-5: in-progress
+  5-1-convert-an-accepted-quote-into-a-linked-invoice-draft: done
+  5-2-edit-invoice-content-and-line-items-after-generation: done
   5-3-review-the-client-facing-invoice-layout-and-export-ready-output: backlog
   5-4-reopen-and-update-an-existing-invoice: backlog
   5-5-inspect-connected-record-history-and-trace-invoice-lineage: backlog

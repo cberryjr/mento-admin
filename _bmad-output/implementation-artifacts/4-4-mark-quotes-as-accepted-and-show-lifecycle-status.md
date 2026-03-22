@@ -1,6 +1,6 @@
 # Story 4.4: Mark Quotes as Accepted and Show Lifecycle Status
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -232,7 +232,7 @@ openai/gpt-5.3-codex
 - src/features/quotes/components/quote-status-chip.tsx
 - src/features/quotes/components/quote-status-chip.test.tsx
 - src/features/quotes/components/mark-quote-accepted-button.tsx
-- src/features/quotes/components/quote-preview.tsx
+- src/features/quotes/components/quote-preview.tsx (replaced inline status badge with shared QuoteStatusChip)
 - src/app/(workspace)/quotes/[quoteId]/page.tsx
 - src/app/(workspace)/quotes/[quoteId]/page.test.tsx
 - src/app/(workspace)/quotes/page.tsx
@@ -240,6 +240,38 @@ openai/gpt-5.3-codex
 - tests/e2e/quotes.spec.ts
 - src/middleware.ts (deleted)
 
+## Senior Developer Review (AI)
+
+**Reviewer:** chuck chuck
+**Date:** 2026-03-21
+**Outcome:** Approved (with fixes applied)
+
+### Findings
+
+| # | Severity | Description | Status |
+|---|----------|-------------|--------|
+| 1 | HIGH | `QuoteStatusChip` crashes on unknown status values (no fallback in `STATUS_STYLES` map) | Fixed |
+| 2 | MEDIUM | `quote-preview.tsx` modified but not in story File List | Fixed |
+| 3 | MEDIUM | Preview page had inconsistent status colors (gray draft, blue invoiced) vs list page (blue draft, purple invoiced) | Fixed (shared component unifies) |
+| 4 | LOW | E2E test missing rejection coverage for already-accepted quotes | Fixed |
+| 5 | LOW | "Invoice conversion coming soon" developer-shorthand in user-facing copy | Fixed |
+
+### AC Validation
+
+| AC | Status | Evidence |
+|----|--------|----------|
+| 1. Mark draft quote as accepted | Implemented | `mark-quote-accepted.ts` with auth, authorization, draft/content guards |
+| 2. Status visible across views | Implemented | `QuoteStatusChip` in list, detail, preview |
+| 3. Invalid/unauthorized rejected | Implemented | `ensureStudioAccess` + status guard + sections guard |
+| 4. Accepted makes next action obvious | Implemented | "Invoice conversion — coming soon" placeholder |
+
+### Test Verification
+
+- Lint: clean
+- Unit/component tests: 394/394 passing
+- Story-specific tests: 8 action tests, 5 chip tests (incl. new fallback test), page tests, E2E acceptance flow + read-only verification
+
 ## Change Log
 
 - 2026-03-21: Implemented Story 4.4 quote acceptance lifecycle, shared status chip UI, and test coverage updates; resolved E2E environment conflict and moved story to `review`.
+- 2026-03-21: Code review completed. Fixed QuoteStatusChip fallback for unknown statuses, updated File List with quote-preview.tsx, polished user-facing copy, added missing E2E coverage. Story marked done.

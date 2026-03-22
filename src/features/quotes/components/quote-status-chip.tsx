@@ -11,11 +11,13 @@ const STATUS_STYLES: Record<QuoteStatus, string> = {
   invoiced: "bg-purple-100 text-purple-800",
 };
 
+const FALLBACK_STYLE = "bg-zinc-100 text-zinc-700";
+
 export function QuoteStatusChip({ status, className }: QuoteStatusChipProps) {
   return (
     <span
       aria-label={`Quote status: ${status}`}
-      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[status]} ${className ?? ""}`.trim()}
+      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[status] ?? FALLBACK_STYLE} ${className ?? ""}`.trim()}
     >
       {status}
     </span>

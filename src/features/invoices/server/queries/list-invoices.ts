@@ -1,16 +1,11 @@
-import type { ActionResult } from "@/lib/validation/action-result";
 import { requireSession } from "@/features/auth/require-session";
+import { listInvoicesForStudio } from "@/features/invoices/server/invoices-repository";
+import { toInvoiceSummary } from "@/features/invoices/types";
+import type { InvoiceSummary } from "@/features/invoices/types";
 import { AppError } from "@/lib/errors/app-error";
 import { ERROR_CODES } from "@/lib/errors/error-codes";
+import type { ActionResult } from "@/lib/validation/action-result";
 import { ensureStudioAccess } from "@/server/auth/permissions";
-
-export type InvoiceSummary = {
-  id: string;
-  invoiceNumber: string;
-  title: string;
-  status: "draft" | "sent" | "paid";
-  updatedAt: string;
-};
 
 export async function listInvoices(): Promise<
   ActionResult<{ invoices: InvoiceSummary[] }> & { meta?: { total: number } }
@@ -19,8 +14,8 @@ export async function listInvoices(): Promise<
     const session = await requireSession();
     ensureStudioAccess(session, session.user.studioId);
 
-    // TODO: Replace with repository query when invoice persistence is implemented.
-    const invoices: InvoiceSummary[] = [];
+    const records = await listInvoicesForStudio(session.user.studioId);
+    const invoices = records.map(toInvoiceSummary);
 
     return {
       ok: true,

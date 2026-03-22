@@ -38,4 +38,12 @@ describe("QuoteStatusChip", () => {
 
     expect(screen.getByLabelText("Quote status: draft")).toBeInTheDocument();
   });
+
+  it("falls back to neutral styling for unknown status values", () => {
+    render(<QuoteStatusChip status={"cancelled" as never} />);
+
+    const chip = screen.getByLabelText("Quote status: cancelled");
+    expect(chip).toHaveClass("bg-zinc-100", "text-zinc-700");
+    expect(chip).toHaveTextContent("cancelled");
+  });
 });

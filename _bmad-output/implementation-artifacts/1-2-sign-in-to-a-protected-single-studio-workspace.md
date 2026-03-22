@@ -1,6 +1,6 @@
 # Story 1.2: Sign In to a Protected Single-Studio Workspace
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -202,13 +202,35 @@ openai/gpt-5.3-codex
 - src/app/api/auth/[...nextauth]/route.ts
 - src/app/api/workspace/overview/route.ts
 - src/app/(auth)/sign-in/page.tsx
-- src/app/workspace/page.tsx
+- src/app/(workspace)/workspace/page.tsx
 - src/proxy.ts
 - src/middleware.ts (deleted)
 - tests/integration/auth/proxy.test.ts
+- tests/integration/auth/sign-in-form-flow.test.tsx
 - tests/integration/api/workspace-overview-route.test.ts
 - tests/e2e/auth.spec.ts
+
+## Senior Developer Review (AI)
+
+### Reviewer
+
+- Reviewer: chuck chuck
+- Date: 2026-03-21
+- Outcome: Changes requested issues resolved; story is now ready as done.
+
+### Findings Resolved in Review
+
+- Fixed incorrect path claim in File List by using the real workspace route path: `src/app/(workspace)/workspace/page.tsx`.
+- Added explicit invalid-credentials integration coverage for sign-in UX behavior and safe error handling in `tests/integration/auth/sign-in-form-flow.test.tsx`.
+- Added Safari/WebKit coverage in Playwright config to align with supported browser expectations in `playwright.config.ts`.
+- Preserved query parameters in unauthenticated redirect callback URLs in `src/proxy.ts` and added regression coverage in `tests/integration/auth/proxy.test.ts`.
+
+### Validation Evidence
+
+- `npm run lint`
+- `npx vitest run tests/integration/auth/proxy.test.ts tests/integration/auth/sign-in-form-flow.test.tsx src/features/auth/sign-in-form.test.ts`
 
 ## Change Log
 
 - 2026-03-17: Implemented Story 1.2 auth foundation, sign-in flow, protected route/API/server action authorization, and full validation coverage.
+- 2026-03-21: Completed adversarial review fixes for Story 1.2 (File List path correction, invalid-credentials integration test, WebKit browser coverage, callbackUrl query preservation, and proxy regression assertions).

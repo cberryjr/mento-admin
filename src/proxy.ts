@@ -22,6 +22,7 @@ function getRequestUrl(request: RequestLike) {
 
 export async function proxy(request: RequestLike) {
   const pathname = getPathname(request);
+  const requestUrl = getRequestUrl(request);
   const token = await getToken({ req: request as NextRequest });
 
   const protectedPaths = [
@@ -37,14 +38,15 @@ export async function proxy(request: RequestLike) {
   );
 
   if (isProtectedPath && !token) {
-    const signInUrl = new URL("/sign-in", getRequestUrl(request));
-    signInUrl.searchParams.set("callbackUrl", pathname);
+    const signInUrl = new URL("/sign-in", requestUrl);
+    const callbackUrl = `${pathname}${requestUrl.search}`;
+    signInUrl.searchParams.set("callbackUrl", callbackUrl);
 
     return NextResponse.redirect(signInUrl);
   }
 
   if (pathname === "/sign-in" && token) {
-    const workspaceUrl = new URL("/workspace", getRequestUrl(request));
+    const workspaceUrl = new URL("/workspace", requestUrl);
     return NextResponse.redirect(workspaceUrl);
   }
 

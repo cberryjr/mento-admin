@@ -42,7 +42,7 @@ story_location: /Users/serveradmin/workspace/repos/mento-admin/_bmad-output/impl
 development_status:
   epic-1: in-progress
   1-1-set-up-initial-project-from-starter-template: done
-  1-2-sign-in-to-a-protected-single-studio-workspace: review
+  1-2-sign-in-to-a-protected-single-studio-workspace: done
   1-3-navigate-the-workspace-and-reopen-existing-records: review
   1-4-manage-studio-defaults-for-quote-and-invoice-prefill: review
   epic-1-retrospective: optional
@@ -61,7 +61,7 @@ development_status:
   3-2-generate-quote-content-from-selected-service-packages: done
   3-3-edit-quote-sections-and-line-items: done
   3-4-adjust-quote-pricing-ordering-and-totals: done
-  3-5-review-preview-readiness-and-open-the-quote-preview: in-progress
+  3-5-review-preview-readiness-and-open-the-quote-preview: review
   3-6-save-and-reopen-quote-drafts: done
   3-7-generate-transparent-estimate-breakdown-for-quotes: done
   epic-3-retrospective: optional
@@ -70,7 +70,7 @@ development_status:
   4-1-reopen-an-existing-quote-for-revision: done
   4-2-save-a-revised-quote-while-preserving-prior-versions: done
   4-3-view-revision-history-and-identify-the-current-quote-version: done
-  4-4-mark-quotes-as-accepted-and-show-lifecycle-status: backlog
+  4-4-mark-quotes-as-accepted-and-show-lifecycle-status: ready-for-dev
   epic-4-retrospective: optional
 
   epic-5: backlog

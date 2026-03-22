@@ -1,6 +1,6 @@
 # Story 3.5: Review Preview Readiness and Open the Quote Preview
 
-Status: in-progress
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -249,6 +249,7 @@ mimo-v2-pro-free
 - Added review follow-up coverage for readiness focus behavior, preview autosave navigation, and preview e2e navigation.
 - Total test count: 268 (up from 241).
 - Build confirms new route `/quotes/[quoteId]/preview` registered.
+- Final dev-story verification (2026-03-21): `npm run lint` clean, `npm run test` 360/360 passed (65 files), `npm run build` successful. All tasks complete. Story moved to review.
 
 ### File List
 
@@ -271,6 +272,7 @@ mimo-v2-pro-free
 ## Change Log
 
 - 2026-03-21 - Senior review fixes applied: enforced preview gating with autosave-before-navigation, restored sanitized `backTo` handling on preview routes, made readiness issues actionable, and added preview e2e coverage.
+- 2026-03-21 - Dev-story workflow complete: all validations pass (lint clean, 360 tests pass, build successful). Story moved to review status.
 
 ## Senior Developer Review (AI)
 

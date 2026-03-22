@@ -6,7 +6,6 @@ export async function GET() {
   return NextResponse.json(
     {
       ok: true,
-      timestamp,
       data: {
         status: "healthy",
         timestamp,

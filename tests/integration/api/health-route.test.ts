@@ -9,7 +9,6 @@ describe("GET /api/health", () => {
 
     expect(response.status).toBe(200);
     expect(body.ok).toBe(true);
-    expect(new Date(body.timestamp).toISOString()).toBe(body.timestamp);
     expect(body.data.status).toBe("healthy");
     expect(new Date(body.data.timestamp).toISOString()).toBe(body.data.timestamp);
   });

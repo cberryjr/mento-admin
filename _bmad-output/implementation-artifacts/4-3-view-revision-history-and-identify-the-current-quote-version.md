@@ -153,11 +153,11 @@ opencode/mimo-v2-pro-free
 - `src/app/(workspace)/quotes/[quoteId]/page.test.tsx` — modified: updated dedicated-page expectations after review fixes
 - `src/app/(workspace)/quotes/[quoteId]/page.tsx` — modified: kept revision viewing on the dedicated revisions page and retained the entry link from quote details
 - `src/app/(workspace)/quotes/[quoteId]/revisions/page.test.tsx` — new: dedicated revisions page coverage, including breadcrumb and authorization behavior
-- `src/app/(workspace)/quotes/[quoteId]/revisions/page.tsx` — new: dedicated revision history page with breadcrumb orientation and server-rendered revision data
+- `src/app/(workspace)/quotes/[quoteId]/revisions/page.tsx` — new: dedicated revision history page with breadcrumb orientation and server-rendered revision data; updated to use shared InlineAlert component
 - `src/components/ui/card.tsx` — new: shared card primitive used by revision detail panels
 - `src/components/ui/table.tsx` — new: shared table primitive used by revision detail panels
 - `src/features/quotes/components/revision-timeline.test.tsx` — new: component coverage for zero-revision state, keyboard dismissal, and focus restoration
-- `src/features/quotes/components/revision-timeline.tsx` — modified: current-version-first revision viewer with shared UI primitives and keyboard-safe historical inspection
+- `src/features/quotes/components/revision-timeline.tsx` — modified: current-version-first revision viewer with shared UI primitives and keyboard-safe historical inspection; removed dead calculateSectionTotal function
 - `tests/e2e/quotes.spec.ts` — modified: dedicated revision history flow coverage updated for the final route behavior
 
 ## Senior Developer Review (AI)
@@ -186,3 +186,21 @@ opencode/mimo-v2-pro-free
 ### Change Log
 - 2026-03-21: Implemented revision history page, enhanced RevisionTimeline component with full revision viewer, added navigation link from quote detail page, added component and page tests (12 new tests, 357 total passing)
 - 2026-03-21: Code review — fixed zero-revision current-state rendering, moved revision viewing fully onto the dedicated revisions page, added breadcrumb orientation, introduced shared Card/Table primitives for revision detail panels, and completed keyboard dismissal/focus-return coverage.
+- 2026-03-21: Second code review — replaced bespoke error alert markup with shared InlineAlert component, removed dead calculateSectionTotal function, all 15 tests passing.
+- 2026-03-21: Third code review — sanitized backTo in error path, removed duplicate "Back to quotes" button, typed buildQuote test helper with QuoteDetailRecord, all 28 tests passing.
+
+## Third Code Review (AI)
+
+**Reviewer:** AI Code Review  
+**Date:** 2026-03-21  
+**Outcome:** Changes Requested -> Fixed
+
+### Issues Found
+1. **MEDIUM: Unsanitized `backTo` in error path** — `page.tsx:57` passed raw `backTo` to `renderQuoteLoadFailure` before sanitization. Moved `sanitizeQuoteBackTo` call before the error check so both paths receive the sanitized value.
+2. **MEDIUM: Untyped test helper** — `buildQuote` in `page.test.tsx` used `Record<string, unknown>` overrides, masking missing fields from type changes. Typed the function to return `QuoteDetailRecord` with `Partial<QuoteDetailRecord>` overrides.
+3. **LOW: Duplicate "Back to quotes" button** — `revisions/page.tsx` rendered two "Back to quotes" links in the success state. Removed the duplicate; breadcrumb already provides quotes navigation.
+4. **LOW: E2E breadcrumb navigation not verified** — Not addressed (requires live dev server).
+
+### Verification
+- `npm test -- "src/features/quotes/components/revision-timeline.test.tsx" "src/app/(workspace)/quotes/[quoteId]/revisions/page.test.tsx" "src/app/(workspace)/quotes/[quoteId]/page.test.tsx"` — 28 passed
+- `npx eslint "src/app/(workspace)/quotes/[quoteId]/page.tsx" "src/app/(workspace)/quotes/[quoteId]/revisions/page.tsx" "src/app/(workspace)/quotes/[quoteId]/page.test.tsx"` — clean

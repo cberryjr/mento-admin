@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getQuoteById } from "@/features/quotes/server/queries/get-quote-by-id";
 import { listQuoteRevisions } from "@/features/quotes/server/quotes-repository";
 import { RevisionTimeline } from "@/features/quotes/components/revision-timeline";
+import { InlineAlert } from "@/components/feedback/inline-alert";
 import {
   buildQuoteDetailHref,
   sanitizeQuoteBackTo,
@@ -42,13 +43,7 @@ export default async function RevisionsPage({
             Back to quotes
           </Link>
         </div>
-        <section
-          role="alert"
-          className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900"
-        >
-          <p className="font-semibold">Could not load revision history</p>
-          <p className="mt-1">{result.error.message}</p>
-        </section>
+        <InlineAlert title="Could not load revision history" message={result.error.message} />
       </section>
     );
   }
@@ -96,20 +91,12 @@ export default async function RevisionsPage({
             {quote.title} — {quote.quoteNumber}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href={quoteDetailHref}
-            className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
-          >
-            Back to quote
-          </Link>
-          <Link
-            href={safeBackTo}
-            className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
-          >
-            Back to quotes
-          </Link>
-        </div>
+        <Link
+          href={quoteDetailHref}
+          className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+        >
+          Back to quote
+        </Link>
       </div>
 
       <RevisionTimeline

@@ -56,6 +56,8 @@ vi.mock("@/features/quotes/server/quotes-repository", () => ({
   listQuoteRevisions: vi.fn(),
 }));
 
+import type { QuoteDetailRecord } from "@/features/quotes/types";
+
 vi.mock("@/features/quotes/server/actions/update-quote-sections", () => ({
   updateQuoteSections: vi.fn(),
 }));
@@ -64,7 +66,7 @@ vi.mock("@/features/quotes/server/actions/revise-quote", () => ({
   reviseQuote: vi.fn(),
 }));
 
-function buildQuote(overrides: Record<string, unknown> = {}) {
+function buildQuote(overrides: Partial<QuoteDetailRecord> = {}): QuoteDetailRecord {
   return {
     id: "q-reopen-1",
     studioId: "studio-1",

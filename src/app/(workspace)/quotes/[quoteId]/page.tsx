@@ -47,6 +47,7 @@ export default async function QuoteDetailPage({
 }: QuoteDetailPageProps) {
   const { quoteId } = await params;
   const { backTo, preview, saved } = await searchParams;
+  const safeBackTo = sanitizeQuoteBackTo(backTo);
   const result = await getQuoteById(quoteId);
 
   if (!result.ok) {
@@ -54,11 +55,10 @@ export default async function QuoteDetailPage({
       notFound();
     }
 
-    return renderQuoteLoadFailure(result.error.message, backTo);
+    return renderQuoteLoadFailure(result.error.message, safeBackTo);
   }
 
   const { quote } = result.data;
-  const safeBackTo = sanitizeQuoteBackTo(backTo);
   const isRevisionReady = saved === "revised" && quote.status === "draft";
 
   const clientResult = await getClientById(quote.clientId);

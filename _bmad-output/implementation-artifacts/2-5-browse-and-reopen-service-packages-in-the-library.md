@@ -1,6 +1,6 @@
 # Story 2.5: Browse and Reopen Service Packages in the Library
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -240,6 +240,7 @@ anthropic/claude-opus-4-6
 - src/features/service-packages/components/service-package-list.test.tsx
 - src/app/(workspace)/service-packages/page.tsx
 - src/app/(workspace)/service-packages/page.test.tsx
+- src/app/(workspace)/service-packages/[servicePackageId]/page.tsx
 - tests/integration/workspace/navigation-reopen.test.tsx
 - tests/e2e/service-packages.spec.ts
 
@@ -248,3 +249,36 @@ anthropic/claude-opus-4-6
 - 2026-03-19: Implemented the service package library component, added client-side search and empty/no-results states, refactored the page to compose the new list, and expanded component, integration, and Playwright coverage for browse and reopen flows.
 - 2026-03-19: Fixed code-review findings by preserving filtered back-navigation context, clarifying filtered result counts, removing duplicate empty-state CTAs, and adding regression coverage for those paths.
 - 2026-03-19: Resolved post-review hardening items by restricting detail `backTo` targets to service-package library routes, syncing query hydration across param changes, adding inline-error page coverage, and making e2e assertions robust against URL-encoding implementation details.
+- 2026-03-21: Code review completed. Added missing `sanitizeBackTo` detail page entry to File List. All 4 ACs validated as implemented. Story approved for done.
+
+## Senior Developer Review (AI)
+
+**Reviewer:** chuck chuck
+**Date:** 2026-03-21
+**Status:** APPROVED — all ACs implemented, all Story 2.5 tests passing
+
+### Findings
+
+| # | Severity | Finding | Resolution |
+|---|----------|---------|------------|
+| 1 | HIGH | Detail page `sanitizeBackTo` change in commit ae34401 not listed in File List | Fixed — added `src/app/(workspace)/service-packages/[servicePackageId]/page.tsx` to File List |
+| 2 | MEDIUM | 5 uncommitted files in worktree unrelated to this story (invoices, workspace nav, get-service-package-by-id) | Noted — belongs to other in-progress stories |
+| 3 | MEDIUM | `quote-structure-editor.test.tsx` test failure (Save draft button disabled state) | Noted — unrelated to Story 2.5 (Epic 3 territory) |
+| 4 | LOW | `get-service-package-by-id.ts` auth refactoring in uncommitted tree | Noted — separate story scope |
+
+### AC Validation
+
+| AC | Status | Evidence |
+|----|--------|----------|
+| 1 | ✅ Implemented | `service-package-list.tsx:59-175` — browsable list with name, category, price, description, updatedAt, record count, search filter, backTo links |
+| 2 | ✅ Implemented | Detail page with `sanitizeBackTo` at `[servicePackageId]/page.tsx:11-32`; back link preserves search context; integration test `navigation-reopen.test.tsx:102-124` |
+| 3 | ✅ Implemented | `EmptyState` component for zero packages (line 91); distinct no-results state with clear-filter button (line 132-143); both announce purpose through text |
+| 4 | ✅ Implemented | `htmlFor="service-package-search"` label association (line 115); `focus-visible:outline-2` on list items (line 150); keyboard-only Playwright coverage in `service-packages.spec.ts:85-108` |
+
+### Test Verification
+
+- Component tests: 7/7 ✅
+- Page tests: 3/3 ✅
+- Integration tests: 5/5 ✅
+- Lint: clean ✅
+- Unrelated failure: `quote-structure-editor.test.tsx` (Epic 3, out of scope)

@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { QuotePreviewPayload } from "@/features/quotes/types";
 import { formatCurrencyFromCents } from "@/lib/format/currency";
 import { EstimateBreakdownPanel } from "@/features/quotes/components/estimate-breakdown-panel";
+import { QuoteStatusChip } from "@/features/quotes/components/quote-status-chip";
 
 type QuotePreviewProps = {
   payload: QuotePreviewPayload;
@@ -42,17 +43,7 @@ export function QuotePreview({ payload, editorHref }: QuotePreviewProps) {
           >
             Back to editor
           </Link>
-          <span
-            className={`rounded-md px-2.5 py-1 text-xs font-medium ${
-              status === "draft"
-                ? "bg-zinc-100 text-zinc-700"
-                : status === "accepted"
-                  ? "bg-green-100 text-green-800"
-                  : "bg-blue-100 text-blue-800"
-            }`}
-          >
-            {status}
-          </span>
+          <QuoteStatusChip status={status} className="rounded-md px-2.5 py-1" />
         </div>
       </div>
 

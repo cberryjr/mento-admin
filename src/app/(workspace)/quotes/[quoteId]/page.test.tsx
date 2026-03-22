@@ -178,9 +178,10 @@ describe("QuoteDetailPage", () => {
 
     expect(screen.getByText("Quote details")).toBeInTheDocument();
     expect(screen.getByText("Brand Refresh Quote")).toBeInTheDocument();
-    expect(screen.getByText("draft")).toBeInTheDocument();
+    expect(screen.getByLabelText("Quote status: draft")).toBeInTheDocument();
     expect(screen.getByText("Acme Corp")).toBeInTheDocument();
     expect(screen.getByText(/Quote editor/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /mark as accepted/i })).toBeInTheDocument();
   });
 
   it("shows revision-ready messaging when saved=revised for a draft quote", async () => {
@@ -348,10 +349,13 @@ describe("QuoteDetailPage", () => {
     render(await page);
 
     expect(screen.getByText("Quote details")).toBeInTheDocument();
-    expect(screen.getByText("accepted")).toBeInTheDocument();
+    expect(screen.getByLabelText("Quote status: accepted")).toBeInTheDocument();
     expect(screen.queryByText(/Quote editor/)).not.toBeInTheDocument();
     expect(screen.getByText("Design Phase")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /revision history/i })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /mark as accepted/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders read-only view for invoiced quotes", async () => {
@@ -373,7 +377,7 @@ describe("QuoteDetailPage", () => {
 
     render(await page);
 
-    expect(screen.getByText("invoiced")).toBeInTheDocument();
+    expect(screen.getByLabelText("Quote status: invoiced")).toBeInTheDocument();
     expect(screen.queryByText(/Quote editor/)).not.toBeInTheDocument();
   });
 

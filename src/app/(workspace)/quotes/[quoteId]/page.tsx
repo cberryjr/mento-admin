@@ -14,6 +14,8 @@ import {
 import { computeReadinessIssues } from "@/features/quotes/lib/preview-readiness";
 import { InlineAlert } from "@/components/feedback/inline-alert";
 import { getServicePackageById } from "@/features/service-packages/server/queries/get-service-package-by-id";
+import { QuoteStatusChip } from "@/features/quotes/components/quote-status-chip";
+import { MarkQuoteAcceptedButton } from "@/features/quotes/components/mark-quote-accepted-button";
 
 type QuoteDetailPageProps = {
   params: Promise<{ quoteId: string }>;
@@ -127,6 +129,18 @@ export default async function QuoteDetailPage({
               Preview quote
             </Link>
           ) : null}
+          {hasGeneratedContent && quote.status === "draft" ? (
+            <MarkQuoteAcceptedButton quoteId={quote.id} />
+          ) : null}
+          {(quote.status === "accepted" || quote.status === "invoiced") &&
+          hasGeneratedContent ? (
+            <span
+              aria-label="Invoice conversion coming soon"
+              className="rounded-md border border-zinc-300 bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-600"
+            >
+              Invoice conversion coming soon
+            </span>
+          ) : null}
           <Link
             href={safeBackTo}
             className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
@@ -199,7 +213,7 @@ export default async function QuoteDetailPage({
           <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
             Status
           </p>
-          <p className="text-sm font-semibold text-zinc-900">{quote.status}</p>
+          <QuoteStatusChip status={quote.status} />
         </div>
 
         <div className="space-y-1">

@@ -13,6 +13,7 @@ import type {
   QuoteRevisionSnapshotData,
   QuoteRecord,
   QuoteSectionRecord,
+  QuoteStatus,
 } from "@/features/quotes/types";
 import {
   __resetQuotesStore as resetQuotesStore,
@@ -24,6 +25,7 @@ import {
   readQuotesFromStore,
   setQuoteEstimateBreakdownInStore,
   setQuoteGeneratedAtInStore,
+  setQuoteStatusInStore,
   touchQuoteInStore,
   updateQuoteInStore,
   writeQuoteSectionsToStore,
@@ -498,6 +500,31 @@ export async function setQuoteGeneratedAt(
       .where(eq(schema.quotes.id, quoteId));
   } catch {
     setQuoteGeneratedAtInStore(quoteId, generatedAt.toISOString());
+  }
+}
+
+export async function updateQuoteStatus(
+  quoteId: string,
+  status: QuoteStatus,
+): Promise<QuoteDetailRecord | null> {
+  if (!env.DATABASE_URL) {
+    return setQuoteStatusInStore(quoteId, status);
+  }
+
+  try {
+    const [{ db }, schema] = await Promise.all([
+      import("@/server/db"),
+      import("@/server/db/schema/quotes"),
+    ]);
+
+    await db
+      .update(schema.quotes)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(schema.quotes.id, quoteId));
+
+    return getQuoteById(quoteId);
+  } catch {
+    return setQuoteStatusInStore(quoteId, status);
   }
 }
 

@@ -364,3 +364,37 @@ test("navigates to dedicated revision history page and views prior version", asy
   await page.getByRole("link", { name: "Back to quote", exact: true }).click();
   await expect(page).toHaveURL(/\/quotes\/[^?]+/);
 });
+
+test("marks a generated draft quote as accepted and removes revise action from list", async ({ page }) => {
+  await signIn(page, "/quotes/new");
+  await expect(page).toHaveURL(/\/quotes\/new$/);
+
+  await page.getByRole("radio", { name: /Sunrise Yoga Studio/i }).check();
+  await page.getByRole("button", { name: "Continue to service packages" }).click();
+
+  const quoteTitle = `AcceptFlow ${Date.now()}`;
+  await page.getByLabel("Quote title").fill(quoteTitle);
+  await page.getByRole("checkbox", { name: /Brand Launch Package/i }).check();
+  await page.getByRole("button", { name: "Create quote draft" }).click();
+  await page.getByRole("button", { name: "Generate quote content" }).click();
+
+  await expect(page.getByText(/Quote editor/)).toBeVisible({ timeout: 10000 });
+  await page.getByRole("button", { name: /mark as accepted/i }).click();
+
+  await expect(
+    page.getByText(
+      "Quote marked as accepted. You can now convert this quote into an invoice.",
+    ),
+  ).toBeVisible();
+  await expect(page.getByLabel("Quote status: accepted")).toBeVisible();
+  await expect(page.getByText("Invoice conversion coming soon")).toBeVisible();
+
+  await page.getByRole("link", { name: /back to quotes/i }).click();
+  await expect(page).toHaveURL(/\/quotes$/);
+
+  const quoteRow = page.getByRole("link", { name: `Open ${quoteTitle}` });
+  await expect(quoteRow.getByLabel("Quote status: accepted")).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: `Revise ${quoteTitle}` }),
+  ).toHaveCount(0);
+});

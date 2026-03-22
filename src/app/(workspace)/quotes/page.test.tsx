@@ -43,16 +43,16 @@ describe("QuotesPage", () => {
     });
   });
 
-  it("renders quote rows with status badges and updated dates", async () => {
+  it("renders quote rows with status chips and updated dates", async () => {
     const ui = await QuotesPage();
     render(ui);
 
     const acceptedRow = screen.getByRole("link", { name: /Open Accepted Rebrand/i });
-    expect(within(acceptedRow).getByText("accepted")).toBeVisible();
+    expect(within(acceptedRow).getByLabelText("Quote status: accepted")).toBeVisible();
     expect(within(acceptedRow).getByText("Mar 21, 2026")).toBeVisible();
 
     const draftRow = screen.getByRole("link", { name: /Open Draft Discovery Sprint/i });
-    expect(within(draftRow).getByText("draft")).toBeVisible();
+    expect(within(draftRow).getByLabelText("Quote status: draft")).toBeVisible();
     expect(within(draftRow).getByText("Mar 20, 2026")).toBeVisible();
 
     const reviseLink = screen.getByRole("link", {

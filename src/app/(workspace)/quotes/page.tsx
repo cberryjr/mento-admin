@@ -1,26 +1,10 @@
 import Link from "next/link";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { InlineAlert } from "@/components/feedback/inline-alert";
+import { QuoteStatusChip } from "@/features/quotes/components/quote-status-chip";
 import { buildQuoteRevisionReadyHref } from "@/features/quotes/lib/navigation";
 import { listQuotes } from "@/features/quotes/server/queries/list-quotes";
-import type { QuoteStatus } from "@/features/quotes/types";
 import { formatDate } from "@/lib/format/dates";
-
-function StatusBadge({ status }: { status: QuoteStatus }) {
-  const styles: Record<QuoteStatus, string> = {
-    draft: "bg-blue-100 text-blue-800",
-    accepted: "bg-green-100 text-green-800",
-    invoiced: "bg-purple-100 text-purple-800",
-  };
-
-  return (
-    <span
-      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${styles[status]}`}
-    >
-      {status}
-    </span>
-  );
-}
 
 export default async function QuotesPage() {
   const result = await listQuotes();
@@ -79,7 +63,7 @@ export default async function QuotesPage() {
                 </span>
                 <span className="mt-0.5 flex items-center gap-2 text-xs text-zinc-500">
                   <span>{quote.quoteNumber}</span>
-                  <StatusBadge status={quote.status} />
+                  <QuoteStatusChip status={quote.status} />
                 </span>
               </span>
               <span className="flex flex-col items-end gap-1 text-xs text-zinc-500">

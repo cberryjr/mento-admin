@@ -70,7 +70,7 @@ development_status:
   4-1-reopen-an-existing-quote-for-revision: done
   4-2-save-a-revised-quote-while-preserving-prior-versions: done
   4-3-view-revision-history-and-identify-the-current-quote-version: done
-  4-4-mark-quotes-as-accepted-and-show-lifecycle-status: ready-for-dev
+  4-4-mark-quotes-as-accepted-and-show-lifecycle-status: review
   epic-4-retrospective: optional
 
   epic-5: backlog

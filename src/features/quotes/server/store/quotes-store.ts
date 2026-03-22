@@ -7,6 +7,7 @@ import {
   type QuoteLineItemRecord,
   type QuoteRevisionRecord,
   type QuoteSectionRecord,
+  type QuoteStatus,
   type QuoteSummary,
 } from "@/features/quotes/types";
 
@@ -197,6 +198,22 @@ export function touchQuoteInStore(quoteId: string): void {
   if (quote) {
     quote.updatedAt = new Date().toISOString();
   }
+}
+
+export function setQuoteStatusInStore(
+  quoteId: string,
+  status: QuoteStatus,
+): QuoteDetailRecord | null {
+  const quote = getQuotesStore().get(quoteId);
+
+  if (!quote) {
+    return null;
+  }
+
+  quote.status = status;
+  quote.updatedAt = new Date().toISOString();
+
+  return cloneQuote({ ...quote, sections: getSectionsForQuote(quoteId) });
 }
 
 export function writeQuoteSectionsToStore(

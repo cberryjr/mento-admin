@@ -1,6 +1,6 @@
 # Story 1.3: Navigate the Workspace and Reopen Existing Records
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -197,6 +197,7 @@ openai/gpt-5.3-codex
 - _bmad-output/implementation-artifacts/sprint-status.yaml
 - src/app/(workspace)/layout.tsx
 - src/app/(workspace)/workspace/page.tsx
+- src/app/(workspace)/settings/page.tsx
 - src/app/(workspace)/clients/page.tsx
 - src/app/(workspace)/clients/[clientId]/page.tsx
 - src/app/(workspace)/service-packages/page.tsx
@@ -210,10 +211,8 @@ openai/gpt-5.3-codex
 - src/components/feedback/empty-state.test.tsx
 - src/components/feedback/loading-block.tsx
 - src/components/feedback/inline-alert.tsx
-- src/features/clients/server/queries/client-fixtures.ts
 - src/features/clients/server/queries/list-clients.ts
 - src/features/clients/server/queries/get-client-by-id.ts
-- src/features/service-packages/server/queries/service-package-fixtures.ts
 - src/features/service-packages/server/queries/list-service-packages.ts
 - src/features/service-packages/server/queries/get-service-package-by-id.ts
 - src/features/quotes/server/queries/list-quotes.ts
@@ -228,3 +227,4 @@ openai/gpt-5.3-codex
 ## Change Log
 
 - 2026-03-17: Implemented Story 1.3 workspace shell, navigation, record list/detail reopen flows, and full validation coverage; advanced status to `review`.
+- 2026-03-21: Code review applied: added auth/error handling to listInvoices, fixed invoices list navigation links, aligned service-package detail auth pattern with client detail, corrected File List fixture references, expanded nav test coverage, updated workspace landing page. Status → done.

@@ -1,21 +1,21 @@
 import type { ActionResult } from "@/lib/validation/action-result";
 import { requireSession } from "@/features/auth/require-session";
 import {
-  getServicePackageForStudioById,
+  getServicePackageById as getServicePackageRecordById,
 } from "@/features/service-packages/server/service-packages-repository";
 import type { ServicePackageDetailRecord } from "@/features/service-packages/types";
 import { AppError } from "@/lib/errors/app-error";
 import { ERROR_CODES } from "@/lib/errors/error-codes";
+import { ensureStudioAccess } from "@/server/auth/permissions";
 
 export async function getServicePackageById(
   servicePackageId: string,
 ): Promise<ActionResult<{ servicePackage: ServicePackageDetailRecord }>> {
   try {
     const session = await requireSession();
-    const servicePackage = await getServicePackageForStudioById(
-      session.user.studioId,
-      servicePackageId,
-    );
+
+    // Un-scoped lookup so we can distinguish "not found" from "forbidden".
+    const servicePackage = await getServicePackageRecordById(servicePackageId);
 
     if (!servicePackage) {
       return {
@@ -26,6 +26,9 @@ export async function getServicePackageById(
         },
       };
     }
+
+    // Single, explicit studio authorization check.
+    ensureStudioAccess(session, servicePackage.studioId);
 
     return {
       ok: true,

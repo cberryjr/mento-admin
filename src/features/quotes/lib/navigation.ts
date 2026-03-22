@@ -7,6 +7,8 @@ function appendSavedParam(params: URLSearchParams, saved?: string) {
 }
 
 export function sanitizeQuoteBackTo(backTo?: string) {
+  // Only allow navigating back to the quotes list (or its search-filtered variant).
+  // This intentionally restricts backTo to prevent open redirect vulnerabilities.
   if (!backTo || !backTo.startsWith("/") || backTo.startsWith("//")) {
     return DEFAULT_BACK_TO;
   }

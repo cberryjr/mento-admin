@@ -156,8 +156,8 @@ describe("getServicePackageById (query)", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error.code).toBe("UNKNOWN");
-      expect(result.error.message).toBe("Service package not found.");
+      expect(result.error.code).toBe("FORBIDDEN");
+      expect(result.error.message).toContain("access");
     }
   });
 

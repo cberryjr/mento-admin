@@ -11,6 +11,7 @@ import {
   buildQuotePreviewHref,
   sanitizeQuoteBackTo,
 } from "@/features/quotes/lib/navigation";
+import { computeReadinessIssues } from "@/features/quotes/lib/preview-readiness";
 import { InlineAlert } from "@/components/feedback/inline-alert";
 import { getServicePackageById } from "@/features/service-packages/server/queries/get-service-package-by-id";
 
@@ -70,6 +71,10 @@ export default async function QuoteDetailPage({
   const clientName = clientResult.data.client.name;
 
   const hasGeneratedContent = quote.sections.length > 0;
+  const previewReadinessIssues = hasGeneratedContent
+    ? computeReadinessIssues(quote.sections, quote.clientId)
+    : [];
+  const isPreviewReady = previewReadinessIssues.length === 0;
   const servicePackageEntries = await Promise.all(
     quote.selectedServicePackageIds.map(async (servicePackageId) => {
       const servicePackageResult = await getServicePackageById(servicePackageId);
@@ -110,7 +115,7 @@ export default async function QuoteDetailPage({
               Revision history
             </Link>
           ) : null}
-          {hasGeneratedContent && quote.status === "draft" ? (
+          {hasGeneratedContent && isPreviewReady && quote.status === "draft" ? (
             <Link
               href={buildQuotePreviewHref(
                 quote.id,

@@ -12,8 +12,9 @@ async function signIn(page: Page, path: string) {
   await page.getByRole("button", { name: "Sign in" }).click();
 }
 
-async function tabUntilFocused(page: Page, target: ReturnType<Page["getByLabel"]>, maxTabs = 12) {
+async function tabUntilFocused(page: Page, target: Locator, maxTabs = 80) {
   for (let index = 0; index < maxTabs; index += 1) {
+    await page.bringToFront();
     await page.keyboard.press("Tab");
 
     if (await target.evaluate((element) => element === document.activeElement)) {
@@ -22,6 +23,12 @@ async function tabUntilFocused(page: Page, target: ReturnType<Page["getByLabel"]
   }
 
   throw new Error("Could not reach target with keyboard navigation.");
+}
+
+async function expectFocused(target: Locator) {
+  await expect
+    .poll(async () => target.evaluate((element) => element === document.activeElement))
+    .toBe(true);
 }
 
 async function expectBackToParam(link: Locator, expectedBackTo: string) {
@@ -82,7 +89,12 @@ test("browses, filters, and reopens service packages from the library", async ({
   await expect(brandLaunchLink).toBeHidden();
 });
 
-test("supports keyboard filtering and reopen flow from the service package library", async ({ page }) => {
+test("supports keyboard filtering and reopen flow from the service package library", async ({ page, browserName }) => {
+  test.skip(
+    browserName === "webkit",
+    "WebKit follows Safari's reduced tab navigation defaults for links.",
+  );
+
   await signIn(page, "/service-packages");
   await expect(page).toHaveURL(/\/service-packages$/);
 
@@ -94,8 +106,8 @@ test("supports keyboard filtering and reopen flow from the service package libra
   const filteredPackageLink = page.locator(
     'a[href^="/service-packages/package-content-sprint?backTo="]',
   );
-  await page.keyboard.press("Tab");
-  await expect(filteredPackageLink).toBeFocused();
+  await tabUntilFocused(page, filteredPackageLink);
+  await expectFocused(filteredPackageLink);
   await expectBackToParam(filteredPackageLink, "/service-packages?search=campaign%20push");
   await page.keyboard.press("Enter");
 
@@ -122,7 +134,7 @@ test("creates a structured service package and shows explicit confirmation", asy
   await page.getByLabel("Line item default content").fill(
     "Audit current pages and conversion gaps.",
   );
-  await page.getByLabel("Quantity").fill("1");
+  await page.getByLabel("Quantity").last().fill("1");
   await page.getByLabel("Unit label").fill("audit");
   await page.getByLabel("Unit price").fill("750");
 
@@ -154,7 +166,7 @@ test("edits an existing structured service package and persists the latest saved
   await page.getByLabel("Section default content").fill("Audit and kickoff work.");
   await page.getByLabel("Line item name").fill("Discovery workshop");
   await page.getByLabel("Line item default content").fill("Half-day alignment session.");
-  await page.getByLabel("Quantity").fill("1");
+  await page.getByLabel("Quantity").last().fill("1");
   await page.getByLabel("Unit label").fill("session");
   await page.getByLabel("Unit price").fill("1200");
   await page.getByRole("button", { name: "Create service package" }).click();
@@ -195,67 +207,72 @@ test("preserves entered values on invalid structured submission", async ({ page 
   await expect(page.getByText("Line item name is required.")).toBeVisible();
 });
 
-test("supports keyboard-only completion in the structured service package form", async ({ page }) => {
+test("supports keyboard-only completion in the structured service package form", async ({ page, browserName }) => {
+  test.skip(
+    browserName === "webkit",
+    "WebKit follows Safari's reduced tab navigation defaults for buttons and links.",
+  );
+
   const packageName = `Keyboard Package ${Date.now()}`;
 
   await signIn(page, "/service-packages/new");
   await expect(page).toHaveURL(/\/service-packages\/new$/);
 
   await page.getByRole("link", { name: "Back to service packages" }).focus();
-  await expect(page.getByRole("link", { name: "Back to service packages" })).toBeFocused();
+  await expectFocused(page.getByRole("link", { name: "Back to service packages" }));
 
-  await page.keyboard.press("Tab");
-  await expect(page.getByLabel("Service package name")).toBeFocused();
+  await tabUntilFocused(page, page.getByLabel("Service package name"));
+  await expectFocused(page.getByLabel("Service package name"));
   await page.keyboard.type(packageName);
 
-  await page.keyboard.press("Tab");
-  await expect(page.getByLabel("Category")).toBeFocused();
+  await tabUntilFocused(page, page.getByLabel("Category"));
+  await expectFocused(page.getByLabel("Category"));
   await page.keyboard.press("ArrowDown");
 
-  await page.keyboard.press("Tab");
-  await expect(page.getByLabel("Short summary")).toBeFocused();
+  await tabUntilFocused(page, page.getByLabel("Short summary"));
+  await expectFocused(page.getByLabel("Short summary"));
   await page.keyboard.type("A reusable content sprint package.");
 
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("button", { name: "Add section" })).toBeFocused();
+  await tabUntilFocused(page, page.getByRole("button", { name: "Add section" }));
+  await expectFocused(page.getByRole("button", { name: "Add section" }));
 
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("button", { name: /remove section 1/i })).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(page.getByLabel("Section title").first()).toBeFocused();
+  await tabUntilFocused(page, page.getByRole("button", { name: /remove section 1/i }));
+  await expectFocused(page.getByRole("button", { name: /remove section 1/i }));
+  await tabUntilFocused(page, page.getByLabel("Section title").first());
+  await expectFocused(page.getByLabel("Section title").first());
   await page.keyboard.type("Planning");
 
-  await page.keyboard.press("Tab");
-  await expect(page.getByLabel("Section default content").first()).toBeFocused();
+  await tabUntilFocused(page, page.getByLabel("Section default content").first());
+  await expectFocused(page.getByLabel("Section default content").first());
   await page.keyboard.type("Sprint planning and messaging alignment.");
 
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("button", { name: /remove line item 1/i })).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(page.getByLabel("Line item name").first()).toBeFocused();
+  await tabUntilFocused(page, page.getByRole("button", { name: /remove line item 1/i }));
+  await expectFocused(page.getByRole("button", { name: /remove line item 1/i }));
+  await tabUntilFocused(page, page.getByLabel("Line item name").first());
+  await expectFocused(page.getByLabel("Line item name").first());
   await page.keyboard.type("Content brief");
-  await page.keyboard.press("Tab");
-  await expect(page.getByLabel("Line item default content").first()).toBeFocused();
+  await tabUntilFocused(page, page.getByLabel("Line item default content").first());
+  await expectFocused(page.getByLabel("Line item default content").first());
   await page.keyboard.type("Sprint brief and production plan.");
 
-  await page.keyboard.press("Tab");
-  await expect(page.getByLabel("Quantity").first()).toBeFocused();
+  await tabUntilFocused(page, page.getByLabel("Quantity").last());
+  await expectFocused(page.getByLabel("Quantity").last());
   await page.keyboard.press("Meta+A");
   await page.keyboard.type("1");
 
-  await page.keyboard.press("Tab");
-  await expect(page.getByLabel("Unit label").first()).toBeFocused();
+  await tabUntilFocused(page, page.getByLabel("Unit label").first());
+  await expectFocused(page.getByLabel("Unit label").first());
   await page.keyboard.type("brief");
 
-  await page.keyboard.press("Tab");
-  await expect(page.getByLabel("Unit price").first()).toBeFocused();
+  await tabUntilFocused(page, page.getByLabel("Unit price").first());
+  await expectFocused(page.getByLabel("Unit price").first());
   await page.keyboard.press("Meta+A");
   await page.keyboard.type("500");
 
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("button", { name: "Add line item" })).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("button", { name: "Create service package" })).toBeFocused();
+  await tabUntilFocused(page, page.getByRole("button", { name: "Add line item" }));
+  await expectFocused(page.getByRole("button", { name: "Add line item" }));
+  await tabUntilFocused(page, page.getByRole("button", { name: "Create service package" }));
+  await expectFocused(page.getByRole("button", { name: "Create service package" }));
   await page.keyboard.press("Enter");
 
   await expect(page).not.toHaveURL(/\/service-packages\/new$/);

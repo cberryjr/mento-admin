@@ -1,14 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 async function signIn(page: import("@playwright/test").Page) {
-  const email = process.env.STUDIO_OWNER_EMAIL;
-  const password = process.env.STUDIO_OWNER_PASSWORD;
-
-  if (!email || !password) {
-    throw new Error(
-      "STUDIO_OWNER_EMAIL and STUDIO_OWNER_PASSWORD environment variables must be set for e2e tests.",
-    );
-  }
+  const email = process.env.STUDIO_OWNER_EMAIL ?? "owner@example.com";
+  const password = process.env.STUDIO_OWNER_PASSWORD ?? "dev-password";
 
   await page.goto("/settings");
   await expect(page).toHaveURL(/\/sign-in/);

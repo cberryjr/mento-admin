@@ -606,6 +606,8 @@ describe("QuoteStructureEditor", () => {
       expect(screen.getByRole("alert")).toBeInTheDocument();
     });
 
-    expect(screen.getByRole("button", { name: /save draft/i })).toBeEnabled();
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /save draft/i })).toBeEnabled();
+    });
   });
 });

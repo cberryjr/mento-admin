@@ -12,6 +12,14 @@ type InvoiceDetailPageProps = {
   searchParams: Promise<{ backTo?: string }>;
 };
 
+function buildInvoicePreviewHref(invoiceId: string, backTo: string): string {
+  return `/invoices/${invoiceId}/preview?backTo=${encodeURIComponent(backTo)}`;
+}
+
+function buildInvoicePdfHref(invoiceId: string): string {
+  return `/api/invoices/${invoiceId}/pdf`;
+}
+
 function sanitizeBackTo(value: string | undefined): string {
   if (!value || !value.startsWith("/") || value.startsWith("//")) {
     return "/invoices";
@@ -76,6 +84,8 @@ export default async function InvoiceDetailPage({
   }
 
   const { invoice } = result.data;
+  const previewHref = buildInvoicePreviewHref(invoice.id, safeBackTo);
+  const pdfHref = buildInvoicePdfHref(invoice.id);
 
   return (
     <section className="space-y-6 rounded-xl border border-zinc-200 bg-white p-6">
@@ -90,12 +100,26 @@ export default async function InvoiceDetailPage({
               : "Review the carried-over commercial data, client details, and linked quote."}
           </p>
         </div>
-        <Link
-          href={safeBackTo}
-          className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
-        >
-          Back
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={previewHref}
+            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+          >
+            Preview
+          </Link>
+          <Link
+            href={pdfHref}
+            className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+          >
+            Export PDF
+          </Link>
+          <Link
+            href={safeBackTo}
+            className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+          >
+            Back
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

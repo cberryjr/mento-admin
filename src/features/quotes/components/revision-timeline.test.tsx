@@ -176,12 +176,13 @@ describe("RevisionTimeline", () => {
     render(<RevisionTimeline {...defaultProps} />);
 
     const currentButton = screen.getByText("Current working version").closest("button");
-    expect(currentButton).toHaveAttribute("aria-current", "step");
+    expect(currentButton).toHaveAttribute("aria-pressed", "true");
 
     const revisionButton = screen.getByLabelText("View revision 1");
     fireEvent.click(revisionButton);
 
     expect(revisionButton).toHaveAttribute("aria-pressed", "true");
+    expect(currentButton).toHaveAttribute("aria-pressed", "false");
   });
 
   it("dismisses the selected revision with Escape and returns focus", async () => {

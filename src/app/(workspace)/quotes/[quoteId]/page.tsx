@@ -11,6 +11,7 @@ import {
   buildQuotePreviewHref,
   sanitizeQuoteBackTo,
 } from "@/features/quotes/lib/navigation";
+import { InlineAlert } from "@/components/feedback/inline-alert";
 import { getServicePackageById } from "@/features/service-packages/server/queries/get-service-package-by-id";
 
 type QuoteDetailPageProps = {
@@ -32,16 +33,10 @@ function renderQuoteLoadFailure(message: string, backTo?: string) {
           Back to quotes
         </Link>
       </div>
-      <section
-        role="alert"
-        className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900"
-      >
-        <p className="font-semibold">Could not load quote</p>
-        <p className="mt-1">{message}</p>
-        <p className="mt-1">
+      <InlineAlert title="Could not load quote" message={message} />
+        <p className="mt-1 text-sm text-zinc-600">
           Try reloading the page, or return to the quotes list and reopen the quote.
         </p>
-      </section>
     </section>
   );
 }

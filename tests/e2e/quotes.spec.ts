@@ -349,6 +349,15 @@ test("navigates to dedicated revision history page and views prior version", asy
   await page.getByLabel("View revision 1").click();
   await expect(page.getByText("Revision 1 detail")).toBeVisible();
 
+  // Escape dismisses the detail panel and returns focus to the trigger button
+  await page.keyboard.press("Escape");
+  await expect(page.getByText("Revision 1 detail")).not.toBeVisible();
+  await expect(page.getByText("Current version detail")).toBeVisible();
+  await expect(page.getByLabel("View revision 1")).toBeFocused();
+
+  // Click back to current version shows current detail
+  await page.getByLabel("View revision 1").click();
+  await expect(page.getByText("Revision 1 detail")).toBeVisible();
   await page.getByText("Back to current version").click();
   await expect(page.getByText("Current version detail")).toBeVisible();
 

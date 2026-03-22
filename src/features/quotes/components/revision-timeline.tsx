@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { InlineAlert } from "@/components/feedback/inline-alert";
 import {
   Table,
   TableBody,
@@ -47,10 +48,6 @@ type VersionDetailPanelProps = {
   dismissButtonRef?: RefObject<HTMLButtonElement | null>;
   onDismiss?: () => void;
 };
-
-function calculateSectionTotal(section: QuoteSectionRecord): number {
-  return section.lineItems.reduce((total, lineItem) => total + lineItem.lineTotalCents, 0);
-}
 
 function VersionDetailPanel({
   panelLabel,
@@ -103,7 +100,7 @@ function VersionDetailPanel({
         {sections.length > 0 ? (
           <div className="space-y-4">
             {sections.map((section) => {
-              const sectionTotal = calculateSectionTotal(section);
+              const sectionTotal = section.lineItems.reduce((total, li) => total + li.lineTotalCents, 0);
 
               return (
                 <Card key={section.id} className="border-zinc-200 shadow-none">
@@ -252,13 +249,7 @@ export function RevisionTimeline({ revisions, currentVersion }: RevisionTimeline
       </div>
 
       {!hasRevisions ? (
-        <Card className="border-dashed border-zinc-300 text-center shadow-none">
-          <CardContent className="p-4">
-            <p className="text-sm text-zinc-600">
-              No previous revisions yet. Save a revision to start tracking changes.
-            </p>
-          </CardContent>
-        </Card>
+        <InlineAlert title="No previous revisions yet" message="Save a revision to start tracking changes." />
       ) : null}
 
       <ol className="space-y-3">
@@ -271,7 +262,7 @@ export function RevisionTimeline({ revisions, currentVersion }: RevisionTimeline
                 ? "border-blue-200 bg-blue-50"
                 : "border-zinc-200 bg-white hover:bg-zinc-50"
             }`}
-            aria-current="step"
+            aria-pressed={selectedRevisionIndex === null}
           >
             <div>
               <p className="text-sm font-semibold text-zinc-900">Current version</p>

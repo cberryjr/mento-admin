@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 
 import { InlineAlert } from "@/components/feedback/inline-alert";
 import { InvoicePreview } from "@/features/invoices/components/invoice-preview";
+import {
+  buildInvoiceDetailHref,
+  sanitizeInvoiceBackTo,
+} from "@/features/invoices/lib/navigation";
 import { getInvoice } from "@/features/invoices/server/queries/get-invoice";
 import { getStudioDefaults } from "@/features/studio-defaults/server/queries/get-studio-defaults";
 
@@ -10,33 +14,6 @@ type InvoicePreviewPageProps = {
   params: Promise<{ invoiceId: string }>;
   searchParams: Promise<{ backTo?: string }>;
 };
-
-function sanitizeBackTo(value: string | undefined): string {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return "/invoices";
-  }
-
-  try {
-    const parsedBackTo = new URL(value, "https://mento-admin.local");
-
-    if (parsedBackTo.pathname !== "/invoices") {
-      return "/invoices";
-    }
-
-    const search = parsedBackTo.searchParams.get("search");
-    if (!search) {
-      return "/invoices";
-    }
-
-    return `/invoices?search=${encodeURIComponent(search)}`;
-  } catch {
-    return "/invoices";
-  }
-}
-
-function buildInvoiceDetailHref(invoiceId: string, backTo: string): string {
-  return `/invoices/${invoiceId}?backTo=${encodeURIComponent(backTo)}`;
-}
 
 function renderInvoicePreviewLoadFailure(message: string, detailHref: string) {
   return (
@@ -66,7 +43,7 @@ export default async function InvoicePreviewPage({
 }: InvoicePreviewPageProps) {
   const { invoiceId } = await params;
   const { backTo } = await searchParams;
-  const safeBackTo = sanitizeBackTo(backTo);
+  const safeBackTo = sanitizeInvoiceBackTo(backTo);
   const detailHref = buildInvoiceDetailHref(invoiceId, safeBackTo);
 
   const invoiceResult = await getInvoice(invoiceId);

@@ -8,6 +8,7 @@ import { QuoteStructureView } from "@/features/quotes/components/quote-structure
 import { QuoteStructureEditor } from "@/features/quotes/components/quote-structure-editor";
 import { EstimateBreakdownPanel } from "@/features/quotes/components/estimate-breakdown-panel";
 import {
+  buildQuoteDetailHref,
   buildQuotePreviewHref,
   sanitizeQuoteBackTo,
 } from "@/features/quotes/lib/navigation";
@@ -134,7 +135,10 @@ export default async function QuoteDetailPage({
             <MarkQuoteAcceptedButton quoteId={quote.id} />
           ) : null}
           {quote.status === "accepted" && hasGeneratedContent ? (
-            <ConvertToInvoiceButton quoteId={quote.id} />
+            <ConvertToInvoiceButton
+              quoteId={quote.id}
+              backTo={buildQuoteDetailHref(quote.id, safeBackTo)}
+            />
           ) : null}
           {quote.status === "invoiced" && hasGeneratedContent ? (
             <span className="rounded-md border border-zinc-300 bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-600">

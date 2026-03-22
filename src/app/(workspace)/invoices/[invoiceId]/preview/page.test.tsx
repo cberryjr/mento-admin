@@ -157,4 +157,40 @@ describe("InvoicePreviewPage", () => {
       "/invoices/invoice-1?backTo=%2Finvoices",
     );
   });
+
+  it("preserves linked quote detail back navigation", async () => {
+    const { getInvoice } = await import("@/features/invoices/server/queries/get-invoice");
+    const { getStudioDefaults } = await import(
+      "@/features/studio-defaults/server/queries/get-studio-defaults"
+    );
+
+    vi.mocked(getInvoice).mockResolvedValue({
+      ok: true,
+      data: { invoice: INVOICE },
+    } as never);
+    vi.mocked(getStudioDefaults).mockResolvedValue({
+      ok: true,
+      data: {
+        studioDefaults: {
+          studioName: "Mento Studio",
+        },
+      },
+    } as never);
+
+    const { default: InvoicePreviewPage } = await import(
+      "@/app/(workspace)/invoices/[invoiceId]/preview/page"
+    );
+
+    const page = InvoicePreviewPage({
+      params: Promise.resolve({ invoiceId: "invoice-1" }),
+      searchParams: Promise.resolve({ backTo: "/quotes/quote-1?backTo=/quotes" }),
+    });
+
+    render(await page);
+
+    expect(screen.getByRole("link", { name: /back to invoice/i })).toHaveAttribute(
+      "href",
+      "/invoices/invoice-1?backTo=%2Fquotes%2Fquote-1%3FbackTo%3D%252Fquotes",
+    );
+  });
 });

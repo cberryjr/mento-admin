@@ -7,6 +7,7 @@ import type {
   InvoiceClientRecord,
   InvoiceDetailRecord,
   InvoiceRecord,
+  InvoiceStatus,
 } from "@/features/invoices/types";
 import {
   mapInvoiceRowToRecord,
@@ -16,6 +17,7 @@ import {
   createInvoiceInStore,
   readInvoiceByIdFromStore,
   readInvoicesFromStore,
+  setInvoiceStatusInStore,
   updateInvoiceInStore,
 } from "@/features/invoices/server/store/invoices-store";
 import { readClientByIdFromStore } from "@/features/clients/server/store/clients-store";
@@ -625,6 +627,35 @@ export async function updateInvoice(
       }
 
       return updated;
+    }
+
+    throw error;
+  }
+}
+
+export async function updateInvoiceStatus(
+  invoiceId: string,
+  status: InvoiceStatus,
+): Promise<InvoiceDetailRecord | null> {
+  if (!isDatabaseConfigured()) {
+    return setInvoiceStatusInStore(invoiceId, status);
+  }
+
+  try {
+    const [{ db }, schema] = await Promise.all([
+      import("@/server/db"),
+      import("@/server/db/schema/invoices"),
+    ]);
+
+    await db
+      .update(schema.invoices)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(schema.invoices.id, invoiceId));
+
+    return getInvoiceById(invoiceId);
+  } catch (error) {
+    if (shouldUseStoreFallback(error)) {
+      return setInvoiceStatusInStore(invoiceId, status);
     }
 
     throw error;

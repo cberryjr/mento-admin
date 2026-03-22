@@ -4,13 +4,18 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { InlineAlert } from "@/components/feedback/inline-alert";
+import { buildInvoiceDetailHref } from "@/features/invoices/lib/navigation";
 import { createInvoiceFromQuoteAction } from "@/features/invoices/server/actions/create-invoice-from-quote";
 
 type ConvertToInvoiceButtonProps = {
   quoteId: string;
+  backTo?: string;
 };
 
-export function ConvertToInvoiceButton({ quoteId }: ConvertToInvoiceButtonProps) {
+export function ConvertToInvoiceButton({
+  quoteId,
+  backTo,
+}: ConvertToInvoiceButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +30,7 @@ export function ConvertToInvoiceButton({ quoteId }: ConvertToInvoiceButtonProps)
       if (result.ok) {
         setInvoiceId(result.data.invoice.id);
         router.refresh();
-        router.push(`/invoices/${result.data.invoice.id}`);
+        router.push(buildInvoiceDetailHref(result.data.invoice.id, backTo));
         return;
       }
 

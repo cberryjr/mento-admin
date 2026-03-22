@@ -118,6 +118,36 @@ describe("InvoiceDetailPage", () => {
         "href",
         "/api/invoices/invoice-1/pdf",
       );
+      expect(screen.getByRole("button", { name: "Reopen for Editing" })).toBeInTheDocument();
     },
   );
+
+  it("preserves linked quote back navigation for reopened invoices", async () => {
+    const { getInvoice } = await import("@/features/invoices/server/queries/get-invoice");
+
+    vi.mocked(getInvoice).mockResolvedValue({
+      ok: true,
+      data: { invoice: buildInvoice("sent") },
+    } as never);
+
+    const { default: InvoiceDetailPage } = await import(
+      "@/app/(workspace)/invoices/[invoiceId]/page"
+    );
+
+    const page = InvoiceDetailPage({
+      params: Promise.resolve({ invoiceId: "invoice-1" }),
+      searchParams: Promise.resolve({ backTo: "/quotes/quote-1?backTo=/quotes" }),
+    });
+
+    render(await page);
+
+    expect(screen.getByRole("link", { name: "Back" })).toHaveAttribute(
+      "href",
+      "/quotes/quote-1?backTo=%2Fquotes",
+    );
+    expect(screen.getByRole("link", { name: "Preview" })).toHaveAttribute(
+      "href",
+      "/invoices/invoice-1/preview?backTo=%2Fquotes%2Fquote-1%3FbackTo%3D%252Fquotes",
+    );
+  });
 });

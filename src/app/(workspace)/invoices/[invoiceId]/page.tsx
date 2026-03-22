@@ -4,7 +4,12 @@ import { notFound } from "next/navigation";
 import { getInvoice } from "@/features/invoices/server/queries/get-invoice";
 import { ConversionReviewPanel } from "@/features/invoices/components/conversion-review-panel";
 import { InvoiceForm } from "@/features/invoices/components/invoice-form";
+import { ReopenInvoiceButton } from "@/features/invoices/components/reopen-invoice-button";
 import { updateInvoiceAction } from "@/features/invoices/server/actions/update-invoice";
+import {
+  buildInvoicePreviewHref,
+  sanitizeInvoiceBackTo,
+} from "@/features/invoices/lib/navigation";
 import { InlineAlert } from "@/components/feedback/inline-alert";
 
 type InvoiceDetailPageProps = {
@@ -12,35 +17,8 @@ type InvoiceDetailPageProps = {
   searchParams: Promise<{ backTo?: string }>;
 };
 
-function buildInvoicePreviewHref(invoiceId: string, backTo: string): string {
-  return `/invoices/${invoiceId}/preview?backTo=${encodeURIComponent(backTo)}`;
-}
-
 function buildInvoicePdfHref(invoiceId: string): string {
   return `/api/invoices/${invoiceId}/pdf`;
-}
-
-function sanitizeBackTo(value: string | undefined): string {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return "/invoices";
-  }
-
-  try {
-    const parsedBackTo = new URL(value, "https://mento-admin.local");
-
-    if (parsedBackTo.pathname !== "/invoices") {
-      return "/invoices";
-    }
-
-    const search = parsedBackTo.searchParams.get("search");
-    if (!search) {
-      return "/invoices";
-    }
-
-    return `/invoices?search=${encodeURIComponent(search)}`;
-  } catch {
-    return "/invoices";
-  }
 }
 
 function renderInvoiceLoadFailure(message: string, backTo: string) {
@@ -71,7 +49,7 @@ export default async function InvoiceDetailPage({
 }: InvoiceDetailPageProps) {
   const { invoiceId } = await params;
   const { backTo } = await searchParams;
-  const safeBackTo = sanitizeBackTo(backTo);
+  const safeBackTo = sanitizeInvoiceBackTo(backTo);
 
   const result = await getInvoice(invoiceId);
 
@@ -163,7 +141,10 @@ export default async function InvoiceDetailPage({
       {invoice.status === "draft" ? (
         <InvoiceForm invoice={invoice} submitAction={updateInvoiceAction} />
       ) : (
-        <ConversionReviewPanel invoice={invoice} />
+        <div className="space-y-4">
+          <ConversionReviewPanel invoice={invoice} />
+          <ReopenInvoiceButton invoiceId={invoice.id} />
+        </div>
       )}
     </section>
   );

@@ -74,7 +74,8 @@ export async function loadStudioDefaults(studioId: string): Promise<StudioDefaul
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     });
-  } catch {
+  } catch (error) {
+    console.error("[studio-defaults] Failed to load from database, falling back to in-memory store", error);
     return readStudioDefaultsFromStore(studioId);
   }
 }
@@ -142,7 +143,8 @@ export async function saveStudioDefaults(
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     });
-  } catch {
+  } catch (error) {
+    console.error("[studio-defaults] Failed to save to database, falling back to in-memory store", error);
     return writeStudioDefaultsToStore(studioId, input);
   }
 }

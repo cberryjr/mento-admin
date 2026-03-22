@@ -14,3 +14,9 @@ export function ensureStudioAccess(session: AuthSession | null | undefined, stud
     throw new AppError(ERROR_CODES.FORBIDDEN, "You are not allowed to access this workspace.");
   }
 }
+
+export function ensureStudioOwner(session: AuthSession) {
+  if (session.user.role !== "owner") {
+    throw new AppError(ERROR_CODES.FORBIDDEN, "You are not allowed to modify studio settings.");
+  }
+}

@@ -1,8 +1,14 @@
 import { expect, test } from "@playwright/test";
 
-test("saves and reloads studio defaults", async ({ page }) => {
-  const email = process.env.STUDIO_OWNER_EMAIL ?? "owner@example.com";
-  const password = process.env.STUDIO_OWNER_PASSWORD ?? "dev-password";
+async function signIn(page: import("@playwright/test").Page) {
+  const email = process.env.STUDIO_OWNER_EMAIL;
+  const password = process.env.STUDIO_OWNER_PASSWORD;
+
+  if (!email || !password) {
+    throw new Error(
+      "STUDIO_OWNER_EMAIL and STUDIO_OWNER_PASSWORD environment variables must be set for e2e tests.",
+    );
+  }
 
   await page.goto("/settings");
   await expect(page).toHaveURL(/\/sign-in/);
@@ -12,6 +18,10 @@ test("saves and reloads studio defaults", async ({ page }) => {
   await page.getByRole("button", { name: "Sign in" }).click();
 
   await expect(page).toHaveURL(/\/settings$/);
+}
+
+test("saves and reloads studio defaults", async ({ page }) => {
+  await signIn(page);
 
   await page.getByLabel("Studio name").fill("Northwind Creative");
   await page.getByLabel("Studio contact name").fill("Casey Jones");
@@ -37,4 +47,18 @@ test("saves and reloads studio defaults", async ({ page }) => {
   await expect(page.getByLabel("Default quote terms")).toHaveValue(
     "50% due at project start. Net 15 for remainder.",
   );
+});
+
+test("shows inline validation errors on invalid submit and preserves values", async ({ page }) => {
+  await signIn(page);
+
+  await page.getByLabel("Studio name").fill("Test Studio");
+  await page.getByLabel("Default quote terms").fill("Some terms");
+
+  await page.getByRole("button", { name: "Save defaults" }).click();
+
+  await expect(page.getByRole("alert")).toBeVisible();
+
+  await expect(page.getByLabel("Studio name")).toHaveValue("Test Studio");
+  await expect(page.getByLabel("Default quote terms")).toHaveValue("Some terms");
 });

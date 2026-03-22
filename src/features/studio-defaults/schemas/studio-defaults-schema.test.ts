@@ -33,6 +33,7 @@ describe("studioDefaultsSchema", () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.flatten().fieldErrors.studioName?.length).toBeGreaterThan(0);
+      expect(result.error.flatten().fieldErrors.studioContactName?.length).toBeGreaterThan(0);
       expect(result.error.flatten().fieldErrors.defaultQuoteTerms?.length).toBeGreaterThan(0);
       expect(
         result.error.flatten().fieldErrors.defaultInvoicePaymentInstructions?.length,

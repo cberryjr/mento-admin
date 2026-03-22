@@ -1,6 +1,6 @@
 # Story 1.4: Manage Studio Defaults for Quote and Invoice Prefill
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -196,7 +196,35 @@ openai/gpt-5.3-codex
 - src/server/db/schema/index.ts
 - src/server/db/schema/studio-defaults.ts
 - tests/e2e/settings-defaults.spec.ts
+- src/server/auth/permissions.ts
+- src/features/studio-defaults/server/studio-defaults-repository.test.ts
+
+## Senior Developer Review (AI)
+
+**Reviewer:** chuck chuck (AI)
+**Date:** 2026-03-21
+**Outcome:** Changes Requested → Fixed
+
+### Issues Found and Fixed
+
+**HIGH (4 — all fixed):**
+1. `ensureStudioAccess(session, session.user.studioId)` was self-referential — authorization only checked role, not a real target studio. Replaced with `ensureStudioOwner(session)` in both action and query.
+2. Repository `catch {}` blocks silently swallowed database errors with no logging. Added `console.error` logging before fallback.
+3. E2E test only covered happy-path save+reload. Added test for invalid-submit inline validation behavior (AC #3).
+4. No repository-layer tests. Added `studio-defaults-repository.test.ts` covering save/load, upsert, prefill contract, and per-studio isolation.
+
+**MEDIUM (4 — all fixed):**
+5. `getStudioDefaults` query test only covered null case. Added tests for existing defaults, FORBIDDEN denial, and UNAUTHORIZED denial.
+6. Form component test only checked label visibility. Added tests for success message, error message with field errors, value preservation on failure, and initialValues prefill.
+7. E2E test had hardcoded `?? "dev-password"` fallback. Replaced with fail-fast error if env vars are missing.
+8. `studioContactName` had no `.min(1)` in Zod schema — inconsistent with other required contact fields. Added required validation.
+
+### Test Results
+- 381 tests pass across 67 test files
+- `npm run lint` clean
+- New test files: `studio-defaults-repository.test.ts` (6 tests)
 
 ## Change Log
 
 - 2026-03-17: Implemented Story 1.4 end-to-end with schema/migration, authenticated defaults query+mutation, accessible settings form UX, stable prefill contract, and full regression coverage (unit/integration/e2e).
+- 2026-03-21: Code review — fixed self-referential auth check, added repository error logging, made studioContactName required, expanded test coverage (repository, query, form, e2e validation), removed hardcoded credentials. Status → done.

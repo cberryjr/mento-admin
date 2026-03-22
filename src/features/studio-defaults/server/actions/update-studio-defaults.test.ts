@@ -40,6 +40,7 @@ describe("updateStudioDefaults", () => {
     if (!result.ok) {
       expect(result.error.code).toBe("VALIDATION_ERROR");
       expect(result.error.fieldErrors?.studioName).toBeDefined();
+      expect(result.error.fieldErrors?.studioContactName).toBeDefined();
     }
   });
 
@@ -89,7 +90,7 @@ describe("updateStudioDefaults", () => {
 
     const result = await updateStudioDefaults({
       studioName: "Northwind Creative",
-      studioContactName: "",
+      studioContactName: "Casey Jones",
       studioContactEmail: "",
       studioContactPhone: "",
       defaultQuoteTerms: "Net 15",

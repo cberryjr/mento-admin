@@ -1,7 +1,7 @@
 "use server";
 
 import { requireSession } from "@/features/auth/require-session";
-import { ensureStudioAccess } from "@/server/auth/permissions";
+import { ensureStudioOwner } from "@/server/auth/permissions";
 import { AppError } from "@/lib/errors/app-error";
 import { ERROR_CODES } from "@/lib/errors/error-codes";
 import type { ActionResult } from "@/lib/validation/action-result";
@@ -31,7 +31,7 @@ export async function updateStudioDefaults(
 
   try {
     const session = await requireSession();
-    ensureStudioAccess(session, session.user.studioId);
+    ensureStudioOwner(session);
 
     const studioDefaults = await saveStudioDefaults(
       session.user.studioId,

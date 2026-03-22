@@ -43,8 +43,8 @@ development_status:
   epic-1: in-progress
   1-1-set-up-initial-project-from-starter-template: done
   1-2-sign-in-to-a-protected-single-studio-workspace: done
-  1-3-navigate-the-workspace-and-reopen-existing-records: review
-  1-4-manage-studio-defaults-for-quote-and-invoice-prefill: review
+  1-3-navigate-the-workspace-and-reopen-existing-records: done
+  1-4-manage-studio-defaults-for-quote-and-invoice-prefill: done
   epic-1-retrospective: optional
 
   epic-2: in-progress

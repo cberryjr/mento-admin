@@ -28,6 +28,7 @@ export const studioDefaultsSchema = z.object({
     .max(120, "Studio name must be 120 characters or fewer."),
   studioContactName: z
     .string()
+    .min(1, "Studio contact name is required.")
     .max(120, "Studio contact name must be 120 characters or fewer."),
   studioContactEmail: z
     .string()

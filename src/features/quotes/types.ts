@@ -94,6 +94,21 @@ export type QuoteSectionRecord = {
   lineItems: QuoteLineItemRecord[];
 };
 
+export type QuoteRevisionSnapshotData = {
+  sections: QuoteSectionRecord[];
+};
+
+export type QuoteRevisionRecord = {
+  id: string;
+  quoteId: string;
+  studioId: string;
+  revisionNumber: number;
+  snapshotData: QuoteRevisionSnapshotData;
+  title: string;
+  terms: string;
+  createdAt: string;
+};
+
 export type QuoteSummary = {
   id: string;
   quoteNumber: string;

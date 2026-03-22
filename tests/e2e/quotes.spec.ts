@@ -207,7 +207,9 @@ test("saves a draft, navigates to the quotes list, and reopens it with preserved
 
   await page.getByLabel("Quantity").first().fill("2");
   await page.getByRole("button", { name: /save draft/i }).click();
-  await expect(page.getByText("Quote draft saved successfully.")).toBeVisible();
+  await expect(
+    page.getByText(/Quote draft saved successfully\.|Line item saved\./),
+  ).toBeVisible();
 
   await page.getByRole("link", { name: /back to quotes/i }).click();
   await expect(page).toHaveURL(/\/quotes$/);
@@ -259,4 +261,97 @@ test("reopens a draft in revision mode and keeps revision orientation through pr
   await page.getByRole("link", { name: /back to editor/i }).click();
   await expect(page).toHaveURL(/\/quotes\/[^?]+\?backTo=%2Fquotes&saved=revised$/);
   await expect(page.getByText("Revising existing quote")).toBeVisible();
+});
+
+test("saves a revised quote, preserves the prior version, and reopens with the latest content", async ({ page }) => {
+  await signIn(page, "/quotes/new");
+  await expect(page).toHaveURL(/\/quotes\/new$/);
+
+  await page.getByRole("radio", { name: /Sunrise Yoga Studio/i }).check();
+  await page.getByRole("button", { name: "Continue to service packages" }).click();
+
+  const quoteTitle = `RevisionSave ${Date.now()}`;
+  await page.getByLabel("Quote title").fill(quoteTitle);
+  await page.getByRole("checkbox", { name: /Brand Launch Package/i }).check();
+  await page.getByRole("button", { name: "Create quote draft" }).click();
+  await page.getByRole("button", { name: "Generate quote content" }).click();
+
+  await expect(page.getByText(/Quote editor/)).toBeVisible({ timeout: 10000 });
+  await page.getByRole("button", { name: /save draft/i }).click();
+  await expect(page.getByText("Quote draft saved successfully.")).toBeVisible();
+
+  await page.getByRole("link", { name: /back to quotes/i }).click();
+  await expect(page).toHaveURL(/\/quotes$/);
+
+  await page.getByRole("link", { name: `Revise ${quoteTitle}` }).click();
+  await expect(page).toHaveURL(/\/quotes\/[^?]+\?backTo=%2Fquotes&saved=revised$/);
+  await expect(page.getByText("Revising existing quote")).toBeVisible();
+
+  await page.getByLabel("Section title").first().fill("Revision Saved Scope");
+  await page.getByRole("button", { name: /save revision/i }).click();
+
+  await expect(
+    page.getByText("Revision saved. Previous version preserved."),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /revision history/i })).toBeVisible();
+
+  await page.getByRole("link", { name: /back to quotes/i }).click();
+  await expect(page).toHaveURL(/\/quotes$/);
+
+  await page.getByRole("link", { name: `Open ${quoteTitle}` }).click();
+  await expect(page).toHaveURL(/\/quotes\/[^?]+/);
+  await expect(page.getByText(/Quote editor/)).toBeVisible({ timeout: 10000 });
+  await expect(page.getByLabel("Section title").first()).toHaveValue(
+    "Revision Saved Scope",
+  );
+  await expect(page.getByRole("link", { name: /revision history/i })).toBeVisible();
+});
+
+test("navigates to dedicated revision history page and views prior version", async ({ page }) => {
+  await signIn(page, "/quotes/new");
+  await expect(page).toHaveURL(/\/quotes\/new$/);
+
+  await page.getByRole("radio", { name: /Sunrise Yoga Studio/i }).check();
+  await page.getByRole("button", { name: "Continue to service packages" }).click();
+
+  const quoteTitle = `RevHistoryPage ${Date.now()}`;
+  await page.getByLabel("Quote title").fill(quoteTitle);
+  await page.getByRole("checkbox", { name: /Brand Launch Package/i }).check();
+  await page.getByRole("button", { name: "Create quote draft" }).click();
+  await page.getByRole("button", { name: "Generate quote content" }).click();
+
+  await expect(page.getByText(/Quote editor/)).toBeVisible({ timeout: 10000 });
+  await page.getByRole("button", { name: /save draft/i }).click();
+  await expect(page.getByText("Quote draft saved successfully.")).toBeVisible();
+
+  await page.getByRole("link", { name: /back to quotes/i }).click();
+  await expect(page).toHaveURL(/\/quotes$/);
+
+  await page.getByRole("link", { name: `Revise ${quoteTitle}` }).click();
+  await expect(page).toHaveURL(/\/quotes\/[^?]+\?backTo=%2Fquotes&saved=revised$/);
+
+  await page.getByLabel("Section title").first().fill("Revision Page Scope");
+  await page.getByRole("button", { name: /save revision/i }).click();
+  await expect(page.getByText("Revision saved. Previous version preserved.")).toBeVisible();
+
+  await page.getByRole("link", { name: /revision history/i }).click();
+  await expect(page).toHaveURL(/\/quotes\/[^/]+\/revisions/);
+  await expect(
+    page.getByRole("heading", { name: "Revision history", level: 2 }),
+  ).toBeVisible();
+
+  await expect(
+    page.getByRole("button", { name: /Current version/ }),
+  ).toBeVisible();
+  await expect(page.getByText("Current working version")).toBeVisible();
+  await expect(page.getByText(/^Revision 1$/)).toBeVisible();
+
+  await page.getByLabel("View revision 1").click();
+  await expect(page.getByText("Revision 1 detail")).toBeVisible();
+
+  await page.getByText("Back to current version").click();
+  await expect(page.getByText("Current version detail")).toBeVisible();
+
+  await page.getByRole("link", { name: "Back to quote", exact: true }).click();
+  await expect(page).toHaveURL(/\/quotes\/[^?]+/);
 });

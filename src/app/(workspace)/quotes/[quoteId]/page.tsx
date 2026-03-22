@@ -107,6 +107,14 @@ export default async function QuoteDetailPage({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {hasGeneratedContent ? (
+            <Link
+              href={`/quotes/${quote.id}/revisions?backTo=${encodeURIComponent(safeBackTo)}`}
+              className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+            >
+              Revision history
+            </Link>
+          ) : null}
           {hasGeneratedContent && quote.status === "draft" ? (
             <Link
               href={buildQuotePreviewHref(

@@ -1,4 +1,5 @@
 export { clients } from "@/server/db/schema/clients";
+export { quoteRevisions } from "@/server/db/schema/quote-revisions";
 export { quoteLineItems, quoteSections } from "@/server/db/schema/quote-sections";
 export { quoteServicePackages, quotes } from "@/server/db/schema/quotes";
 export {

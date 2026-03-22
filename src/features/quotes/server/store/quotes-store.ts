@@ -5,6 +5,7 @@ import {
   type QuoteDetailRecord,
   type QuoteInput,
   type QuoteLineItemRecord,
+  type QuoteRevisionRecord,
   type QuoteSectionRecord,
   type QuoteSummary,
 } from "@/features/quotes/types";
@@ -27,6 +28,7 @@ type QuotesStoreGlobal = typeof globalThis & {
   __mentoQuotesStore?: Map<string, QuoteDetailRecord>;
   __mentoQuoteSectionsStore?: Map<string, SectionStoreEntry[]>;
   __mentoQuoteLineItemsStore?: Map<string, QuoteLineItemRecord[]>;
+  __mentoQuoteRevisionsStore?: Map<string, QuoteRevisionRecord[]>;
 };
 
 function getQuotesStore() {
@@ -57,6 +59,16 @@ function getQuoteLineItemsStore() {
   }
 
   return storeGlobal.__mentoQuoteLineItemsStore;
+}
+
+function getQuoteRevisionsStore() {
+  const storeGlobal = globalThis as QuotesStoreGlobal;
+
+  if (!storeGlobal.__mentoQuoteRevisionsStore) {
+    storeGlobal.__mentoQuoteRevisionsStore = new Map();
+  }
+
+  return storeGlobal.__mentoQuoteRevisionsStore;
 }
 
 function generateQuoteNumber(): string {
@@ -180,6 +192,13 @@ export function setQuoteEstimateBreakdownInStore(
   }
 }
 
+export function touchQuoteInStore(quoteId: string): void {
+  const quote = getQuotesStore().get(quoteId);
+  if (quote) {
+    quote.updatedAt = new Date().toISOString();
+  }
+}
+
 export function writeQuoteSectionsToStore(
   quoteId: string,
   sections: QuoteSectionRecord[],
@@ -200,6 +219,63 @@ export function readQuoteSectionsFromStore(
   quoteId: string,
 ): QuoteSectionRecord[] {
   return getSectionsForQuote(quoteId);
+}
+
+export function createQuoteRevisionInStore(
+  quoteId: string,
+  studioId: string,
+): QuoteRevisionRecord | null {
+  const quote = readQuoteByIdFromStore(quoteId);
+
+  if (!quote || quote.studioId !== studioId) {
+    return null;
+  }
+
+  const revisionsStore = getQuoteRevisionsStore();
+  const existingRevisions = revisionsStore.get(quoteId) ?? [];
+  const nextRevisionNumber =
+    existingRevisions.reduce(
+      (highestRevisionNumber, revision) =>
+        Math.max(highestRevisionNumber, revision.revisionNumber),
+      0,
+    ) + 1;
+
+  const revision: QuoteRevisionRecord = {
+    id: randomUUID(),
+    quoteId,
+    studioId,
+    revisionNumber: nextRevisionNumber,
+    snapshotData: {
+      sections: cloneQuote(quote.sections),
+    },
+    title: quote.title,
+    terms: quote.terms,
+    createdAt: new Date().toISOString(),
+  };
+
+  revisionsStore.set(quoteId, [...existingRevisions, cloneQuote(revision)]);
+
+  return cloneQuote(revision);
+}
+
+export function listQuoteRevisionsFromStore(
+  quoteId: string,
+  studioId: string,
+): QuoteRevisionRecord[] {
+  const quote = getQuotesStore().get(quoteId);
+
+  if (!quote || quote.studioId !== studioId) {
+    return [];
+  }
+
+  return cloneQuote(
+    [...(getQuoteRevisionsStore().get(quoteId) ?? [])].sort((left, right) => {
+      return (
+        right.revisionNumber - left.revisionNumber ||
+        right.createdAt.localeCompare(left.createdAt)
+      );
+    }),
+  );
 }
 
 export function deleteQuoteSectionsFromStore(quoteId: string): void {
@@ -227,4 +303,5 @@ export function __resetQuotesStore() {
   storeGlobal.__mentoQuotesStore = createSeededStore();
   storeGlobal.__mentoQuoteSectionsStore = new Map();
   storeGlobal.__mentoQuoteLineItemsStore = new Map();
+  storeGlobal.__mentoQuoteRevisionsStore = new Map();
 }

@@ -5,15 +5,17 @@ import {
 } from "@/features/quotes/server/store/quotes-store";
 import {
   listQuotesForStudio,
+  listQuoteRevisions,
   getQuoteById,
   createQuoteRecord,
+  createQuoteRevision,
   updateQuoteRecord,
   saveQuoteSections,
   deleteQuoteSections,
   setQuoteGeneratedAt,
   __resetQuotesStore as resetRepositoryStore,
 } from "@/features/quotes/server/quotes-repository";
-import type { QuoteSectionRecord } from "@/features/quotes/types";
+import type { QuoteRevisionRecord, QuoteSectionRecord } from "@/features/quotes/types";
 
 beforeEach(() => {
   __resetQuotesStore();
@@ -126,6 +128,7 @@ describe("quotes-repository (fallback store path)", () => {
 
 describe("quotes-sections-repository (fallback store path)", () => {
   const studioId = "default-studio";
+  const otherStudioId = "other-studio";
 
   const baseInput = {
     clientId: "client-1",
@@ -304,5 +307,127 @@ describe("quotes-sections-repository (fallback store path)", () => {
 
     const found = await getQuoteById(quote.id);
     expect(found!.sections).toHaveLength(2);
+  });
+
+  it("createQuoteRevision increments revision numbers for the same quote", async () => {
+    const quote = await createQuoteRecord(studioId, baseInput);
+
+    await saveQuoteSections(quote.id, studioId, [
+      {
+        id: "qs-1",
+        quoteId: quote.id,
+        studioId,
+        sourceServicePackageId: "sp-1",
+        title: "Version One",
+        content: "",
+        position: 1,
+        lineItems: [],
+      },
+    ]);
+
+    const firstRevision = await createQuoteRevision(quote.id, studioId);
+
+    await saveQuoteSections(quote.id, studioId, [
+      {
+        id: "qs-1",
+        quoteId: quote.id,
+        studioId,
+        sourceServicePackageId: "sp-1",
+        title: "Version Two",
+        content: "",
+        position: 1,
+        lineItems: [],
+      },
+    ]);
+
+    const secondRevision = await createQuoteRevision(quote.id, studioId);
+
+    expect(firstRevision?.revisionNumber).toBe(1);
+    expect(secondRevision?.revisionNumber).toBe(2);
+  });
+
+  it("listQuoteRevisions returns newest-first revisions with snapshot data round-tripped from JSON", async () => {
+    vi.useFakeTimers();
+
+    vi.setSystemTime(new Date("2026-03-21T10:00:00.000Z"));
+    const quote = await createQuoteRecord(studioId, baseInput);
+
+    await saveQuoteSections(quote.id, studioId, [
+      {
+        id: "qs-1",
+        quoteId: quote.id,
+        studioId,
+        sourceServicePackageId: "sp-1",
+        title: "Initial Version",
+        content: "",
+        position: 1,
+        lineItems: [
+          {
+            id: "li-1",
+            quoteId: quote.id,
+            quoteSectionId: "qs-1",
+            studioId,
+            name: "Discovery",
+            content: "Workshop",
+            quantity: 1,
+            unitLabel: "session",
+            unitPriceCents: 25000,
+            lineTotalCents: 25000,
+            position: 1,
+          },
+        ],
+      },
+    ]);
+
+    await createQuoteRevision(quote.id, studioId);
+
+    vi.setSystemTime(new Date("2026-03-21T10:05:00.000Z"));
+
+    await saveQuoteSections(quote.id, studioId, [
+      {
+        id: "qs-1",
+        quoteId: quote.id,
+        studioId,
+        sourceServicePackageId: "sp-1",
+        title: "Latest Version",
+        content: "",
+        position: 1,
+        lineItems: [],
+      },
+    ]);
+
+    await createQuoteRevision(quote.id, studioId);
+
+    const revisions = await listQuoteRevisions(quote.id, studioId);
+
+    expect(revisions.map((revision) => revision.revisionNumber)).toEqual([2, 1]);
+    expect(revisions[0].snapshotData.sections[0].title).toBe("Latest Version");
+    expect(revisions[1].snapshotData.sections[0].title).toBe("Initial Version");
+    expect(revisions[1].snapshotData.sections[0].lineItems[0].name).toBe(
+      "Discovery",
+    );
+  });
+
+  it("listQuoteRevisions returns an empty list when the quote belongs to another studio", async () => {
+    const quote = await createQuoteRecord(studioId, baseInput);
+
+    await saveQuoteSections(quote.id, studioId, [
+      {
+        id: "qs-1",
+        quoteId: quote.id,
+        studioId,
+        sourceServicePackageId: "sp-1",
+        title: "Version One",
+        content: "",
+        position: 1,
+        lineItems: [],
+      },
+    ]);
+
+    await createQuoteRevision(quote.id, studioId);
+
+    const revisions = await listQuoteRevisions(quote.id, otherStudioId);
+
+    expect(revisions).toEqual<QuoteRevisionRecord[]>([]);
   });
 });

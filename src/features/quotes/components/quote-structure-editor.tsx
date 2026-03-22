@@ -23,10 +23,12 @@ import { QuoteEditorSection } from "@/features/quotes/components/quote-editor-se
 import { PreviewReadinessIndicator } from "@/features/quotes/components/preview-readiness-indicator";
 import { buildQuotePreviewHref } from "@/features/quotes/lib/navigation";
 import { computeReadinessIssues } from "@/features/quotes/lib/preview-readiness";
+import { InlineAlert } from "@/components/feedback/inline-alert";
 import { addQuoteSection } from "@/features/quotes/server/actions/add-quote-section";
 import { removeQuoteSection } from "@/features/quotes/server/actions/remove-quote-section";
 import { addQuoteLineItem } from "@/features/quotes/server/actions/add-quote-line-item";
 import { removeQuoteLineItem } from "@/features/quotes/server/actions/remove-quote-line-item";
+import { reviseQuote } from "@/features/quotes/server/actions/revise-quote";
 import { updateQuoteLineItem } from "@/features/quotes/server/actions/update-quote-line-item";
 import { updateQuoteSections } from "@/features/quotes/server/actions/update-quote-sections";
 import { reorderQuoteSections } from "@/features/quotes/server/actions/reorder-quote-sections";
@@ -131,6 +133,15 @@ function buildUpdateInput(quoteId: string, sections: QuoteSectionRecord[]) {
       })),
     })),
   };
+}
+
+type PersistSectionsResult = Awaited<ReturnType<typeof updateQuoteSections>>;
+type PersistRevisionResult = Awaited<ReturnType<typeof reviseQuote>>;
+
+function getQuoteFromPersistResult(
+  result: PersistSectionsResult | PersistRevisionResult,
+) {
+  return result.ok ? result.data.quote : null;
 }
 
 function useUnsavedChangesGuard(enabled: boolean) {
@@ -283,6 +294,7 @@ export function QuoteStructureEditor({
   const [estimateBreakdown, setEstimateBreakdown] = useState(
     initialEstimateBreakdown,
   );
+  const [isRevisionMode, setIsRevisionMode] = useState(saved === "revised");
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -298,6 +310,10 @@ export function QuoteStructureEditor({
   useEffect(() => {
     setEstimateBreakdown(initialEstimateBreakdown);
   }, [initialEstimateBreakdown]);
+
+  useEffect(() => {
+    setIsRevisionMode(saved === "revised");
+  }, [saved]);
 
   const saveInput = useMemo(
     () => buildUpdateInput(quoteId, sections),
@@ -330,15 +346,20 @@ export function QuoteStructureEditor({
   );
   const isPreviewReady = readinessIssues.length === 0;
   const previewHref = useMemo(
-    () => buildQuotePreviewHref(quoteId, backTo, saved),
-    [backTo, quoteId, saved],
+    () =>
+      buildQuotePreviewHref(
+        quoteId,
+        backTo,
+        isRevisionMode ? "revised" : undefined,
+      ),
+    [backTo, isRevisionMode, quoteId],
   );
 
   useUnsavedChangesGuard(hasUnsavedChanges);
 
   function handlePersistedSections(
     nextSections: QuoteSectionRecord[],
-    message: string,
+    message: string | null,
     nextEstimateBreakdown?: EstimateBreakdownPayload | null,
   ) {
     markSaved(nextSections);
@@ -382,14 +403,30 @@ export function QuoteStructureEditor({
     setError(buildSaveErrorState(message, code));
   }
 
+  function showRevisionSaveError() {
+    setSuccessMessage(null);
+    setError({
+      title: "Revision save failed",
+      message: "Could not save revision. Your changes were not lost from the editor.",
+      recoveryMessage: "",
+    });
+  }
+
   function clearMessages() {
     setError(null);
     setSuccessMessage(null);
     setReorderError(null);
   }
 
-  async function persistDraftIfNeeded(options?: { silent?: boolean }) {
-    if (!hasUnsavedChanges) {
+  async function persistDraftIfNeeded(options?: {
+    silent?: boolean;
+    forceRevisionBoundary?: boolean;
+    forceSave?: boolean;
+  }) {
+    const shouldUseRevisionSave =
+      isRevisionMode && (options?.forceRevisionBoundary || hasUnsavedChanges);
+
+    if (!hasUnsavedChanges && !shouldUseRevisionSave && !options?.forceSave) {
       return true;
     }
 
@@ -399,21 +436,41 @@ export function QuoteStructureEditor({
       return false;
     }
 
-    const result = await updateQuoteSections(saveInput);
+    const result = shouldUseRevisionSave
+      ? await reviseQuote(saveInput)
+      : await updateQuoteSections(saveInput);
 
     if (!result.ok) {
-      showSaveError(result.error.message, result.error.code);
+      if (shouldUseRevisionSave) {
+        showRevisionSaveError();
+      } else {
+        showSaveError(result.error.message, result.error.code);
+      }
       return false;
     }
 
-    markSaved(result.data.quote.sections);
-    const nextEstimateBreakdown = getReturnedEstimateBreakdown(result.data.quote);
+    const quote = getQuoteFromPersistResult(result);
+
+    if (!quote) {
+      return false;
+    }
+
+    markSaved(quote.sections);
+    const nextEstimateBreakdown = getReturnedEstimateBreakdown(quote);
     if (nextEstimateBreakdown !== undefined) {
       setEstimateBreakdown(nextEstimateBreakdown);
     }
 
+    if (shouldUseRevisionSave) {
+      setIsRevisionMode(false);
+    }
+
     if (!options?.silent) {
-      setSuccessMessage("Quote draft saved successfully.");
+      setSuccessMessage(
+        shouldUseRevisionSave
+          ? "Revision saved. Previous version preserved."
+          : "Quote draft saved successfully.",
+      );
     }
 
     return true;
@@ -449,17 +506,10 @@ export function QuoteStructureEditor({
     clearMessages();
 
     startSave(async () => {
-      const result = await updateQuoteSections(saveInput);
-
-      if (result.ok) {
-        handlePersistedSections(
-          result.data.quote.sections,
-          "Quote draft saved successfully.",
-          getReturnedEstimateBreakdown(result.data.quote),
-        );
-      } else {
-        showSaveError(result.error.message, result.error.code);
-      }
+      await persistDraftIfNeeded({
+        forceRevisionBoundary: isRevisionMode,
+        forceSave: true,
+      });
     });
   }
 
@@ -467,7 +517,10 @@ export function QuoteStructureEditor({
     clearMessages();
 
     startSave(async () => {
-      const persisted = await persistDraftIfNeeded({ silent: true });
+      const persisted = await persistDraftIfNeeded({
+        silent: true,
+        forceRevisionBoundary: isRevisionMode,
+      });
 
       if (!persisted) {
         return;
@@ -491,7 +544,10 @@ export function QuoteStructureEditor({
     clearMessages();
 
     startSave(async () => {
-      const persisted = await persistDraftIfNeeded({ silent: true });
+      const persisted = await persistDraftIfNeeded({
+        silent: true,
+        forceRevisionBoundary: isRevisionMode,
+      });
 
       if (!persisted) {
         return;
@@ -515,7 +571,10 @@ export function QuoteStructureEditor({
     clearMessages();
 
     startSave(async () => {
-      const persisted = await persistDraftIfNeeded({ silent: true });
+      const persisted = await persistDraftIfNeeded({
+        silent: true,
+        forceRevisionBoundary: isRevisionMode,
+      });
 
       if (!persisted) {
         return;
@@ -539,7 +598,10 @@ export function QuoteStructureEditor({
     clearMessages();
 
     startSave(async () => {
-      const persisted = await persistDraftIfNeeded({ silent: true });
+      const persisted = await persistDraftIfNeeded({
+        silent: true,
+        forceRevisionBoundary: isRevisionMode,
+      });
 
       if (!persisted) {
         return;
@@ -567,7 +629,10 @@ export function QuoteStructureEditor({
     clearMessages();
 
     startSave(async () => {
-      const persisted = await persistDraftIfNeeded({ silent: true });
+      const persisted = await persistDraftIfNeeded({
+        silent: true,
+        forceRevisionBoundary: isRevisionMode,
+      });
 
       if (!persisted) {
         return;
@@ -648,7 +713,10 @@ export function QuoteStructureEditor({
     clearMessages();
 
     startSave(async () => {
-      const persisted = await persistDraftIfNeeded({ silent: true });
+      const persisted = await persistDraftIfNeeded({
+        silent: true,
+        forceRevisionBoundary: isRevisionMode,
+      });
 
       if (!persisted) {
         return;
@@ -746,12 +814,24 @@ export function QuoteStructureEditor({
 
     startSave(async () => {
       if (hasOtherUnsavedChanges(sections, savedSections, sectionId, lineItemId)) {
-        const persisted = await persistDraftIfNeeded({ silent: true });
+        const persisted = await persistDraftIfNeeded({
+          silent: true,
+          forceRevisionBoundary: isRevisionMode,
+        });
 
         if (persisted) {
-          setSuccessMessage("Quote draft saved successfully.");
+          setSuccessMessage(
+            isRevisionMode
+              ? "Revision saved. Previous version preserved."
+              : "Quote draft saved successfully.",
+          );
         }
 
+        return;
+      }
+
+      if (isRevisionMode) {
+        await persistDraftIfNeeded({ forceRevisionBoundary: true });
         return;
       }
 
@@ -832,7 +912,7 @@ export function QuoteStructureEditor({
             disabled={isSaving || hasValidationErrors}
             className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSaving ? "Saving..." : "Save draft"}
+            {isSaving ? "Saving..." : isRevisionMode ? "Save revision" : "Save draft"}
           </button>
         </div>
       </div>
@@ -856,14 +936,10 @@ export function QuoteStructureEditor({
       ) : null}
 
       {error ? (
-        <div
-          role="alert"
-          className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900"
-        >
-          <p className="font-semibold">{error.title}</p>
-          <p className="mt-1">{error.message}</p>
-          <p className="mt-1">{error.recoveryMessage}</p>
-        </div>
+        <InlineAlert
+          title={error.title}
+          message={[error.message, error.recoveryMessage].filter(Boolean).join(" ")}
+        />
       ) : null}
 
       {isReordering ? (

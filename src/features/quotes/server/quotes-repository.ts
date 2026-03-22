@@ -9,17 +9,22 @@ import type {
   QuoteDetailRecord,
   QuoteInput,
   QuoteLineItemRecord,
+  QuoteRevisionRecord,
+  QuoteRevisionSnapshotData,
   QuoteRecord,
   QuoteSectionRecord,
 } from "@/features/quotes/types";
 import {
   __resetQuotesStore as resetQuotesStore,
   createQuoteInStore,
+  createQuoteRevisionInStore,
   deleteQuoteSectionsFromStore,
+  listQuoteRevisionsFromStore,
   readQuoteByIdFromStore,
   readQuotesFromStore,
   setQuoteEstimateBreakdownInStore,
   setQuoteGeneratedAtInStore,
+  touchQuoteInStore,
   updateQuoteInStore,
   writeQuoteSectionsToStore,
 } from "@/features/quotes/server/store/quotes-store";
@@ -71,6 +76,17 @@ type QuoteLineItemRow = {
   position: number;
   createdAt: Date;
   updatedAt: Date;
+};
+
+type QuoteRevisionRow = {
+  id: string;
+  quoteId: string;
+  studioId: string;
+  revisionNumber: number;
+  snapshotData: string;
+  title: string;
+  terms: string;
+  createdAt: Date;
 };
 
 function mapRowToRecord(
@@ -128,6 +144,41 @@ function mapLineItemRowToRecord(row: QuoteLineItemRow): QuoteLineItemRecord {
     unitPriceCents: row.unitPriceCents,
     lineTotalCents: row.lineTotalCents,
     position: row.position,
+  };
+}
+
+function deserializeQuoteRevisionSnapshotData(
+  value: string,
+): QuoteRevisionSnapshotData {
+  try {
+    const parsed = JSON.parse(value) as Partial<QuoteRevisionSnapshotData>;
+
+    return {
+      sections: Array.isArray(parsed.sections)
+        ? (parsed.sections as QuoteSectionRecord[])
+        : [],
+    };
+  } catch {
+    return { sections: [] };
+  }
+}
+
+function serializeQuoteRevisionSnapshotData(
+  value: QuoteRevisionSnapshotData,
+): string {
+  return JSON.stringify(value);
+}
+
+function mapRevisionRowToRecord(row: QuoteRevisionRow): QuoteRevisionRecord {
+  return {
+    id: row.id,
+    quoteId: row.quoteId,
+    studioId: row.studioId,
+    revisionNumber: row.revisionNumber,
+    snapshotData: deserializeQuoteRevisionSnapshotData(row.snapshotData),
+    title: row.title,
+    terms: row.terms,
+    createdAt: row.createdAt.toISOString(),
   };
 }
 
@@ -537,6 +588,104 @@ export async function saveQuoteSections(
   }
 }
 
+export async function createQuoteRevision(
+  quoteId: string,
+  studioId: string,
+): Promise<QuoteRevisionRecord | null> {
+  if (!env.DATABASE_URL) {
+    return createQuoteRevisionInStore(quoteId, studioId);
+  }
+
+  try {
+    const [{ db }, { and }, schema, quotesSchema] = await Promise.all([
+      import("@/server/db"),
+      import("drizzle-orm"),
+      import("@/server/db/schema/quote-revisions"),
+      import("@/server/db/schema/quotes"),
+    ]);
+
+    const quoteRows = await db
+      .select({ id: quotesSchema.quotes.id, title: quotesSchema.quotes.title, terms: quotesSchema.quotes.terms })
+      .from(quotesSchema.quotes)
+      .where(
+        and(
+          eq(quotesSchema.quotes.id, quoteId),
+          eq(quotesSchema.quotes.studioId, studioId),
+        ),
+      )
+      .limit(1);
+
+    const quoteRow = quoteRows[0] ?? null;
+
+    if (!quoteRow) {
+      return null;
+    }
+
+    const sections = await loadQuoteSectionsForEditing(quoteId);
+
+    const createdRows = await db.transaction(async (tx) => {
+      const latestRevisions = await tx
+        .select({ revisionNumber: schema.quoteRevisions.revisionNumber })
+        .from(schema.quoteRevisions)
+        .where(eq(schema.quoteRevisions.quoteId, quoteId))
+        .orderBy(desc(schema.quoteRevisions.revisionNumber))
+        .limit(1);
+
+      const nextRevisionNumber = (latestRevisions[0]?.revisionNumber ?? 0) + 1;
+
+      return tx
+        .insert(schema.quoteRevisions)
+        .values({
+          quoteId,
+          studioId,
+          revisionNumber: nextRevisionNumber,
+          snapshotData: serializeQuoteRevisionSnapshotData({ sections }),
+          title: quoteRow.title,
+          terms: quoteRow.terms,
+        })
+        .returning();
+    });
+
+    return createdRows[0]
+      ? mapRevisionRowToRecord(createdRows[0] as QuoteRevisionRow)
+      : null;
+  } catch {
+    return createQuoteRevisionInStore(quoteId, studioId);
+  }
+}
+
+export async function listQuoteRevisions(
+  quoteId: string,
+  studioId: string,
+): Promise<QuoteRevisionRecord[]> {
+  if (!env.DATABASE_URL) {
+    return listQuoteRevisionsFromStore(quoteId, studioId);
+  }
+
+  try {
+    const quote = await getQuoteById(quoteId);
+
+    if (!quote || quote.studioId !== studioId) {
+      return [];
+    }
+
+    const [{ db }, schema] = await Promise.all([
+      import("@/server/db"),
+      import("@/server/db/schema/quote-revisions"),
+    ]);
+
+    const rows = await db
+      .select()
+      .from(schema.quoteRevisions)
+      .where(eq(schema.quoteRevisions.quoteId, quoteId))
+      .orderBy(desc(schema.quoteRevisions.revisionNumber));
+
+    return rows.map((row) => mapRevisionRowToRecord(row as QuoteRevisionRow));
+  } catch {
+    return listQuoteRevisionsFromStore(quoteId, studioId);
+  }
+}
+
 export async function deleteQuoteSections(quoteId: string): Promise<void> {
   if (!env.DATABASE_URL) {
     deleteQuoteSectionsFromStore(quoteId);
@@ -594,10 +743,7 @@ export async function updateQuoteTimestamp(
   quoteId: string,
 ): Promise<void> {
   if (!env.DATABASE_URL) {
-    const quote = readQuoteByIdFromStore(quoteId);
-    if (quote) {
-      quote.updatedAt = new Date().toISOString();
-    }
+    touchQuoteInStore(quoteId);
     return;
   }
 

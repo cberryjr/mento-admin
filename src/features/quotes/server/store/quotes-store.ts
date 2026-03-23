@@ -295,6 +295,36 @@ export function listQuoteRevisionsFromStore(
   );
 }
 
+export function listQuoteRevisionsByQuoteIdsFromStore(
+  quoteIds: string[],
+  studioId: string,
+): Map<string, QuoteRevisionRecord[]> {
+  const quotesStore = getQuotesStore();
+  const revisionsStore = getQuoteRevisionsStore();
+  const grouped = new Map<string, QuoteRevisionRecord[]>();
+
+  for (const quoteId of quoteIds) {
+    const quote = quotesStore.get(quoteId);
+
+    if (!quote || quote.studioId !== studioId) {
+      continue;
+    }
+
+    const revisions = cloneQuote(
+      [...(revisionsStore.get(quoteId) ?? [])].sort((left, right) => {
+        return (
+          right.revisionNumber - left.revisionNumber ||
+          right.createdAt.localeCompare(left.createdAt)
+        );
+      }),
+    );
+
+    grouped.set(quoteId, revisions);
+  }
+
+  return grouped;
+}
+
 export function deleteQuoteSectionsFromStore(quoteId: string): void {
   const sections = getQuoteSectionsStore().get(quoteId) ?? [];
   const lineItemsStore = getQuoteLineItemsStore();

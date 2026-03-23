@@ -4,6 +4,7 @@ import { ClientForm } from "@/features/clients/components/client-form";
 import { ClientRecordSummary } from "@/features/clients/components/client-record-summary";
 import { updateClient } from "@/features/clients/server/actions/update-client";
 import { getClientById } from "@/features/clients/server/queries/get-client-by-id";
+import { buildRecordHistoryHref } from "@/lib/navigation/record-history";
 
 type ClientDetailPageProps = {
   params: Promise<{ clientId: string }>;
@@ -38,12 +39,24 @@ export default async function ClientDetailPage({
             then make changes when details need to be refreshed.
           </p>
         </div>
-        <Link
-          href={safeBackTo}
-          className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
-        >
-          Back to clients
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={buildRecordHistoryHref({
+              entityType: "client",
+              entityId: clientId,
+              backTo: safeBackTo,
+            })}
+            className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+          >
+            View Record History
+          </Link>
+          <Link
+            href={safeBackTo}
+            className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+          >
+            Back to clients
+          </Link>
+        </div>
       </div>
 
       <ClientRecordSummary

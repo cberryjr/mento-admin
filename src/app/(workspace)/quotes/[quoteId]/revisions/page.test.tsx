@@ -174,4 +174,59 @@ describe("RevisionsPage", () => {
     ).rejects.toThrow("NEXT_NOT_FOUND");
     expect(listQuoteRevisions).not.toHaveBeenCalled();
   });
+
+  it("passes the selected revision from search params into the timeline", async () => {
+    const { getQuoteById } = await import(
+      "@/features/quotes/server/queries/get-quote-by-id"
+    );
+    const { listQuoteRevisions } = await import(
+      "@/features/quotes/server/quotes-repository"
+    );
+
+    vi.mocked(getQuoteById).mockResolvedValue({
+      ok: true,
+      data: {
+        quote: {
+          id: "q-1",
+          studioId: "studio-1",
+          clientId: "c-1",
+          quoteNumber: "Q-20260315-ABC",
+          title: "Test Quote",
+          status: "draft" as const,
+          terms: "Net 30",
+          selectedServicePackageIds: [],
+          generatedAt: null,
+          createdAt: "2026-03-14T09:00:00.000Z",
+          updatedAt: "2026-03-15T10:00:00.000Z",
+          sections: [],
+        },
+      },
+    });
+
+    vi.mocked(listQuoteRevisions).mockResolvedValue([
+      {
+        id: "rev-1",
+        quoteId: "q-1",
+        studioId: "studio-1",
+        revisionNumber: 1,
+        snapshotData: { sections: [] },
+        title: "Quote v1",
+        terms: "Net 30",
+        createdAt: "2026-03-14T09:15:00.000Z",
+      },
+    ]);
+
+    const { default: RevisionsPage } = await import(
+      "@/app/(workspace)/quotes/[quoteId]/revisions/page"
+    );
+
+    render(
+      await RevisionsPage({
+        params: Promise.resolve({ quoteId: "q-1" }),
+        searchParams: Promise.resolve({ selectedRevision: "rev-1" }),
+      }) as React.ReactElement,
+    );
+
+    expect(screen.getByText("Revision 1 detail")).toBeInTheDocument();
+  });
 });

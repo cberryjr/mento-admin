@@ -18,6 +18,7 @@ import { getServicePackageById } from "@/features/service-packages/server/querie
 import { QuoteStatusChip } from "@/features/quotes/components/quote-status-chip";
 import { MarkQuoteAcceptedButton } from "@/features/quotes/components/mark-quote-accepted-button";
 import { ConvertToInvoiceButton } from "@/features/invoices/components/convert-to-invoice-button";
+import { buildRecordHistoryHref } from "@/lib/navigation/record-history";
 
 type QuoteDetailPageProps = {
   params: Promise<{ quoteId: string }>;
@@ -145,6 +146,28 @@ export default async function QuoteDetailPage({
               Invoice created
             </span>
           ) : null}
+          <Link
+            href={`/records/correct?type=quote&id=${quote.id}&backTo=${encodeURIComponent(
+              buildQuoteDetailHref(
+                quote.id,
+                safeBackTo,
+                isRevisionReady ? "revised" : undefined,
+              ),
+            )}`}
+            className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+          >
+            Correct Data
+          </Link>
+          <Link
+            href={buildRecordHistoryHref({
+              entityType: "quote",
+              entityId: quoteId,
+              backTo: safeBackTo,
+            })}
+            className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+          >
+            View Record History
+          </Link>
           <Link
             href={safeBackTo}
             className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"

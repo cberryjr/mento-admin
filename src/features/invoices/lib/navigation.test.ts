@@ -23,6 +23,12 @@ describe("invoice navigation", () => {
     );
   });
 
+  it("preserves validated record history context", () => {
+    expect(
+      sanitizeInvoiceBackTo("/records/history?type=invoice&id=invoice-1&backTo=%2Finvoices"),
+    ).toBe("/records/history?type=invoice&id=invoice-1&backTo=%2Finvoices");
+  });
+
   it("rejects unsafe destinations", () => {
     expect(sanitizeInvoiceBackTo("//evil.example")).toBe("/invoices");
     expect(sanitizeInvoiceBackTo("/clients/client-1")).toBe("/invoices");

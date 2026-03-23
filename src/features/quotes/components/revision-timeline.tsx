@@ -34,6 +34,7 @@ type CurrentVersion = {
 type RevisionTimelineProps = {
   revisions: QuoteRevisionRecord[];
   currentVersion: CurrentVersion;
+  initialSelectedRevisionId?: string;
 };
 
 type VersionDetailPanelProps = {
@@ -178,8 +179,19 @@ function VersionDetailPanel({
   );
 }
 
-export function RevisionTimeline({ revisions, currentVersion }: RevisionTimelineProps) {
-  const [selectedRevisionIndex, setSelectedRevisionIndex] = useState<number | null>(null);
+export function RevisionTimeline({
+  revisions,
+  currentVersion,
+  initialSelectedRevisionId,
+}: RevisionTimelineProps) {
+  const [selectedRevisionIndex, setSelectedRevisionIndex] = useState<number | null>(() => {
+    if (!initialSelectedRevisionId) {
+      return null;
+    }
+
+    const revisionIndex = revisions.findIndex((revision) => revision.id === initialSelectedRevisionId);
+    return revisionIndex >= 0 ? revisionIndex : null;
+  });
   const revisionButtonRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
   const dismissButtonRef = useRef<HTMLButtonElement | null>(null);
   const lastTriggerRevisionIdRef = useRef<string | null>(null);

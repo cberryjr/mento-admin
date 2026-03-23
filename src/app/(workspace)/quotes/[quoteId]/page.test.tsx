@@ -182,6 +182,10 @@ describe("QuoteDetailPage", () => {
     expect(screen.getByText("Acme Corp")).toBeInTheDocument();
     expect(screen.getByText(/Quote editor/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /mark as accepted/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Correct Data" })).toHaveAttribute(
+      "href",
+      "/records/correct?type=quote&id=q-reopen-1&backTo=%2Fquotes%2Fq-reopen-1%3FbackTo%3D%252Fquotes",
+    );
   });
 
   it("shows revision-ready messaging when saved=revised for a draft quote", async () => {

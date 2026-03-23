@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { asc, desc, eq } from "drizzle-orm";
+import { asc, desc, eq, inArray } from "drizzle-orm";
 
 import { env } from "@/lib/env";
 import type {
@@ -16,6 +16,7 @@ import {
 import {
   createInvoiceInStore,
   readInvoiceByIdFromStore,
+  readInvoicesByQuoteIdsFromStore,
   readInvoicesFromStore,
   setInvoiceStatusInStore,
   updateInvoiceInStore,
@@ -432,6 +433,7 @@ type LineItemUpdateInput = {
 };
 
 type InvoiceUpdateInput = {
+  clientId?: string;
   title?: string;
   issueDate?: string | null;
   dueDate?: string | null;
@@ -452,6 +454,10 @@ async function updateInvoiceInDatabase(
 
   await db.transaction(async (tx) => {
     const updateData: Record<string, unknown> = {};
+
+    if (input.clientId !== undefined) {
+      updateData.clientId = input.clientId;
+    }
 
     if (input.title !== undefined) {
       updateData.title = input.title;
@@ -713,6 +719,46 @@ export async function listInvoicesForStudio(
         createdAt: invoice.createdAt,
         updatedAt: invoice.updatedAt,
       }));
+    }
+
+    throw error;
+  }
+}
+
+export async function listInvoicesByQuoteIds(
+  quoteIds: string[],
+  studioId: string,
+): Promise<InvoiceRecord[]> {
+  if (quoteIds.length === 0) {
+    return [];
+  }
+
+  if (!isDatabaseConfigured()) {
+    return readInvoicesByQuoteIdsFromStore(quoteIds, studioId);
+  }
+
+  try {
+    const [{ db }, { and }, schema] = await Promise.all([
+      import("@/server/db"),
+      import("drizzle-orm"),
+      import("@/server/db/schema/invoices"),
+    ]);
+
+    const rows = await db
+      .select()
+      .from(schema.invoices)
+      .where(
+        and(
+          eq(schema.invoices.studioId, studioId),
+          inArray(schema.invoices.sourceQuoteId, quoteIds),
+        ),
+      )
+      .orderBy(desc(schema.invoices.updatedAt));
+
+    return rows.map((row) => mapInvoiceRowToRecord(row as InvoiceRow));
+  } catch (error) {
+    if (shouldUseStoreFallback(error)) {
+      return readInvoicesByQuoteIdsFromStore(quoteIds, studioId);
     }
 
     throw error;

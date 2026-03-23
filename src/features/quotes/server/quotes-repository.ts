@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { asc, desc, eq } from "drizzle-orm";
+import { asc, desc, eq, inArray } from "drizzle-orm";
 
 import { estimateBreakdownPayloadSchema } from "@/features/quotes/schemas/estimate-breakdown-schema";
 import { env } from "@/lib/env";
@@ -20,6 +20,7 @@ import {
   createQuoteInStore,
   createQuoteRevisionInStore,
   deleteQuoteSectionsFromStore,
+  listQuoteRevisionsByQuoteIdsFromStore,
   listQuoteRevisionsFromStore,
   readQuoteByIdFromStore,
   readQuotesFromStore,
@@ -710,6 +711,48 @@ export async function listQuoteRevisions(
     return rows.map((row) => mapRevisionRowToRecord(row as QuoteRevisionRow));
   } catch {
     return listQuoteRevisionsFromStore(quoteId, studioId);
+  }
+}
+
+export async function listQuoteRevisionsByQuoteIds(
+  quoteIds: string[],
+  studioId: string,
+): Promise<Map<string, QuoteRevisionRecord[]>> {
+  if (quoteIds.length === 0) {
+    return new Map();
+  }
+
+  if (!env.DATABASE_URL) {
+    return listQuoteRevisionsByQuoteIdsFromStore(quoteIds, studioId);
+  }
+
+  try {
+    const [{ db }, schema] = await Promise.all([
+      import("@/server/db"),
+      import("@/server/db/schema/quote-revisions"),
+    ]);
+
+    const rows = await db
+      .select()
+      .from(schema.quoteRevisions)
+      .where(inArray(schema.quoteRevisions.quoteId, quoteIds))
+      .orderBy(desc(schema.quoteRevisions.revisionNumber));
+
+    const revisions = rows.map(
+      (row) => mapRevisionRowToRecord(row as QuoteRevisionRow),
+    );
+
+    const grouped = new Map<string, QuoteRevisionRecord[]>();
+
+    for (const revision of revisions) {
+      const existing = grouped.get(revision.quoteId) ?? [];
+      existing.push(revision);
+      grouped.set(revision.quoteId, existing);
+    }
+
+    return grouped;
+  } catch {
+    return listQuoteRevisionsByQuoteIdsFromStore(quoteIds, studioId);
   }
 }
 

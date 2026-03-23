@@ -12,7 +12,7 @@ import {
 
 type RevisionsPageProps = {
   params: Promise<{ quoteId: string }>;
-  searchParams: Promise<{ backTo?: string }>;
+  searchParams: Promise<{ backTo?: string; selectedRevision?: string }>;
 };
 
 export default async function RevisionsPage({
@@ -20,7 +20,7 @@ export default async function RevisionsPage({
   searchParams,
 }: RevisionsPageProps) {
   const { quoteId } = await params;
-  const { backTo } = await searchParams;
+  const { backTo, selectedRevision } = await searchParams;
   const safeBackTo = sanitizeQuoteBackTo(backTo);
 
   const result = await getQuoteById(quoteId);
@@ -102,6 +102,7 @@ export default async function RevisionsPage({
       <RevisionTimeline
         revisions={revisions}
         currentVersion={currentVersion}
+        initialSelectedRevisionId={selectedRevision}
       />
     </section>
   );

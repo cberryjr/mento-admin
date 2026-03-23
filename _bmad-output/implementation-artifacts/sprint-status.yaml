@@ -78,6 +78,6 @@ development_status:
   5-2-edit-invoice-content-and-line-items-after-generation: done
   5-3-review-the-client-facing-invoice-layout-and-export-ready-output: done
   5-4-reopen-and-update-an-existing-invoice: done
-  5-5-inspect-connected-record-history-and-trace-invoice-lineage: backlog
-  5-6-correct-quote-or-invoice-data-during-troubleshooting: backlog
+  5-5-inspect-connected-record-history-and-trace-invoice-lineage: done
+  5-6-correct-quote-or-invoice-data-during-troubleshooting: done
   epic-5-retrospective: optional

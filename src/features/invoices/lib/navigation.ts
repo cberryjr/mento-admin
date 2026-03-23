@@ -1,3 +1,4 @@
+import { sanitizeRecordHistoryHref } from "@/lib/navigation/record-history";
 import { sanitizeQuoteBackTo } from "@/features/quotes/lib/navigation";
 
 const DEFAULT_INVOICE_BACK_TO = "/invoices";
@@ -35,6 +36,12 @@ function buildQuoteDetailBackTo(parsedBackTo: URL): string {
 }
 
 export function sanitizeInvoiceBackTo(backTo?: string): string {
+  const safeHistoryHref = sanitizeRecordHistoryHref(backTo);
+
+  if (safeHistoryHref) {
+    return safeHistoryHref;
+  }
+
   if (!backTo || !backTo.startsWith("/") || backTo.startsWith("//")) {
     return DEFAULT_INVOICE_BACK_TO;
   }

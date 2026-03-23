@@ -267,4 +267,21 @@ describe("RevisionTimeline", () => {
     const viewButtons = screen.getAllByText("View");
     expect(viewButtons).toHaveLength(2);
   });
+
+  it("opens the requested revision by default when selectedRevisionId is provided", async () => {
+    const { RevisionTimeline } = await import(
+      "@/features/quotes/components/revision-timeline"
+    );
+
+    render(
+      <RevisionTimeline
+        revisions={defaultProps.revisions}
+        currentVersion={defaultProps.currentVersion}
+        initialSelectedRevisionId="rev-1"
+      />,
+    );
+
+    expect(screen.getByText("Revision 1 detail")).toBeInTheDocument();
+    expect(screen.getByText("Viewing")).toBeInTheDocument();
+  });
 });

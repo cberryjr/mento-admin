@@ -81,6 +81,10 @@ describe("InvoiceDetailPage", () => {
       "href",
       "/api/invoices/invoice-1/pdf",
     );
+    expect(screen.getByRole("link", { name: "Correct Data" })).toHaveAttribute(
+      "href",
+      "/records/correct?type=invoice&id=invoice-1&backTo=%2Finvoices%2Finvoice-1%3FbackTo%3D%252Finvoices%253Fsearch%253DSunrise",
+    );
     expect(screen.getByRole("link", { name: "Preview" }).className).toContain(
       "bg-zinc-900",
     );

@@ -7,10 +7,12 @@ import { InvoiceForm } from "@/features/invoices/components/invoice-form";
 import { ReopenInvoiceButton } from "@/features/invoices/components/reopen-invoice-button";
 import { updateInvoiceAction } from "@/features/invoices/server/actions/update-invoice";
 import {
+  buildInvoiceDetailHref,
   buildInvoicePreviewHref,
   sanitizeInvoiceBackTo,
 } from "@/features/invoices/lib/navigation";
 import { InlineAlert } from "@/components/feedback/inline-alert";
+import { buildRecordHistoryHref } from "@/lib/navigation/record-history";
 
 type InvoiceDetailPageProps = {
   params: Promise<{ invoiceId: string }>;
@@ -90,6 +92,24 @@ export default async function InvoiceDetailPage({
             className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
           >
             Export PDF
+          </Link>
+          <Link
+            href={`/records/correct?type=invoice&id=${invoice.id}&backTo=${encodeURIComponent(
+              buildInvoiceDetailHref(invoice.id, safeBackTo),
+            )}`}
+            className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+          >
+            Correct Data
+          </Link>
+          <Link
+            href={buildRecordHistoryHref({
+              entityType: "invoice",
+              entityId: invoiceId,
+              backTo: safeBackTo,
+            })}
+            className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+          >
+            View Record History
           </Link>
           <Link
             href={safeBackTo}

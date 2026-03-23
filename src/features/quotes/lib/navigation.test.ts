@@ -19,6 +19,12 @@ describe("sanitizeQuoteBackTo", () => {
   it("returns default for protocol-relative paths", () => {
     expect(sanitizeQuoteBackTo("//evil.com")).toBe("/quotes");
   });
+
+  it("preserves validated record history links", () => {
+    expect(
+      sanitizeQuoteBackTo("/records/history?type=invoice&id=invoice-1&backTo=%2Finvoices"),
+    ).toBe("/records/history?type=invoice&id=invoice-1&backTo=%2Finvoices");
+  });
 });
 
 describe("buildQuoteDetailHref", () => {
@@ -48,6 +54,22 @@ describe("buildQuoteRevisionReadyHref", () => {
   it("preserves backTo param", () => {
     const href = buildQuoteRevisionReadyHref("q-1");
     expect(href).toContain("backTo=%2Fquotes");
+  });
+});
+
+describe("buildQuoteRevisionsHref", () => {
+  it("builds a revisions href with selected revision context", async () => {
+    const { buildQuoteRevisionsHref } = await import("@/features/quotes/lib/navigation");
+
+    expect(
+      buildQuoteRevisionsHref(
+        "q-1",
+        "/records/history?type=quote&id=q-1&backTo=%2Fquotes",
+        "rev-1",
+      ),
+    ).toBe(
+      "/quotes/q-1/revisions?backTo=%2Frecords%2Fhistory%3Ftype%3Dquote%26id%3Dq-1%26backTo%3D%252Fquotes&selectedRevision=rev-1",
+    );
   });
 });
 

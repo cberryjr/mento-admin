@@ -7,6 +7,7 @@ import type {
   InvoiceRecord,
   InvoiceSectionRecord,
 } from "@/features/invoices/types";
+import { readClientByIdFromStore } from "@/features/clients/server/store/clients-store";
 
 type SectionUpdateInput = {
   id?: string;
@@ -27,6 +28,7 @@ type LineItemUpdateInput = {
 };
 
 type InvoiceUpdateInput = {
+  clientId?: string;
   title?: string;
   issueDate?: string | null;
   dueDate?: string | null;
@@ -34,6 +36,28 @@ type InvoiceUpdateInput = {
   paymentInstructions?: string;
   sections?: SectionUpdateInput[];
 };
+
+function toInvoiceClient(
+  client:
+    | {
+        id: string;
+        name: string;
+        contactName: string;
+        contactEmail: string;
+        contactPhone: string;
+      }
+    | null,
+): InvoiceClientRecord | null {
+  return client
+    ? {
+        id: client.id,
+        name: client.name,
+        contactName: client.contactName,
+        contactEmail: client.contactEmail,
+        contactPhone: client.contactPhone,
+      }
+    : null;
+}
 
 const SEEDED_INVOICES: InvoiceDetailRecord[] = [];
 
@@ -177,6 +201,11 @@ export function updateInvoiceInStore(
     invoice.title = input.title;
   }
 
+  if (input.clientId !== undefined) {
+    invoice.clientId = input.clientId;
+    invoice.client = toInvoiceClient(readClientByIdFromStore(input.clientId));
+  }
+
   if (input.issueDate !== undefined) {
     invoice.issueDate = input.issueDate;
   }
@@ -278,6 +307,35 @@ export function updateInvoiceInStore(
   invoice.updatedAt = new Date().toISOString();
 
   return cloneInvoice(invoice);
+}
+
+export function readInvoicesByQuoteIdsFromStore(
+  quoteIds: string[],
+  studioId: string,
+): InvoiceRecord[] {
+  const visibleQuoteIds = new Set(quoteIds);
+
+  return Array.from(getInvoicesStore().values())
+    .filter(
+      (invoice) =>
+        invoice.studioId === studioId &&
+        visibleQuoteIds.has(invoice.sourceQuoteId),
+    )
+    .map((invoice) => ({
+      id: invoice.id,
+      studioId: invoice.studioId,
+      clientId: invoice.clientId,
+      sourceQuoteId: invoice.sourceQuoteId,
+      invoiceNumber: invoice.invoiceNumber,
+      title: invoice.title,
+      status: invoice.status,
+      issueDate: invoice.issueDate,
+      dueDate: invoice.dueDate,
+      paymentInstructions: invoice.paymentInstructions,
+      terms: invoice.terms,
+      createdAt: invoice.createdAt,
+      updatedAt: invoice.updatedAt,
+    }));
 }
 
 export function __resetInvoicesStore() {

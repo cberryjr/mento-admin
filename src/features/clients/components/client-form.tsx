@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
+import { Input } from "@/components/ui/input";
 import type { ActionResult } from "@/lib/validation/action-result";
 import type { ClientInput, ClientRecord } from "@/features/clients/types";
 
@@ -27,9 +28,6 @@ const EMPTY_VALUES: ClientInput = {
   contactEmail: "",
   contactPhone: "",
 };
-
-const FIELD_CLASS_NAME =
-  "w-full rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900";
 
 function toInput(values: ClientRecord | null): ClientInput {
   if (!values) {
@@ -138,11 +136,10 @@ export function ClientForm({
           <label htmlFor="name" className="text-sm font-medium text-zinc-900">
             Client name
           </label>
-          <input
+          <Input
             id="name"
             name="name"
             type="text"
-            className={FIELD_CLASS_NAME}
             value={formValues.name}
             onChange={(event) => handleChange("name", event.target.value)}
             aria-invalid={hasAttemptedSubmit ? Boolean(getError("name")) : undefined}
@@ -159,11 +156,10 @@ export function ClientForm({
           <label htmlFor="contactName" className="text-sm font-medium text-zinc-900">
             Contact name
           </label>
-          <input
+          <Input
             id="contactName"
             name="contactName"
             type="text"
-            className={FIELD_CLASS_NAME}
             value={formValues.contactName}
             onChange={(event) => handleChange("contactName", event.target.value)}
             aria-invalid={hasAttemptedSubmit ? Boolean(getError("contactName")) : undefined}
@@ -180,11 +176,10 @@ export function ClientForm({
           <label htmlFor="contactEmail" className="text-sm font-medium text-zinc-900">
             Contact email
           </label>
-          <input
+          <Input
             id="contactEmail"
             name="contactEmail"
             type="email"
-            className={FIELD_CLASS_NAME}
             value={formValues.contactEmail}
             onChange={(event) => handleChange("contactEmail", event.target.value)}
             aria-invalid={hasAttemptedSubmit ? Boolean(getError("contactEmail")) : undefined}
@@ -201,11 +196,10 @@ export function ClientForm({
           <label htmlFor="contactPhone" className="text-sm font-medium text-zinc-900">
             Contact phone
           </label>
-          <input
+          <Input
             id="contactPhone"
             name="contactPhone"
             type="tel"
-            className={FIELD_CLASS_NAME}
             value={formValues.contactPhone}
             onChange={(event) => handleChange("contactPhone", event.target.value)}
             aria-invalid={hasAttemptedSubmit ? Boolean(getError("contactPhone")) : undefined}

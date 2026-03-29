@@ -196,7 +196,7 @@ export function QuoteEditorSection({
                 sectionTitleError ? `section-title-error-${section.id}` : undefined
               }
               className={cn(
-                "w-full rounded-md border px-3 py-2 text-sm font-semibold text-zinc-900 focus:outline-none focus:ring-1 disabled:opacity-60",
+                "w-full rounded-md border px-3 py-2 text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 disabled:opacity-60",
                 sectionTitleError
                   ? "border-red-500 focus:border-red-500 focus:ring-red-500"
                   : "border-zinc-300 focus:border-zinc-500 focus:ring-zinc-500",
@@ -224,7 +224,7 @@ export function QuoteEditorSection({
               placeholder="Section description (optional)"
               disabled={isPending}
               rows={2}
-              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-700 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 disabled:opacity-60"
+              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 disabled:opacity-60"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -343,7 +343,7 @@ export function QuoteEditorSection({
                                       : undefined
                                   }
                                   className={cn(
-                                    "w-full rounded border px-1 py-0.5 text-sm font-medium text-zinc-900 focus:outline-none disabled:opacity-60",
+                                    "w-full rounded border px-1 py-0.5 text-sm font-medium text-zinc-900 placeholder:text-zinc-400 focus:outline-none disabled:opacity-60",
                                     nameError
                                       ? "border-red-500 bg-red-50 focus:border-red-500"
                                       : "border-transparent hover:border-zinc-300 focus:border-zinc-500",
@@ -381,7 +381,7 @@ export function QuoteEditorSection({
                                   }
                                   placeholder="Description"
                                   disabled={isPending}
-                                  className="w-full rounded border border-transparent px-1 py-0.5 text-xs text-zinc-500 hover:border-zinc-300 focus:border-zinc-500 focus:outline-none disabled:opacity-60"
+                                  className="w-full rounded border border-transparent px-1 py-0.5 text-xs text-zinc-700 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-zinc-500 focus:outline-none disabled:opacity-60"
                                 />
                               </td>
                               <td className="py-2 pr-2 text-center align-top">
@@ -415,7 +415,7 @@ export function QuoteEditorSection({
                                       : undefined
                                   }
                                   className={cn(
-                                    "w-16 rounded border px-1 py-0.5 text-center text-sm text-zinc-700 focus:outline-none disabled:opacity-60",
+                                    "w-16 rounded border px-1 py-0.5 text-center text-sm text-zinc-900 focus:outline-none disabled:opacity-60",
                                     quantityError
                                       ? "border-red-500 bg-red-50 focus:border-red-500"
                                       : "border-transparent hover:border-zinc-300 focus:border-zinc-500",
@@ -454,7 +454,7 @@ export function QuoteEditorSection({
                                   }
                                   placeholder="Unit"
                                   disabled={isPending}
-                                  className="w-full rounded border border-transparent px-1 py-0.5 text-sm text-zinc-700 hover:border-zinc-300 focus:border-zinc-500 focus:outline-none disabled:opacity-60"
+                                  className="w-full rounded border border-transparent px-1 py-0.5 text-sm text-zinc-900 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-zinc-500 focus:outline-none disabled:opacity-60"
                                 />
                               </td>
                               <td className="py-2 pr-2 text-right align-top">
@@ -488,7 +488,7 @@ export function QuoteEditorSection({
                                       : undefined
                                   }
                                   className={cn(
-                                    "w-20 rounded border px-1 py-0.5 text-right text-sm text-zinc-700 focus:outline-none disabled:opacity-60",
+                                    "w-20 rounded border px-1 py-0.5 text-right text-sm text-zinc-900 focus:outline-none disabled:opacity-60",
                                     unitPriceError
                                       ? "border-red-500 bg-red-50 focus:border-red-500"
                                       : "border-transparent hover:border-zinc-300 focus:border-zinc-500",

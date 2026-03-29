@@ -18,6 +18,31 @@ describe("env", () => {
 
     expect(mod.env.NODE_ENV).toBe("development");
     expect(mod.env.DATABASE_URL).toBeUndefined();
+    expect(mod.env.TEST_DATABASE_URL).toBeUndefined();
+  });
+
+  it("parses test env when TEST_DATABASE_URL is provided", async () => {
+    process.env = {
+      NODE_ENV: "test",
+      TEST_DATABASE_URL: "postgresql://localhost:5432/mento-admin-test",
+    };
+
+    const mod = await import("@/lib/env");
+
+    expect(mod.env.NODE_ENV).toBe("test");
+    expect(mod.env.TEST_DATABASE_URL).toBe(
+      "postgresql://localhost:5432/mento-admin-test",
+    );
+  });
+
+  it("throws when NODE_ENV=test and TEST_DATABASE_URL is missing", async () => {
+    process.env = {
+      NODE_ENV: "test",
+    };
+
+    await expect(import("@/lib/env")).rejects.toThrow(
+      "TEST_DATABASE_URL is required when NODE_ENV=test",
+    );
   });
 
   it("throws when NODE_ENV=production and DATABASE_URL is missing", async () => {

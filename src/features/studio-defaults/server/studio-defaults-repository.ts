@@ -3,10 +3,15 @@ import { randomUUID } from "node:crypto";
 import { env } from "@/lib/env";
 import type { StudioDefaultsInput, StudioDefaultsRecord } from "@/features/studio-defaults/types";
 import { buildStudioDefaultsPrefill } from "@/features/studio-defaults/types";
+import { isDatabaseConfiguredForRuntime } from "@/server/db/get-database-url";
 import {
   readStudioDefaultsFromStore,
   writeStudioDefaultsToStore,
 } from "@/features/studio-defaults/server/store/studio-defaults-store";
+
+function isDatabaseConfigured() {
+  return isDatabaseConfiguredForRuntime(env);
+}
 
 function mapRowToRecord(row: {
   studioId: string;
@@ -41,7 +46,7 @@ function mapRowToRecord(row: {
 }
 
 export async function loadStudioDefaults(studioId: string): Promise<StudioDefaultsRecord | null> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return readStudioDefaultsFromStore(studioId);
   }
 
@@ -84,7 +89,7 @@ export async function saveStudioDefaults(
   studioId: string,
   input: StudioDefaultsInput,
 ): Promise<StudioDefaultsRecord> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return writeStudioDefaultsToStore(studioId, input);
   }
 

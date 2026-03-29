@@ -3,6 +3,8 @@
 import { useMemo, useState, useTransition } from "react";
 
 import { InlineAlert } from "@/components/feedback/inline-alert";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import type { ActionResult } from "@/lib/validation/action-result";
 import type {
   StudioDefaultsInput,
@@ -103,11 +105,10 @@ export function StudioDefaultsForm({
           <label htmlFor="studioName" className="text-sm font-medium text-zinc-900">
             Studio name
           </label>
-          <input
+          <Input
             id="studioName"
             name="studioName"
             type="text"
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
             value={formValues.studioName}
             onChange={(event) => handleChange("studioName", event.target.value)}
             aria-invalid={Boolean(getError("studioName"))}
@@ -124,11 +125,10 @@ export function StudioDefaultsForm({
           <label htmlFor="studioContactName" className="text-sm font-medium text-zinc-900">
             Studio contact name
           </label>
-          <input
+          <Input
             id="studioContactName"
             name="studioContactName"
             type="text"
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
             value={formValues.studioContactName}
             onChange={(event) => handleChange("studioContactName", event.target.value)}
             aria-invalid={Boolean(getError("studioContactName"))}
@@ -147,11 +147,10 @@ export function StudioDefaultsForm({
           <label htmlFor="studioContactEmail" className="text-sm font-medium text-zinc-900">
             Studio contact email
           </label>
-          <input
+          <Input
             id="studioContactEmail"
             name="studioContactEmail"
             type="email"
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
             value={formValues.studioContactEmail}
             onChange={(event) => handleChange("studioContactEmail", event.target.value)}
             aria-invalid={Boolean(getError("studioContactEmail"))}
@@ -170,11 +169,10 @@ export function StudioDefaultsForm({
           <label htmlFor="studioContactPhone" className="text-sm font-medium text-zinc-900">
             Studio contact phone
           </label>
-          <input
+          <Input
             id="studioContactPhone"
             name="studioContactPhone"
             type="tel"
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
             value={formValues.studioContactPhone}
             onChange={(event) => handleChange("studioContactPhone", event.target.value)}
             aria-invalid={Boolean(getError("studioContactPhone"))}
@@ -194,11 +192,10 @@ export function StudioDefaultsForm({
         <label htmlFor="defaultQuoteTerms" className="text-sm font-medium text-zinc-900">
           Default quote terms
         </label>
-        <textarea
+        <Textarea
           id="defaultQuoteTerms"
           name="defaultQuoteTerms"
           rows={4}
-          className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
           value={formValues.defaultQuoteTerms}
           onChange={(event) => handleChange("defaultQuoteTerms", event.target.value)}
           aria-invalid={Boolean(getError("defaultQuoteTerms"))}
@@ -220,11 +217,10 @@ export function StudioDefaultsForm({
         >
           Default invoice payment instructions
         </label>
-        <textarea
+        <Textarea
           id="defaultInvoicePaymentInstructions"
           name="defaultInvoicePaymentInstructions"
           rows={4}
-          className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
           value={formValues.defaultInvoicePaymentInstructions}
           onChange={(event) =>
             handleChange("defaultInvoicePaymentInstructions", event.target.value)

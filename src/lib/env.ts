@@ -6,6 +6,7 @@ const envSchema = z
       .enum(["development", "test", "production"])
       .default("development"),
     DATABASE_URL: z.string().url().optional(),
+    TEST_DATABASE_URL: z.string().url().optional(),
     NEXTAUTH_SECRET: z.string().min(1).default("dev-nextauth-secret-change-me"),
     NEXTAUTH_URL: z.string().url().default("http://localhost:3000"),
     STUDIO_OWNER_EMAIL: z.string().email().default("owner@example.com"),
@@ -19,6 +20,14 @@ const envSchema = z
         code: z.ZodIssueCode.custom,
         path: ["DATABASE_URL"],
         message: "DATABASE_URL is required when NODE_ENV=production",
+      });
+    }
+
+    if (value.NODE_ENV === "test" && !value.TEST_DATABASE_URL) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["TEST_DATABASE_URL"],
+        message: "TEST_DATABASE_URL is required when NODE_ENV=test",
       });
     }
 

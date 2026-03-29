@@ -15,6 +15,7 @@ import type {
   QuoteSectionRecord,
   QuoteStatus,
 } from "@/features/quotes/types";
+import { isDatabaseConfiguredForRuntime } from "@/server/db/get-database-url";
 import {
   __resetQuotesStore as resetQuotesStore,
   createQuoteInStore,
@@ -31,6 +32,10 @@ import {
   updateQuoteInStore,
   writeQuoteSectionsToStore,
 } from "@/features/quotes/server/store/quotes-store";
+
+function isDatabaseConfigured() {
+  return isDatabaseConfiguredForRuntime(env);
+}
 
 type QuoteRow = {
   id: string;
@@ -287,7 +292,7 @@ function buildSectionsFromRows(
 export async function listQuotesForStudio(
   studioId: string,
 ): Promise<QuoteDetailRecord[]> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return sortQuotes(readQuotesFromStore(studioId));
   }
 
@@ -334,7 +339,7 @@ export async function listQuotesForStudio(
 export async function getQuoteById(
   quoteId: string,
 ): Promise<QuoteDetailRecord | null> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return readQuoteByIdFromStore(quoteId);
   }
 
@@ -370,7 +375,7 @@ export async function createQuoteRecord(
   studioId: string,
   input: QuoteInput,
 ): Promise<QuoteDetailRecord> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return createQuoteInStore(studioId, input);
   }
 
@@ -417,7 +422,7 @@ export async function updateQuoteRecord(
   quoteId: string,
   input: QuoteInput,
 ): Promise<QuoteDetailRecord | null> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return updateQuoteInStore(studioId, quoteId, input);
   }
 
@@ -484,7 +489,7 @@ export async function setQuoteGeneratedAt(
   quoteId: string,
   generatedAt: Date,
 ): Promise<void> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     setQuoteGeneratedAtInStore(quoteId, generatedAt.toISOString());
     return;
   }
@@ -508,7 +513,7 @@ export async function updateQuoteStatus(
   quoteId: string,
   status: QuoteStatus,
 ): Promise<QuoteDetailRecord | null> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return setQuoteStatusInStore(quoteId, status);
   }
 
@@ -533,7 +538,7 @@ export async function setQuoteEstimateBreakdownSnapshot(
   quoteId: string,
   estimateBreakdown: EstimateBreakdownPayload | null,
 ): Promise<void> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     setQuoteEstimateBreakdownInStore(quoteId, estimateBreakdown);
     return;
   }
@@ -562,7 +567,7 @@ export async function saveQuoteSections(
   studioId: string,
   sections: QuoteSectionRecord[],
 ): Promise<void> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     writeQuoteSectionsToStore(quoteId, sections);
     return;
   }
@@ -620,7 +625,7 @@ export async function createQuoteRevision(
   quoteId: string,
   studioId: string,
 ): Promise<QuoteRevisionRecord | null> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return createQuoteRevisionInStore(quoteId, studioId);
   }
 
@@ -686,7 +691,7 @@ export async function listQuoteRevisions(
   quoteId: string,
   studioId: string,
 ): Promise<QuoteRevisionRecord[]> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return listQuoteRevisionsFromStore(quoteId, studioId);
   }
 
@@ -722,7 +727,7 @@ export async function listQuoteRevisionsByQuoteIds(
     return new Map();
   }
 
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return listQuoteRevisionsByQuoteIdsFromStore(quoteIds, studioId);
   }
 
@@ -757,7 +762,7 @@ export async function listQuoteRevisionsByQuoteIds(
 }
 
 export async function deleteQuoteSections(quoteId: string): Promise<void> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     deleteQuoteSectionsFromStore(quoteId);
     return;
   }
@@ -794,7 +799,7 @@ export async function loadQuoteSectionsFromStore(
 export async function loadQuoteSectionsForEditing(
   quoteId: string,
 ): Promise<QuoteSectionRecord[]> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return loadQuoteSectionsFromStore(quoteId);
   }
 
@@ -812,7 +817,7 @@ export async function loadQuoteSectionsForEditing(
 export async function updateQuoteTimestamp(
   quoteId: string,
 ): Promise<void> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     touchQuoteInStore(quoteId);
     return;
   }

@@ -9,6 +9,7 @@ import type {
   InvoiceRecord,
   InvoiceStatus,
 } from "@/features/invoices/types";
+import { isDatabaseConfiguredForRuntime } from "@/server/db/get-database-url";
 import {
   mapInvoiceRowToRecord,
   mapInvoiceToDetail,
@@ -82,7 +83,7 @@ type ClientRow = {
 };
 
 function isDatabaseConfigured() {
-  return Boolean(env.DATABASE_URL);
+  return isDatabaseConfiguredForRuntime(env);
 }
 
 function generateInvoiceNumber(): string {

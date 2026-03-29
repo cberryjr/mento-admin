@@ -53,6 +53,17 @@ describe("StudioDefaultsForm", () => {
     expect(screen.getByRole("button", { name: "Save defaults" })).toBeVisible();
   });
 
+  it("uses readable text and focus styling on form controls", () => {
+    render(<StudioDefaultsForm initialValues={null} submitAction={async () => successAction()} />);
+
+    expect(screen.getByLabelText("Studio name")).toHaveClass("text-zinc-900");
+    expect(screen.getByLabelText("Studio name")).toHaveClass("focus-visible:outline-zinc-900");
+    expect(screen.getByLabelText("Default quote terms")).toHaveClass("text-zinc-900");
+    expect(screen.getByLabelText("Default quote terms")).toHaveClass(
+      "focus-visible:outline-zinc-900",
+    );
+  });
+
   it("shows success message after successful save", async () => {
     render(
       <StudioDefaultsForm initialValues={MOCK_RECORD} submitAction={async () => successAction()} />,

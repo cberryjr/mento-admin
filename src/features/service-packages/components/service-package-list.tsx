@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { EmptyState } from "@/components/feedback/empty-state";
+import { Input } from "@/components/ui/input";
 import type { ServicePackageSummary } from "@/features/service-packages/types";
 import { formatDate } from "@/lib/format/dates";
 
@@ -12,9 +13,6 @@ type ServicePackageListProps = {
   action?: ReactNode;
   initialQuery?: string;
 };
-
-const SEARCH_FIELD_CLASS_NAME =
-  "w-full rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900";
 
 const ACTION_CLASS_NAME =
   "inline-flex rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900";
@@ -118,12 +116,11 @@ export function ServicePackageList({
           >
             Search service packages
           </label>
-          <input
+          <Input
             id="service-package-search"
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            className={SEARCH_FIELD_CLASS_NAME}
             placeholder="Search by name, category, price, or summary"
           />
         </div>

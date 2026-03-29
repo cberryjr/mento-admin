@@ -15,6 +15,7 @@ import {
   type ServicePackageRecord,
   type ServicePackageSectionRecord,
 } from "@/features/service-packages/types";
+import { isDatabaseConfiguredForRuntime } from "@/server/db/get-database-url";
 import {
   __resetServicePackagesStore as resetServicePackagesStore,
   createServicePackageInStore,
@@ -22,6 +23,10 @@ import {
   readServicePackagesFromStore,
   updateServicePackageInStore,
 } from "@/features/service-packages/server/store/service-packages-store";
+
+function isDatabaseConfigured() {
+  return isDatabaseConfiguredForRuntime(env);
+}
 
 type ServicePackageRow = {
   id: string;
@@ -415,7 +420,7 @@ async function loadServicePackageRows(servicePackageId: string) {
 export async function listServicePackagesForStudio(
   studioId: string,
 ): Promise<ServicePackageRecord[]> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return sortServicePackages(readServicePackagesFromStore(studioId));
   }
 
@@ -440,7 +445,7 @@ export async function listServicePackagesForStudio(
 export async function getServicePackageById(
   servicePackageId: string,
 ): Promise<ServicePackageDetailRecord | null> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return readServicePackageByIdFromStore(servicePackageId);
   }
 
@@ -494,7 +499,7 @@ export async function createServicePackageRecord(
   studioId: string,
   input: ServicePackageInput,
 ): Promise<ServicePackageDetailRecord> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return createServicePackageInStore(studioId, input);
   }
 
@@ -541,7 +546,7 @@ export async function updateServicePackageRecord(
   servicePackageId: string,
   input: ServicePackageInput,
 ): Promise<ServicePackageDetailRecord | null> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return updateServicePackageInStore(studioId, servicePackageId, input);
   }
 

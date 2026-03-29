@@ -4,6 +4,7 @@ import { asc, eq } from "drizzle-orm";
 
 import { env } from "@/lib/env";
 import type { ClientDetailRecord, ClientInput, ClientRecord } from "@/features/clients/types";
+import { isDatabaseConfiguredForRuntime } from "@/server/db/get-database-url";
 import {
   __resetClientsStore as resetClientsStore,
   createClientInStore,
@@ -14,6 +15,10 @@ import {
   readQuoteSummariesForClientFromStore,
   updateClientInStore,
 } from "@/features/clients/server/store/clients-store";
+
+function isDatabaseConfigured() {
+  return isDatabaseConfiguredForRuntime(env);
+}
 
 type ClientRow = {
   id: string;
@@ -54,7 +59,7 @@ function sortClients(clients: ClientRecord[]) {
 }
 
 export async function listClientsForStudio(studioId: string): Promise<ClientRecord[]> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return sortClients(readClientsFromStore(studioId));
   }
 
@@ -77,7 +82,7 @@ export async function listClientsForStudio(studioId: string): Promise<ClientReco
 }
 
 export async function getClientById(clientId: string): Promise<ClientRecord | null> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return readClientByIdFromStore(clientId);
   }
 
@@ -100,7 +105,7 @@ export async function getClientByIdForStudio(
   studioId: string,
   clientId: string,
 ): Promise<ClientRecord | null> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return readClientFromStore(studioId, clientId);
   }
 
@@ -128,11 +133,76 @@ export async function buildClientDetailRecord(
   studioId: string,
   client: ClientRecord,
 ): Promise<ClientDetailRecord> {
-  // NOTE: Related quote and invoice records are read from the in-memory fixture
-  // store because quote and invoice database schemas do not yet exist.
-  // TODO: Replace readQuoteSummariesForClientFromStore /
-  //   readInvoiceSummariesForClientFromStore with studio-scoped DB queries
-  //   once those tables are migrated (guarded with env.DATABASE_URL).
+  if (isDatabaseConfigured()) {
+    try {
+      const [{ db }, { and, asc, desc, eq }, quoteSchema, invoiceSchema] = await Promise.all([
+        import("@/server/db"),
+        import("drizzle-orm"),
+        import("@/server/db/schema/quotes"),
+        import("@/server/db/schema/invoices"),
+      ]);
+
+      const [quoteRows, invoiceRows] = await Promise.all([
+        db
+          .select({
+            id: quoteSchema.quotes.id,
+            quoteNumber: quoteSchema.quotes.quoteNumber,
+            title: quoteSchema.quotes.title,
+            status: quoteSchema.quotes.status,
+            updatedAt: quoteSchema.quotes.updatedAt,
+          })
+          .from(quoteSchema.quotes)
+          .where(
+            and(
+              eq(quoteSchema.quotes.studioId, studioId),
+              eq(quoteSchema.quotes.clientId, client.id),
+            ),
+          )
+          .orderBy(desc(quoteSchema.quotes.updatedAt), asc(quoteSchema.quotes.title)),
+        db
+          .select({
+            id: invoiceSchema.invoices.id,
+            invoiceNumber: invoiceSchema.invoices.invoiceNumber,
+            title: invoiceSchema.invoices.title,
+            status: invoiceSchema.invoices.status,
+            updatedAt: invoiceSchema.invoices.updatedAt,
+          })
+          .from(invoiceSchema.invoices)
+          .where(
+            and(
+              eq(invoiceSchema.invoices.studioId, studioId),
+              eq(invoiceSchema.invoices.clientId, client.id),
+            ),
+          )
+          .orderBy(desc(invoiceSchema.invoices.updatedAt), asc(invoiceSchema.invoices.title)),
+      ]);
+
+      return {
+        client,
+        relatedQuotes: quoteRows.map((row) => ({
+          id: row.id,
+          quoteNumber: row.quoteNumber,
+          title: row.title,
+          status: row.status as ClientDetailRecord["relatedQuotes"][number]["status"],
+          updatedAt: row.updatedAt.toISOString(),
+        })),
+        relatedInvoices: invoiceRows.map((row) => ({
+          id: row.id,
+          invoiceNumber: row.invoiceNumber,
+          title: row.title,
+          status: row.status as ClientDetailRecord["relatedInvoices"][number]["status"],
+          updatedAt: row.updatedAt.toISOString(),
+        })),
+      };
+    } catch {
+      return {
+        client,
+        relatedQuotes: readQuoteSummariesForClientFromStore(studioId, client.id),
+        relatedInvoices: readInvoiceSummariesForClientFromStore(studioId, client.id),
+      };
+    }
+  }
+
   return {
     client,
     relatedQuotes: readQuoteSummariesForClientFromStore(studioId, client.id),
@@ -144,7 +214,7 @@ export async function createClientRecord(
   studioId: string,
   input: ClientInput,
 ): Promise<ClientRecord> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     return createClientInStore(studioId, input);
   }
 
@@ -178,7 +248,7 @@ export async function updateClientRecord(
   clientId: string,
   input: ClientInput,
 ): Promise<ClientRecord | null> {
-  if (!env.DATABASE_URL) {
+  if (!isDatabaseConfigured()) {
     // Store enforces studio ownership internally via existing client lookup.
     return updateClientInStore(clientId, input);
   }

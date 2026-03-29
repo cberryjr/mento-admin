@@ -4,6 +4,8 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import type { ActionResult } from "@/lib/validation/action-result";
 import type { QuoteDetailRecord } from "@/features/quotes/types";
 import type { CreateQuoteSchemaInput } from "@/features/quotes/schemas/create-quote-schema";
@@ -25,12 +27,6 @@ type QuoteSetupFormProps = {
 };
 
 type SetupStage = "client" | "packages";
-
-const FIELD_CLASS_NAME =
-  "w-full rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900";
-
-const SEARCH_FIELD_CLASS_NAME =
-  "w-full rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900";
 
 function StatusNotice({ tone, title, message }: QuoteSetupFormNotice) {
   const styles =
@@ -306,10 +302,9 @@ export function QuoteSetupForm({
             >
               Quote title
             </label>
-            <input
+            <Input
               id="title"
               type="text"
-              className={FIELD_CLASS_NAME}
               value={title}
               onChange={(e) => {
                 setTitle(e.target.value);
@@ -356,10 +351,9 @@ export function QuoteSetupForm({
                 >
                   Search packages
                 </label>
-                <input
+                <Input
                   id="package-search"
                   type="search"
-                  className={SEARCH_FIELD_CLASS_NAME}
                   value={packageSearch}
                   onChange={(e) => setPackageSearch(e.target.value)}
                   placeholder="Search by name, category, or summary"
@@ -439,10 +433,9 @@ export function QuoteSetupForm({
             >
               Terms (optional)
             </label>
-            <textarea
+            <Textarea
               id="terms"
               rows={3}
-              className={FIELD_CLASS_NAME}
               value={terms}
               onChange={(e) => setTerms(e.target.value)}
               placeholder="Default quote terms or notes"

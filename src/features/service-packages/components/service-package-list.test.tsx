@@ -111,6 +111,10 @@ describe("ServicePackageList", () => {
     render(<ServicePackageList servicePackages={SERVICE_PACKAGES} />);
 
     expect(screen.getByLabelText("Search service packages")).toBeVisible();
+    expect(screen.getByLabelText("Search service packages")).toHaveClass("text-zinc-900");
+    expect(screen.getByLabelText("Search service packages")).toHaveClass(
+      "focus-visible:outline-zinc-900",
+    );
     expect(screen.getByRole("link", { name: /brand launch package/i })).toHaveClass(
       "focus-visible:outline-2",
       "focus-visible:outline-offset-2",

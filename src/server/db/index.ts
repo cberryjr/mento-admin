@@ -2,14 +2,11 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
 import { env } from "@/lib/env";
+import { getDatabaseUrlForRuntime } from "@/server/db/get-database-url";
 
-if (!env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL is required to initialize the database client.",
-  );
-}
+const databaseUrl = getDatabaseUrlForRuntime(env);
 
-const client = postgres(env.DATABASE_URL, {
+const client = postgres(databaseUrl, {
   max: 1,
   prepare: false,
 });
